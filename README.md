@@ -16,6 +16,8 @@ Jeżeli każdy inteligentny i przedsiębiorczy człowiek zacznie indywidualnie i
 
 Jeśli chcemy konstruktywnie i mądrze wykorzystać tę potężną siłę, automatyzację i sztuczną inteligencję, musimy **wspólnie zaplanować i wdrożyć procesy, które zadziałają z korzyścią dla ogółu społeczeństwa**. Właśnie po to gromadzimy się w jednej inicjatywie – by nie rozpraszać potencjału na rywalizację rynkową maszyn, lecz połączyć siły i wygospodarować realne zasoby na WSPÓLNE DOBRO.
 
+**Nasza szansa historyczna:** Potencjał generatywnej sztucznej inteligencji sam z siebie jest potężny, ale połączony ze zjednoczonym ludzkim intelektem tworzy siłę bez precedensu. Obecnie w globalnym wyścigu inne państwa i kraje skupiają się głównie na budowaniu coraz potężniejszych modeli (LLM) lub wyścigu o moc obliczeniową (hardware). **Polska może osiągnąć pozycję globalnego lidera nie przez budowę modelu, ale przez jego *inteligentne i celowe wykorzystanie***. Jeśli skonsolidujemy nasz zasób – intelekt polskich specjalistów – do wspólnego, zoptymalizowanego projektowania i produkcji dóbr (skalowalnej automatyzacji), mamy szansę odnieść gigantyczny sukces gospodarczy w nowej erze.
+
 ## Tryb działania i proces twórczy
 
 Nasze działanie opiera się na prostym założeniu — **intelekt wyprzedza kapitał**:
@@ -27,6 +29,8 @@ Nasze działanie opiera się na prostym założeniu — **intelekt wyprzedza kap
 3. **Krystalizacja genialnych idei** – cały proces opiera się o bezwarunkowy intelekt i pracę merytoryczną, z pełnym skupieniem nad tym, aby wyłuskać spójne, genialne koncepcję np. zautomatyzowana produkcja rybna???
 
 4. **Kapitał w służbie idei** – środki finansowe będą gromadzone, jednak zostaną uruchomione **dopiero na końcu**, kiedy genialny pomysł będzie gotowy do konkretnej realizacji. 
+
+5. **Opiekunowie Projektu (Nobilitacja)** – w miarę rozwoju inicjatywy, do jej struktury będą wybierani opiekunowie poszczególnych składowych lub całych wyodrębnionych projektów. Będą oni wyłaniani wyłącznie spośród najbardziej zaangażowanych twórców, którzy mogą wykazać się największą pracą i realnymi dokonaniami na rzecz repozytorium. Zarówno wybór na tę funkcję, jak i samo jej pełnienie, będzie dla powierzonych osób najwyższym wyrazem uznania i nobilitacją. Wspólnie tworzymy przestrzeń, w której liczą się wyłącznie dokonania, kompetencje i idea, a bycie liderem to zaszczyt.
 
 **Najważniejsze w tworzeniu NARODOWYCH SIŁ INTELEKTUALNYCH nie są pieniądze na start, lecz bezcenny, realny wysiłek intelektualny.**
 

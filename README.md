@@ -13,6 +13,7 @@ Inicjatywa ma charakter całkowicie oddolny: nie jest zależna od żadnych struk
 ## Główne osie rozwoju i obszary działań AI
 Aby realnie odpowiedzieć na najpilniejsze problemy gospodarcze i społeczne, nasza uwaga i moc obliczeniowa będą początkowo skupione na najważniejszych systemach podtrzymujących państwo:
 1. **Żywność:** Automatyzacja, robotyzacja i optymalizacja produkcji rolno-spożywczej (np. inteligentna produkcja i dystrybucja, która obniża koszty wyżywienia społeczeństwa).
+   *   *Inspiracje:* [Inteligentna Akwakultura](PROJEKTY/01_inteligentna_akwakultura.md), [Wirtualne Ogrodzenia](PROJEKTY/02_wirtualne_ogrodzenia.md), [Monitoring Porodów z Edge AI](PROJEKTY/03_ai_monitoring_porodow.md).
 2. **Medycyna:** Zastosowanie AI w diagnostyce, telemedycynie, wynajdywaniu terapii oraz w logistyce ochrony zdrowia, podnosząc skuteczność i dostępność dla każdego obywatela.
 3. **Energia:** Opracowanie systemów planowania, magazynowania i dystrybucji zielonej oraz konwencjonalnej energii, by zminimalizować jej straty i zoptymalizować gospodarkę sieciową.
 4. **Optymalizacja zużycia zasobów strategicznych:** Racjonalne, poparte zaawansowaną analizą danych, zarządzanie wodą, surowcami i ziemią, eliminujące gospodarkę rabunkową.
@@ -43,9 +44,18 @@ Nasze działanie opiera się na prostym założeniu — **intelekt wyprzedza kap
 
 3. **Krystalizacja genialnych idei** – cały proces opiera się o bezwarunkowy intelekt i pracę merytoryczną. Specjaliści tworzą niezwykle precyzyjne projekty technologiczne (np. zautomatyzowana produkcja żywności/aquaponika), które są fundamentem pod dalszą realizację.
 
-4. **Kapitał w służbie idei i samonapędzająca się gospodarka** – przy minimalnych nakładach uruchamiana jest produkcja maksymalnie autonomiczna, sterowana przez AI i zasilana z odnawialnych źródeł energii (OZE). Wygenerowany produkt i zysk wracają do systemu, napędzając dalszy rozwój i skalowanie projektów. Docelowym punktem tego modelu jest stworzenie samowystarczalnej gospodarki technologicznej, która pozwoli na finansowanie **Dochodu Gwarantowanego (UBI)**.
+4. **Kapitał w służbie idei i samonapędzająca się gospodarka** – przy minimalnych nakładach uruchamiana jest produkcja maksymalnie autonomiczna, sterowana przez AI i zasilana z odnawialnych źródeł energii (OZE). Wygenerowany produkt i zysk wracają do systemu, napędzając dalszy rozwój i skalowanie projektów. Docelowym punktem tego modelu jest stworzenie samowystarczalnej gospodarki technologicznej, która pozwoli na finansowanie **Dochodu Gwarantowanego (UBI)**. *Przykład finansowania:* [Upcykling LED TV na Solarne Okna](PROJEKTY/04_lampa_z_recyklingu_tv.md).
 
 5. **Opiekunowie Projektu (Nobilitacja)** – w miarę rozwoju inicjatywy, do jej struktury będą wybierani opiekunowie poszczególnych składowych lub całych wyodrębnionych projektów. Będą oni wyłaniani wyłącznie spośród najbardziej zaangażowanych twórców, którzy mogą wykazać się największą pracą i realnymi dokonaniami na rzecz repozytorium. Zarówno wybór na tę funkcję, jak i samo jej pełnienie, będzie dla powierzonych osób najwyższym wyrazem uznania i nobilitacją. Wspólnie tworzymy przestrzeń, w której liczą się wyłącznie dokonania, kompetencje i idea, a bycie liderem to zaszczyt.
+
+## Projekty Pilotażowe i Inspiracje
+
+W celu krystalizacji naszych idei, gromadzimy przykłady technologii i rozwiązań, które mogą zostać wdrożone w modelu Open-Source przez Narodowe Siły Intelektualne:
+
+*   **[01. Inteligentna Akwakultura](PROJEKTY/01_inteligentna_akwakultura.md)** – Autonomiczne węzły produkcji ryb oparte na IoT i AI.
+*   **[02. Wirtualne Ogrodzenia](PROJEKTY/02_wirtualne_ogrodzenia.md)** – Cyfrowy wypas zwierząt bez fizycznej infrastruktury.
+*   **[03. Edge AI w Pasterstwie](PROJEKTY/03_ai_monitoring_porodow.md)** – Lokalna analityka obrazu wspierająca hodowców w trudnych warunkach.
+*   **[04. Solarne Okna z Recyklingu TV](PROJEKTY/04_lampa_z_recyklingu_tv.md)** – Upcykling elektrośmieci jako źródło darmowego światła i kapitału.
 
 **Najważniejsze w tworzeniu NARODOWYCH SIŁ INTELEKTUALNYCH nie są pieniądze na start, lecz bezcenny, realny wysiłek intelektualny.**
 
@@ -61,4 +71,4 @@ Niezależnie od tego, jakie posiadasz kompetencje – techniczne, analityczne cz
 
 *(Strona internetowa inicjatywy już w trakcie przygotowywania - wkrótce udostępnimy więcej szczegółów!)*
 
-https://github.com/KrzyZuch/POLSKIEAi
+https://github.com/KrzyZuch/STRAZ_PRZYSZLOSCI

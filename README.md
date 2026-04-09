@@ -16,7 +16,9 @@ Aby realnie odpowiedzieć na najpilniejsze problemy gospodarcze i społeczne, na
    *   *Inspiracje:* [Inteligentna Akwakultura](PROJEKTY/01_inteligentna_akwakultura.md), [Wirtualne Ogrodzenia](PROJEKTY/02_wirtualne_ogrodzenia.md), [Monitoring Porodów z Edge AI](PROJEKTY/03_ai_monitoring_porodow.md).
 2. **Medycyna:** Zastosowanie AI w diagnostyce, telemedycynie, wynajdywaniu terapii oraz w logistyce ochrony zdrowia, podnosząc skuteczność i dostępność dla każdego obywatela.
 3. **Energia:** Opracowanie systemów planowania, magazynowania i dystrybucji zielonej oraz konwencjonalnej energii, by zminimalizować jej straty i zoptymalizować gospodarkę sieciową.
+   *   *Inspiracje:* [Laserowy Recykling Paneli PV](PROJEKTY/05_recykling_pv_laserem.md).
 4. **Optymalizacja zużycia zasobów strategicznych:** Racjonalne, poparte zaawansowaną analizą danych, zarządzanie wodą, surowcami i ziemią, eliminujące gospodarkę rabunkową.
+   *   *Inspiracje:* [Laserowy Recykling Paneli PV](PROJEKTY/05_recykling_pv_laserem.md), [Upcykling LED TV](PROJEKTY/04_lampa_z_recyklingu_tv.md).
 5. **Logistyka i transport:** Wykorzystanie AI do inteligentnego zarządzania łańcuchami dostaw, trasami przesyłowymi i komunikacją zbiorową w celu minimalizacji czasu, kosztów i śladu węglowego.
 6. **Finanse (Fundusze):** Pozyskiwanie środków strategicznych, inteligentny wybór programów grantowych i inwestycji dla nowo powstających projektów.
 
@@ -56,6 +58,7 @@ W celu krystalizacji naszych idei, gromadzimy przykłady technologii i rozwiąza
 *   **[02. Wirtualne Ogrodzenia](PROJEKTY/02_wirtualne_ogrodzenia.md)** – Cyfrowy wypas zwierząt bez fizycznej infrastruktury.
 *   **[03. Edge AI w Pasterstwie](PROJEKTY/03_ai_monitoring_porodow.md)** – Lokalna analityka obrazu wspierająca hodowców w trudnych warunkach.
 *   **[04. Solarne Okna z Recyklingu TV](PROJEKTY/04_lampa_z_recyklingu_tv.md)** – Upcykling elektrośmieci jako źródło darmowego światła i kapitału.
+*   **[05. Laserowy Recykling Paneli PV](PROJEKTY/05_recykling_pv_laserem.md)** – Zaawansowany odzysk ogniw krzemowych przy użyciu technologii CNC.
 
 **Najważniejsze w tworzeniu NARODOWYCH SIŁ INTELEKTUALNYCH nie są pieniądze na start, lecz bezcenny, realny wysiłek intelektualny.**
 

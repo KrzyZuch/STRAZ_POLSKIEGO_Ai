@@ -21,6 +21,10 @@ Skuteczność procesu zależy od kilku czynników:
 ## Wizja Straży Przyszłości
 Dążymy do zaprojektowania i udostępnienia planów takiej maszyny CNC w modelu **Open-Source**. Chcemy, aby technologia wysokowydajnego recyklingu była dostępna dla każdego polskiego inżyniera, zapobiegając uzależnieniu od zamkniętych patentów i budując realną gospodarkę obiegu zamkniętego.
 
+> [!TIP]
+> Więcej szczegółów technicznych, statystyk odzysku oraz porównań z innymi metodami znajdziesz w dokumencie:
+> **[Analiza Techniczna: Delaminacja Laserowa](05_recykling_pv_szczegoly_techniczne.md)**
+
 ## Inspiracje i materiały badawcze:
 - [Wideo: Nowoczesny recykling PV laserem](https://www.youtube.com/watch?v=0J8GVWQQnVk)
 - [Badania: Odzysk czystego krzemu z modułów PV (Politechnika Gdańska)](https://pg.edu.pl/aktualnosci/2022-10/odzyskuja-czysty-krzem-z-modulow-fotowoltaicznych-sprawdza-czy-mozna-robic)

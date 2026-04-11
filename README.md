@@ -65,6 +65,7 @@ W celu krystalizacji naszych idei, gromadzimy przykłady technologii i rozwiąza
 *   **[06. Smartfony jako Sterowniki](PROJEKTY/06_smartfony_jako_sterowniki.md)** – Wykorzystanie starej elektroniki jako potężnych węzłów sterujących (Edge Computing). Zobacz również: [08. Autonomiczne Maszyny Rolnicze (OpenBot)](PROJEKTY/08_openbot_autonomiczne_maszyny_rolnicze.md).
 *   **[07. Uniwersalna Platforma Sterowania](PROJEKTY/07_uniwersalna_platforma_sterowania.md)** – Przykład pozyskiwania zaawansowanego kodu (PhoneUAV) jako strategicznego zasobu intelektualnego NSI.
 *   **[08. Autonomiczne Maszyny Rolnicze (OpenBot)](PROJEKTY/08_openbot_autonomiczne_maszyny_rolnicze.md)** – Smartfon jako mózg robota AI: nawigacja w czasie rzeczywistym i autonomia maszyn.
+*   **[09. Monitoring IoT i Akcelerometria](PROJEKTY/09_monitoring_iot_livestock.md)** – Inteligentna obroża AI (Smart Health Tracker) z wykorzystaniem czujników smartfona.
 
 **Najważniejsze w tworzeniu NARODOWYCH SIŁ INTELEKTUALNYCH nie są pieniądze na start, lecz bezcenny, realny wysiłek intelektualny.**
 
@@ -74,7 +75,15 @@ Szukamy specjalistów z zakresu marketingu, PR i budowania społeczności, któr
 
 ## Jak dołączyć i pomagać (Instrukcja dla twórców i współpracowników)
 
-Niezależnie od tego, jakie posiadasz kompetencje – techniczne, analityczne czy organizacyjne – wsparcie każdego z Was jest kluczowe. Przygotowaliśmy **[Zasady współpracy i instrukcję obsługi Git (CONTRIBUTING.md)](CONTRIBUTING.md)**, w której znajdziesz przystępny poradnik m.in. jak zgłaszać swoje pomysły oraz jak pobierać repozytorium i przesyłać modyfikacje kodu lub tekstów.
+Niezależnie od tego, jakie posiadasz kompetencje – techniczne, analityczne czy organizacyjne – wsparcie każdego z Was jest kluczowe. 
+
+> [!NOTE]
+> **System błyskawicznego onboardingu jest w przygotowaniu.** Docelowo będzie on dostępny na zewnętrznej platformie, która na podstawie Twoich pasji i zasobów skieruje Cię precyzyjnie do odpowiednich obszarów tego repozytorium.
+
+> [!IMPORTANT]
+> **Masz pomysł? Pytanie? Chcesz dołączyć?** Nie szukaj maila – wejdź prosto w **[ZAKŁADKĘ ISSUES](https://github.com/StrazPrzyszlosci/STRAZ_PRZYSZLOSCI/issues)**. Chcemy, żeby tam roiło się jak w ulu! Każda myśl, analiza czy pytanie to cenny wkład w Narodowe Siły Intelektualne.
+
+Jeśli chcesz już teraz otrzymać zadanie dopasowane do Twoich pasji, wypełnij naszą **[Ankietę Kompetencyjną (REKRUTACJA_ANKIETA.md)](REKRUTACJA_ANKIETA.md)**. Przygotowaliśmy również **[Zasady współpracy i instrukcję obsługi Git (CONTRIBUTING.md)](CONTRIBUTING.md)**, w której znajdziesz przystępny poradnik m.in. jak zgłaszać swoje pomysły.
 
 **Dołącz, jeśli chcesz współtworzyć przyszłość Polskiej Gospodarki!**
 
@@ -89,4 +98,4 @@ Nasza inicjatywa jest obecna w mediach społecznościowych, gdzie publikujemy ma
 *   **Facebook:** [straz.przyszlosci](https://www.facebook.com/straz.przyszlosci/)
 *   **YouTube:** [@StrazPrzyszlosci](https://www.youtube.com/@StrazPrzyszlosci)
 
-https://github.com/KrzyZuch/STRAZ_PRZYSZLOSCI
+https://github.com/StrazPrzyszlosci/STRAZ_PRZYSZLOSCI

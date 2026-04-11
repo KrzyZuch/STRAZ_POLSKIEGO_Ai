@@ -28,7 +28,7 @@ Dążymy do stworzenia narodowego frameworku, który pozwoli na masowe wykorzyst
 
 ## Inspiracje:
 - [Wideo: Smartfon potężniejszy niż Arduino](https://www.youtube.com/watch?v=iobvVl8jZ5o)
-- [Projekt "Stary smartfon jako mikrokontroler"](https://github.com/KrzyZuch/STRAZ_PRZYSZLOSCI/)
+- [Projekt "Stary smartfon jako mikrokontroler"](https://github.com/StrazPrzyszlosci/STRAZ_PRZYSZLOSCI/)
 
 ---
 ### Deep-Dive Techniczny:

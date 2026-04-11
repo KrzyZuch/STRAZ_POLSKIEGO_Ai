@@ -9,24 +9,27 @@ Niezależnie od tego, czy pracujesz w IT, analizie danych, marketingu, czy zajmu
 Nawet jeśli nie potrafisz programować, możesz aktywnie uczestniczyć w *"Burzy mózgów, analizie i planowaniu"*! 
 
 **Jak to zrobić?**
-1. Otwórz zakładkę **Issues** (Problemy/Zgłoszenia) w głównym menu repozytorium na GitHubie.
-2. Przejrzyj otwarte tematy. Jeśli widzisz coś, na czym się znasz – zostaw komentarz.
-3. Jeśli masz nową, autonomiczną propozycję (np. nowy moduł produkcyjny, pomysł na pozyskanie finansowania społecznego) – kliknij **"New Issue"** i opisz swój pomysł najdokładniej jak potrafisz.
+1. Otwórz zakładkę **Issues** (Problemy/Zgłoszenia) w głównym menu repozytorium. **To serce naszego projektu – tutaj ma się roić jak w ulu!**
+2. Masz pytanie? Pomysł? Widzisz błąd? **Wal śmiało do Issues!**
+3. Przejrzyj otwarte tematy. Jeśli widzisz coś, na czym się znasz – zostaw komentarz. Twoja opinia jest częścią### Co jeśli nie widzisz zadania dla siebie?
+Repozytorium ma być żywym organizmem. Jeśli masz pytanie, genialny pomysł lub po prostu chcesz się przywitać i zapytać, gdzie możesz się przydać:
+1. Kliknij **"New Issue"**.
+2. **Wal śmiało z każdym pytaniem i pomysłem!** Chcemy, żeby w sekcji Issues roiło się od pytań, burzy mózgów i technicznych dyskusji.
+3. Koordynatorzy i inni pasjonaci odpowiedzą Ci błyskawicznie, dopasowując zadanie do Twojego unikalnego potencjału.
 
-## 2. Podstawy Git i GitHuba (Zgłaszanie kodu i tekstów)
-
-Jeśli chcesz wnieść wkład bezpośrednio do plików w repozytorium (np. dodać kod, artykuł, instrukcję), postępuj zgodnie z modelem współtworzenia open source (tzw. "Fork & Pull Request").
+---
+ dodać kod, artykuł, instrukcję), postępuj zgodnie z modelem współtworzenia open source (tzw. "Fork & Pull Request").
 
 ### Krok po kroku: Jak to zrobić?
 
 #### A. Stworzenie własnej kopii (Fork)
-Wejdź na stronę naszego repozytorium: https://github.com/KrzyZuch/POLSKIEAi i w prawym górnym rogu kliknij przycisk **"Fork"**. Zostanie utworzona kopia tego projektu na Twoim własnym koncie GitHub.
+Wejdź na stronę naszego repozytorium: https://github.com/StrazPrzyszlosci/STRAZ_PRZYSZLOSCI i w prawym górnym rogu kliknij przycisk **"Fork"**. Zostanie utworzona kopia tego projektu na Twoim własnym koncie GitHub.
 
 #### B. Pobranie plików na swój komputer (Clone)
 Otwórz terminal (konsolę) na swoim komputerze i wpisz:
 ```bash
-git clone https://github.com/TWOJA_NAZWA_UZYTKOWNIKA/POLSKIEAi.git
-cd POLSKIEAi
+git clone https://github.com/TWOJA_NAZWA_UZYTKOWNIKA/STRAZ_PRZYSZLOSCI.git
+cd STRAZ_PRZYSZLOSCI
 ```
 
 #### C. Tworzenie gałęzi dla nowej funkcji (Branch)
@@ -59,6 +62,16 @@ git push origin nazwa-twojego-pomyslu
 * **Intelekt ponad wszystko:** Zanim napiszesz komentarz lub kod, dobrze przemyśl jego cel. Wspólnie poszukujemy logiki i precyzji.
 * **Nazewnictwo:** Nazywaj gałęzie i commity jasno, określając, co one robią (np. `dodanie-skryptu-analizy-rynku`).
 * **Zademonstruj rozwiązanie:** Jeśli znajdziesz w kodzie problem, w miarę możliwości zaproponuj od razu rozwiązanie.
+
+## 4. SZYBKI START (Fast Track) - Nie czekaj na akceptację!
+
+Jeśli chcesz zacząć DZISIAJ:
+1. Przejdź do **[Ankiety Kompetencyjnej (REKRUTACJA_ANKIETA.md)](REKRUTACJA_ANKIETA.md)**.
+2. Wybierz jedną z **"Szybkich Ścieżek"** (sekcja na końcu ankiety).
+3. Wykonaj zadanie (np. research, poprawka w markdown, mały skrypt).
+4. Prześlij Pull Request zgodnie z instrukcją powyżej.
+
+To najlepszy sposób, abyśmy Cię zauważyli i od razu włączyli do strategicznych prac.
 
 ---
 

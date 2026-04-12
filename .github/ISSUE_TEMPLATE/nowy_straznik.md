@@ -35,6 +35,7 @@ assignees: ""
 - ile czasu tygodniowo możesz realnie przeznaczyć:
 - jaki sprzęt lub zasoby masz do dyspozycji:
 - czy masz dostęp do stawu, gospodarstwa, czujników albo starych smartfonów:
+- czy wchodzisz bez własnego hardware i chcesz zacząć przez architekturę danych, API, dokumentację albo adaptację gotowego kodu:
 
 ## Preferowany rodzaj wkładu
 
@@ -44,9 +45,11 @@ assignees: ""
 - [ ] chcę analizować dane albo modele
 - [ ] chcę pomagać w onboardingu i społeczności
 - [ ] chcę docelowo zostać providerem danych
+- [ ] nie mam własnego sprzętu i chcę wejść przez architekturę danych / API / adaptację gotowego kodu
 
 ## Rekomendowana ścieżka lub własny pomysł
 
+- jeśli korzystasz z rekomendatora na stronie, możesz wkleić tutaj gotowy tekst skopiowany z wyniku:
 - jeśli strona zewnętrzna poleciła Ci konkretną ścieżkę, wpisz ją tutaj:
 - jeśli masz już własny pomysł na pierwszy wkład, opisz go tutaj:
 

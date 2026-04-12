@@ -37,6 +37,10 @@ Minimalne dane wejściowe dla rekomendatora:
 - dostępne zasoby, na przykład stary smartfon, ESP32, czujniki, kamera, wiedza domenowa,
 - preferowany rodzaj wkładu: kod, hardware, dokumentacja, analiza, marketing, badania, provider danych.
 
+Warto przy tym jasno komunikować, że brak własnego urządzenia pomiarowego nie wyklucza realnego wejścia do projektu. Jeżeli dane są dostarczane przez providerów i społeczność przez wspólne API, nowy Strażnik może od początku wejść w architekturę danych, adaptery, analizę, dokumentację i budowę bazy wiedzy. Przykład takiego modelu opisuje dokument:
+
+- [Przykłady Gotowego Kodu i Otwartych Wzorców](PRZYKLADY_GOTOWEGO_KODU.md)
+
 Minimalne dane wyjściowe rekomendatora:
 
 - rekomendowana ścieżka wejścia,

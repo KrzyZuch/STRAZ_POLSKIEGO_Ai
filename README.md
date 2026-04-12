@@ -94,6 +94,7 @@ Jeśli chcesz już teraz otrzymać zadanie dopasowane do Twoich pasji, wypełnij
 Jeżeli wchodzisz do inicjatywy po raz pierwszy jako Strażnik Przyszłości, zacznij od:
 
 * **[Architektura Onboardingu](docs/ARCHITEKTURA_ONBOARDINGU.md)**
+* **[Przykłady Gotowego Kodu i Otwartych Wzorców](docs/PRZYKLADY_GOTOWEGO_KODU.md)**
 * **[Nowy Strażnik / pierwsze zaangażowanie](.github/ISSUE_TEMPLATE/nowy_straznik.md)**
 * **[Katalog rekomendatora zadań Strażnika](data/onboarding/straznik_rekomendator_v1.json)**
 
@@ -109,6 +110,7 @@ Rozwijamy publiczną warstwę integracyjną dla projektów Straży Przyszłości
 * **[Architektura Onboardingu](docs/ARCHITEKTURA_ONBOARDINGU.md)**
 * **[Architektura Węzłów Pomiarowych](docs/ARCHITEKTURA_WEZLOW_POMIAROWYCH.md)**
 * **[Architektura Edge: Smartfony + Centralne API + Baza Wiedzy](docs/ARCHITEKTURA_EDGE_SMARTFONY_CLOUD.md)**
+* **[Przykłady Gotowego Kodu i Otwartych Wzorców](docs/PRZYKLADY_GOTOWEGO_KODU.md)**
 
 Jeżeli chcesz wejść do systemu jako provider danych lub węzeł pomiarowy, użyj szablonu zgłoszenia:
 

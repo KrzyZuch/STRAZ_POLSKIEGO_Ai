@@ -267,6 +267,35 @@ Taka kolejność daje największą szansę na działający system, który realni
 
 Najważniejsza wiadomość dla pasjonatów jest prosta: **kod już istnieje**. Nie musimy zaczynać od zera. Naszym zadaniem jest wyszukiwanie, rozumienie, łączenie i adaptacja gotowych rozwiązań do warunków polskich, do realnych stawów hodowlanych oraz do wspólnego API Straży Przyszłości.
 
+Co równie ważne, nie każdy Strażnik musi zaczynać od posiadania własnego urządzenia pomiarowego albo własnego sterownika. Jeżeli dane są dostarczane przez providerów i społeczność przez wspólne API, to można wnosić pełnoprawny wkład również przez:
+
+- projektowanie schematów i kontraktów,
+- budowę adapterów,
+- walidację jakości danych,
+- analizę przypadków i reguł rekomendacyjnych,
+- dokumentację i porządkowanie wiedzy,
+- kurację gotowego kodu do adaptacji.
+
+Dlatego obok repozytoriów stricte sensorowych warto pokazywać również przykłady otwartych ekosystemów danych.
+
+## Przykład referencyjny: openSenseMap
+
+Jednym z najlepszych przykładów, które warto pokazywać nowym Strażnikom, jest `openSenseMap`.
+
+- Repozytorium GitHub: [https://github.com/sensebox/openSenseMap](https://github.com/sensebox/openSenseMap)
+- Strona projektu: [https://sensebox.github.io/en/osem](https://sensebox.github.io/en/osem)
+- FAQ i dokumentacja: [https://docs.sensebox.de/docs/misc/opensensemap/faq/](https://docs.sensebox.de/docs/misc/opensensemap/faq/)
+- Film YouTube: [https://www.youtube.com/watch?v=I8ZeT6hzjKQ](https://www.youtube.com/watch?v=I8ZeT6hzjKQ)
+
+To nie jest projekt stawowy jeden do jednego, ale jest bardzo ważny jako wzorzec architektury opartej na danych dostarczanych przez API. Pokazuje, że:
+
+- otwarta platforma może gromadzić dane sensoryczne od społeczności,
+- różne urządzenia i aplikacje mogą zasilać wspólny system,
+- wartość projektu rośnie dzięki danym, API i pracy interpretacyjnej, a nie tylko dzięki samemu hardware,
+- osoby bez własnego sprzętu mogą nadal budować warstwę wiedzy, integracji i analizy.
+
+Właśnie dlatego `openSenseMap` powinien być traktowany u nas nie jako ciekawostka, ale jako **dowód, że model współpracy oparty na wspólnym API i społecznościowych danych badawczych jest realny**.
+
 Poniższe repozytoria są szczególnie cenne, bo mogą przyspieszyć budowę monitoringu jakości wody, lekkich węzłów terenowych i warstwy edge dla akwakultury:
 
 ### 1. Gotowe systemy monitoringu jakości wody
@@ -515,6 +544,18 @@ Poniżej znajduje się pierwszy operacyjny backlog dla tego projektu. Każdy z t
 - Rozpisać, które moduły z `KnowFlow_AWM`, `IoT-WQMS` i `IoT-Water-Quality-Monitoring` są warte przejęcia.
 - Odróżnić elementy przydatne od tych, które nie pasują do naszego standardu.
 - Zostawić jasne notatki dla kolejnych osób wchodzących do projektu.
+
+### `issue:aq-32` Adaptacja lekcji z openSenseMap do modelu Straży Przyszłości
+
+- Przeanalizować `sensebox/openSenseMap` jako wzorzec otwartego ekosystemu danych dostarczanych przez API.
+- Rozpisać, które elementy warto przejąć na poziomie architektury współpracy, a nie tylko sprzętu.
+- Pokazać w onboardingach, że pełnoprawny wkład jest możliwy także bez własnego urządzenia pomiarowego.
+
+### `issue:aq-33` Ścieżka wejścia bez własnego hardware
+
+- Dopiąć onboarding i rekomendator tak, aby osoba bez czujników, sterownika i dostępu do stawu dostawała jasną ścieżkę wejścia przez schematy, API, adaptery, dokumentację i adaptację gotowego kodu.
+- Powiązać tę ścieżkę z `docs/PRZYKLADY_GOTOWEGO_KODU.md` oraz backlogiem pierwszych zadań.
+- Utrzymać profesjonalny przekaz: brak własnego sprzętu nie obniża rangi wkładu intelektualnego.
 
 ### `issue:aq-13` Tokeny providerów i cykl życia rejestracji
 

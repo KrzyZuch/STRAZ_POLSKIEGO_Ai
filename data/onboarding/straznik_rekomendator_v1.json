@@ -4,6 +4,24 @@
   "entry_issue_template": ".github/ISSUE_TEMPLATE/nowy_straznik.md",
   "routes": [
     {
+      "route_id": "data_architecture_without_hardware",
+      "label": "Architektura danych i adaptacja gotowego kodu",
+      "summary": "Dla osob, ktore chca wejsc do inicjatywy bez wlasnego urzadzenia pomiarowego. Ta sciezka prowadzi przez schematy, API, adaptery, dokumentacje, analize przypadkow i adaptacje gotowego kodu do wspolnego standardu.",
+      "signals": {
+        "passions": ["api", "architektura danych", "adaptacja kodu", "research", "integracja"],
+        "skills": ["python", "openapi", "czytanie repozytoriow", "walidacja", "synteza"],
+        "resources": ["laptop", "czas na dokumentacje", "brak wlasnego hardware"]
+      },
+      "recommended_repo_sections": [
+        "docs/PRZYKLADY_GOTOWEGO_KODU.md",
+        "schemas/fish_pond_v1.yaml",
+        "openapi/fish_pond_api_v1.yaml",
+        "PROJEKTY/01_inteligentna_akwakultura.md"
+      ],
+      "first_tasks": ["issue:aq-12", "issue:aq-14", "issue:aq-32"],
+      "next_step": "Ta sciezka nie wymaga wlasnego wezla ani czujnikow. Zacznij od analizy gotowego kodu, wspolnego schematu i backlogu adaptacji."
+    },
+    {
       "route_id": "aquaculture_water_monitoring",
       "label": "Akwakultura i monitoring wody",
       "summary": "Dla osob zainteresowanych stawami hodowlanymi, jakoscia wody, biologicznym kontekstem pomiarow i rozwojem pilota Inteligentnej Akwakultury.",
@@ -58,13 +76,14 @@
     {
       "route_id": "api_data_integration",
       "label": "API, adaptery i integracja danych",
-      "summary": "Dla osob backendowych i integracyjnych, ktore chca pracowac nad schematami, OpenAPI, adapterami providerow i warstwa operacyjna.",
+      "summary": "Dla osob backendowych i integracyjnych, ktore chca pracowac nad schematami, OpenAPI, adapterami providerow i warstwa operacyjna. Ta sciezka pozostaje otwarta rowniez dla osob bez wlasnego sprzetu terenowego.",
       "signals": {
         "passions": ["backend", "api", "integracja", "schematy", "data engineering"],
         "skills": ["python", "http", "openapi", "walidacja", "cloudflare"],
         "resources": ["laptop", "srodowisko developerskie", "czas na testy"]
       },
       "recommended_repo_sections": [
+        "docs/PRZYKLADY_GOTOWEGO_KODU.md",
         "schemas/fish_pond_v1.yaml",
         "openapi/fish_pond_api_v1.yaml",
         "api/README.md",
@@ -72,12 +91,12 @@
         "docs/JAK_ZOSTAC_DOSTAWCA_DANYCH.md"
       ],
       "first_tasks": ["issue:aq-09", "issue:aq-13", "issue:aq-26", "issue:aq-27"],
-      "next_step": "Jezeli budujesz prawdziwy wezel lub integracje terenowa, zaplanuj tez przejscie przez onboarding providera."
+      "next_step": "Mozesz zaczac bez wlasnego wezla. Jezeli pozniej zbudujesz prawdziwa integracje terenowa, przejdz takze przez onboarding providera."
     },
     {
       "route_id": "knowledge_research_documentation",
       "label": "Kuracja wiedzy, dokumentacja i badania",
-      "summary": "Dla osob, ktore wola analizowac, dokumentowac, opisywac przypadki i budowac baze wiedzy zamiast zaczynac od integracji technicznej.",
+      "summary": "Dla osob, ktore wola analizowac, dokumentowac, opisywac przypadki i budowac baze wiedzy zamiast zaczynac od integracji technicznej. To pelnoprawna sciezka wejscia takze bez wlasnego hardware.",
       "signals": {
         "passions": ["badania", "dokumentacja", "analiza", "knowledge management"],
         "skills": ["pisanie", "synteza", "czytanie repozytoriow", "porzadkowanie wiedzy"],
@@ -85,12 +104,13 @@
       },
       "recommended_repo_sections": [
         "PROJEKTY/01_inteligentna_akwakultura.md",
+        "docs/PRZYKLADY_GOTOWEGO_KODU.md",
         "docs/STRATEGIA_INTEGRACJI.md",
         "reports/README.md",
         "pipelines/export_knowledge_snapshot.py"
       ],
-      "first_tasks": ["issue:aq-12", "issue:aq-14", "issue:aq-16"],
-      "next_step": "Ta sciezka nie wymaga zostania providerem. Jej celem jest wzmacnianie wspolnej bazy wiedzy repozytorium."
+      "first_tasks": ["issue:aq-12", "issue:aq-14", "issue:aq-16", "issue:aq-32"],
+      "next_step": "Ta sciezka nie wymaga zostania providerem ani posiadania wlasnego sprzetu. Jej celem jest wzmacnianie wspolnej bazy wiedzy repozytorium."
     },
     {
       "route_id": "community_growth_and_coordination",

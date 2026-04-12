@@ -1,4 +1,12 @@
 import { generateRecommendation } from "./recommendation.js";
+import {
+  handleWhatsAppVerification,
+  handleWhatsAppWebhook,
+} from "./github_issues.js";
+import {
+  handleTelegramWebhook,
+  isTelegramWebhookRequest,
+} from "./telegram_issues.js";
 
 class AuthError extends Error {}
 class ConflictError extends Error {}
@@ -12,7 +20,8 @@ function jsonResponse(payload, status = 200) {
       "content-type": "application/json; charset=utf-8",
       "access-control-allow-origin": "*",
       "access-control-allow-methods": "GET,POST,OPTIONS",
-      "access-control-allow-headers": "content-type,x-provider-token",
+      "access-control-allow-headers":
+        "content-type,x-provider-token,x-hub-signature-256,x-telegram-bot-api-secret-token",
     },
   });
 }
@@ -385,6 +394,18 @@ export default {
     const url = new URL(request.url);
 
     try {
+      if (request.method === "POST" && isTelegramWebhookRequest(url, env)) {
+        return await handleTelegramWebhook(request, env);
+      }
+
+      if (request.method === "GET" && url.pathname === "/integrations/whatsapp/webhook") {
+        return handleWhatsAppVerification(url, env);
+      }
+
+      if (request.method === "POST" && url.pathname === "/integrations/whatsapp/webhook") {
+        return await handleWhatsAppWebhook(request, env);
+      }
+
       const deploymentEnvironment = env.DEPLOYMENT_ENVIRONMENT || null;
       const allowedProviderEnvironments = parseAllowedProviderEnvironments(
         deploymentEnvironment,

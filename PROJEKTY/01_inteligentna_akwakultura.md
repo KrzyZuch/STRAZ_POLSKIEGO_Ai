@@ -211,6 +211,51 @@ Artefakty dla tego wariantu są utrzymywane w katalogu:
 - [`cloudflare/provider_smoke_test.py`](../cloudflare/provider_smoke_test.py)
 - [`docs/RUNBOOK_WDROZENIA_CLOUDFLARE_D1.md`](../docs/RUNBOOK_WDROZENIA_CLOUDFLARE_D1.md)
 
+## Mobilny kanał `pomysł` i `uwaga`
+
+Ten projekt potrzebuje również bardzo prostego kanału mobilnego dla ludzi, którzy:
+
+- mają obserwację,
+- widzą ryzyko,
+- chcą zgłosić pomysł architektoniczny,
+- chcą szybko dopisać uwagę z telefonu.
+
+Najtańszy i najprostszy model to:
+
+1. strona inicjatywy,
+2. gotowy link do odpowiedniego `Issue template`,
+3. wpisanie albo wydyktowanie treści przez smartfon.
+
+Jako drugi etap można dodać most:
+
+```text
+Telegram -> Cloudflare Worker -> GitHub Issues
+WhatsApp -> Cloudflare Worker -> GitHub Issues
+```
+
+W tym modelu wiadomość z prefiksem:
+
+```text
+pomysl: ...
+uwaga: ...
+```
+
+jest zamieniana na `Issue` w repozytorium.
+
+To nie jest tor dla danych pomiarowych providera. To jest wyłącznie kanał mobilnego przechwytywania:
+
+- pomysłów,
+- uwag,
+- zastrzeżeń,
+- ryzyk technicznych i organizacyjnych.
+
+Opis architektury znajduje się tutaj:
+
+- [`docs/ARCHITEKTURA_MOSTU_TELEGRAM_GITHUB_ISSUES.md`](../docs/ARCHITEKTURA_MOSTU_TELEGRAM_GITHUB_ISSUES.md)
+- [`docs/RUNBOOK_URUCHOMIENIA_TELEGRAM_ISSUES.md`](../docs/RUNBOOK_URUCHOMIENIA_TELEGRAM_ISSUES.md)
+- [`docs/ARCHITEKTURA_MOSTU_WHATSAPP_GITHUB_ISSUES.md`](../docs/ARCHITEKTURA_MOSTU_WHATSAPP_GITHUB_ISSUES.md)
+- [`docs/RUNBOOK_URUCHOMIENIA_WHATSAPP_ISSUES.md`](../docs/RUNBOOK_URUCHOMIENIA_WHATSAPP_ISSUES.md)
+
 ## Inteligentne podejście do wideo
 
 Jeśli kiedyś wideo ma wejść do projektu, to nie jako domyślny strumień do API, lecz jako mechanizm wyjątków:
@@ -670,6 +715,48 @@ Poniżej znajduje się pierwszy operacyjny backlog dla tego projektu. Każdy z t
 - Spiąć repo strony z katalogiem rekomendatora zadań utrzymywanym w tym repozytorium.
 - Zaprojektować przekierowania do właściwych projektów, dokumentów i szablonów Issue.
 - Rozdzielić przekierowanie dla nowego Strażnika od przekierowania do ścieżki providera danych.
+
+### `issue:aq-32` Mobilny kanał `pomysł` i `uwaga`
+
+- Utrzymywać na stronie inicjatywy bardzo prosty tor: `Zgłoś pomysł` i `Zgłoś zastrzeżenie`.
+- Zostawić możliwość wpisania albo wydyktowania treści na smartfonie bez wchodzenia od razu w rozbudowaną dokumentację.
+- Prowadzić użytkownika do najwłaściwszego miejsca w repozytorium.
+
+### `issue:aq-33` Most `WhatsApp -> GitHub Issues`
+
+- Przygotować webhook i klasyfikację wiadomości `pomysl:` oraz `uwaga:`.
+- Zamieniać tylko lekkie zgłoszenia organizacyjne i architektoniczne, nie dane providerów.
+- Oznaczać zgłoszenia jako pochodzące z kanału mobilnego i zachować możliwość moderacji.
+
+### `issue:aq-34` Koszty i tryb wdrożenia komunikatorowego
+
+- Utrzymywać `dry-run` dla pierwszych testów mostu komunikatorowego.
+- Jawnie rozdzielić wariant testowy od produkcyjnego kanału WhatsApp.
+- Udokumentować, które elementy mogą działać na planach darmowych, a które przechodzą w model płatny przy realnym ruchu.
+
+### `issue:aq-35` Operacyjne uruchomienie numeru WhatsApp
+
+- Przejść od numeru testowego Meta do numeru publicznego Straży Przyszłości.
+- Utrzymywać checklistę: dodanie numeru, weryfikacja, `PHONE_NUMBER_ID/register`, status `CONNECTED`, webhook.
+- Spiąć odpowiedzialność operatorską za numer, tokeny i politykę moderacji.
+
+### `issue:aq-36` Polityka komunikatów dla kanału WhatsApp
+
+- Zostawić użytkownikom tylko dwa proste prefiksy: `pomysl:` i `uwaga:`.
+- Nie dopuszczać rozlewania kanału na support techniczny, dane providerów i długie wątki dyskusyjne.
+- Opisać kiedy zgłoszenie z komunikatora powinno zostać rozwinięte ręcznie w pełnoprawne issue projektowe.
+
+### `issue:aq-37` Uruchomienie bota Telegram dla Straży Przyszłości
+
+- Utworzyć bota przez `@BotFather`.
+- Ustawić webhook do Worker'a.
+- Uruchomić bezpieczny `dry-run` dla pierwszych testów społecznościowych.
+
+### `issue:aq-38` Telegram jako rekomendowany szybki kanał wejścia
+
+- Oznaczyć Telegram jako prostszy kanał startowy niż biznesowy WhatsApp.
+- Utrzymywać tylko dwa prefiksy: `pomysl:` i `uwaga:`.
+- Zostawić ten kanał jako lekki most do `Issues`, nie jako miejsce docelowe pracy projektowej.
 
 ## Inspiracje i źródła:
 - [Wideo: Smart Fish Farming](https://www.youtube.com/watch?v=N84PUuxThP4)

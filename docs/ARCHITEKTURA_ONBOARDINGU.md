@@ -99,8 +99,37 @@ Aktualna warstwa onboardingowa w repozytorium obejmuje:
 - [Architektura Onboardingu](ARCHITEKTURA_ONBOARDINGU.md)
 - [Jak Zostać Dostawcą Danych](JAK_ZOSTAC_DOSTAWCA_DANYCH.md)
 - [Nowy Strażnik / pierwsze zaangażowanie](../.github/ISSUE_TEMPLATE/nowy_straznik.md)
+- [Pomysł / propozycja rozwiązania](../.github/ISSUE_TEMPLATE/pomysl_rozwiazanie.md)
+- [Zastrzeżenie / uwaga / ryzyko](../.github/ISSUE_TEMPLATE/zastrzezenie_uwaga.md)
 - [Nowy provider danych / węzeł pomiarowy](../.github/ISSUE_TEMPLATE/provider_danych.md)
 - [Katalog rekomendatora zadań Strażnika](../data/onboarding/straznik_rekomendator_v1.json)
+
+## Szybki kanał mobilny
+
+Strona inicjatywy powinna umożliwiać także bardzo prosty kanał wejścia z telefonu. Chodzi o sytuację, w której ktoś:
+
+- wpisuje pomysł ręcznie na smartfonie,
+- dyktuje go przez `Gboard` lub inny mechanizm mowy na tekst,
+- chce od razu zapisać go do repozytorium w formie `Issue`.
+
+Dlatego poza onboardingiem Strażnika i onboardingiem providera potrzebny jest trzeci, bardzo krótki tor wejścia:
+
+- `Zgłoś pomysł`
+- `Zgłoś zastrzeżenie`
+
+Ten kanał nie zastępuje pełnego onboardingu, ale pozwala szybko złapać cenne obserwacje, pomysły i ryzyka zanim znikną.
+
+Najprostszy wariant tego toru powinien prowadzić bezpośrednio do gotowych `Issue template` z poziomu strony inicjatywy. To jest rozwiązanie najtańsze, najprostsze i wystarczające dla wersji podstawowej.
+
+Dopiero jako kolejny etap można utrzymywać most komunikatorowy, na przykład:
+
+- `Telegram -> Cloudflare Worker -> GitHub Issues`
+- `WhatsApp -> Cloudflare Worker -> GitHub Issues`
+
+Szczegóły tej architektury opisuje dokument:
+
+- [Architektura mostu Telegram -> GitHub Issues](ARCHITEKTURA_MOSTU_TELEGRAM_GITHUB_ISSUES.md)
+- [Architektura mostu WhatsApp -> GitHub Issues](ARCHITEKTURA_MOSTU_WHATSAPP_GITHUB_ISSUES.md)
 
 ## Kryteria sukcesu
 

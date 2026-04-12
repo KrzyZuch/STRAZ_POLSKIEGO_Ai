@@ -89,6 +89,13 @@ W projekcie rozdzielamy dwa osobne onboardingi:
 > [!IMPORTANT]
 > **Masz pomysł? Pytanie? Chcesz dołączyć?** Nie szukaj maila – wejdź prosto w **[ZAKŁADKĘ ISSUES](https://github.com/StrazPrzyszlosci/STRAZ_PRZYSZLOSCI/issues)**. Chcemy, żeby tam roiło się jak w ulu! Każda myśl, analiza czy pytanie to cenny wkład w Narodowe Siły Intelektualne.
 
+> [!TIP]
+> **Działa już publiczny bot Telegram `Straż Przyszłości`: [`@straz_przyszlosci_bot`](https://t.me/straz_przyszlosci_bot).** W Telegramie wystarczy wysłać:
+> `Pomysl: ...`
+> albo
+> `Uwaga: ...`
+> a wiadomość trafi do publicznego repozytorium jako `GitHub Issue`.
+
 Jeśli chcesz już teraz otrzymać zadanie dopasowane do Twoich pasji, wypełnij naszą **[Ankietę Kompetencyjną (REKRUTACJA_ANKIETA.md)](REKRUTACJA_ANKIETA.md)**. Przygotowaliśmy również **[Zasady współpracy i instrukcję obsługi Git (CONTRIBUTING.md)](CONTRIBUTING.md)**, w której znajdziesz przystępny poradnik m.in. jak zgłaszać swoje pomysły.
 
 Jeżeli wchodzisz do inicjatywy po raz pierwszy jako Strażnik Przyszłości, zacznij od:
@@ -96,6 +103,8 @@ Jeżeli wchodzisz do inicjatywy po raz pierwszy jako Strażnik Przyszłości, za
 * **[Architektura Onboardingu](docs/ARCHITEKTURA_ONBOARDINGU.md)**
 * **[Przykłady Gotowego Kodu i Otwartych Wzorców](docs/PRZYKLADY_GOTOWEGO_KODU.md)**
 * **[Nowy Strażnik / pierwsze zaangażowanie](.github/ISSUE_TEMPLATE/nowy_straznik.md)**
+* **[Pomysł / propozycja rozwiązania](.github/ISSUE_TEMPLATE/pomysl_rozwiazanie.md)**
+* **[Zastrzeżenie / uwaga / ryzyko](.github/ISSUE_TEMPLATE/zastrzezenie_uwaga.md)**
 * **[Katalog rekomendatora zadań Strażnika](data/onboarding/straznik_rekomendator_v1.json)**
 
 ## Dokumentacja integracyjna
@@ -110,7 +119,37 @@ Rozwijamy publiczną warstwę integracyjną dla projektów Straży Przyszłości
 * **[Architektura Onboardingu](docs/ARCHITEKTURA_ONBOARDINGU.md)**
 * **[Architektura Węzłów Pomiarowych](docs/ARCHITEKTURA_WEZLOW_POMIAROWYCH.md)**
 * **[Architektura Edge: Smartfony + Centralne API + Baza Wiedzy](docs/ARCHITEKTURA_EDGE_SMARTFONY_CLOUD.md)**
+* **[Architektura mostu Telegram -> GitHub Issues](docs/ARCHITEKTURA_MOSTU_TELEGRAM_GITHUB_ISSUES.md)**
+* **[Runbook uruchomienia kanału Telegram -> GitHub Issues](docs/RUNBOOK_URUCHOMIENIA_TELEGRAM_ISSUES.md)**
+* **[Architektura mostu WhatsApp -> GitHub Issues](docs/ARCHITEKTURA_MOSTU_WHATSAPP_GITHUB_ISSUES.md)**
+* **[Runbook uruchomienia kanału WhatsApp -> GitHub Issues](docs/RUNBOOK_URUCHOMIENIA_WHATSAPP_ISSUES.md)**
 * **[Przykłady Gotowego Kodu i Otwartych Wzorców](docs/PRZYKLADY_GOTOWEGO_KODU.md)**
+
+## Publiczny Bot Telegram
+
+Publiczny bot inicjatywy nazywa się **Straż Przyszłości** i działa pod adresem:
+
+* **[`@straz_przyszlosci_bot`](https://t.me/straz_przyszlosci_bot)**
+
+![QR do bota Telegram Straż Przyszłości](docs/assets/telegram_bot_qr.jpg)
+
+To jest najprostszy mobilny kanał wejścia dla osób, które chcą szybko zapisać myśl do repozytorium bez otwierania formularzy GitHub.
+
+Jak się połączyć:
+
+1. Otwórz Telegram.
+2. Wyszukaj `@straz_przyszlosci_bot` albo wejdź przez link `https://t.me/straz_przyszlosci_bot`.
+3. Otwórz czat z botem `Straż Przyszłości`.
+4. Wyślij wiadomość zaczynającą się od:
+   `Pomysl: ...`
+   albo
+   `Uwaga: ...`
+
+Co robi bot:
+
+* zamienia wiadomość Telegram w `GitHub Issue` w publicznym repo Straży Przyszłości,
+* pozwala szybko zgłosić pomysł, zastrzeżenie albo ryzyko z telefonu,
+* nie służy do przesyłania danych providerskich ani do sterowania urządzeniami.
 
 Jeżeli chcesz wejść do systemu jako provider danych lub węzeł pomiarowy, użyj szablonu zgłoszenia:
 

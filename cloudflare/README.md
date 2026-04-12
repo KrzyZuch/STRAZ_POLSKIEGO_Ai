@@ -17,9 +17,13 @@ To szczególnie dobrze pasuje do modelu:
 
 - `wrangler.toml` — konfiguracja Worker'a,
 - `src/worker.js` — implementacja endpointów API,
+- `src/github_issues.js` — most `WhatsApp -> GitHub Issues`,
+- `src/telegram_issues.js` — most `Telegram -> GitHub Issues`,
 - `src/recommendation.js` — lekka logika rekomendacyjna,
 - `migrations/0001_init.sql` — inicjalizacja bazy D1,
 - `provider_smoke_test.py` — smoke test publicznego endpointu po wdrożeniu.
+- `telegram_issue_smoke_test.py` — smoke test mostu `Telegram -> GitHub Issues`.
+- `whatsapp_issue_smoke_test.py` — smoke test mostu `WhatsApp -> GitHub Issues`.
 
 ## Obsługiwane endpointy
 
@@ -30,7 +34,51 @@ POST /v1/observations
 POST /v1/events
 POST /v1/recommendations/fish-pond
 GET /v1/providers/{provider_id}/status
+POST /integrations/telegram/webhook
+POST /integrations/telegram/webhook/{secret_path}
+GET /integrations/whatsapp/webhook
+POST /integrations/whatsapp/webhook
 ```
+
+## Most `Telegram -> GitHub Issues`
+
+To jest rekomendowany szybszy wariant uruchomienia kanału mobilnego, gdy nie chcesz od razu przechodzić przez konfigurację `WhatsApp Business Platform`.
+
+Model jest prosty:
+
+1. tworzysz bota przez `@BotFather`,
+2. ustawiasz webhook do Worker'a,
+3. użytkownik wysyła `Pomysl:` albo `Uwaga:`,
+4. Worker zamienia to na `Issue`.
+
+Szczegóły:
+
+- [`docs/ARCHITEKTURA_MOSTU_TELEGRAM_GITHUB_ISSUES.md`](../docs/ARCHITEKTURA_MOSTU_TELEGRAM_GITHUB_ISSUES.md)
+- [`docs/RUNBOOK_URUCHOMIENIA_TELEGRAM_ISSUES.md`](../docs/RUNBOOK_URUCHOMIENIA_TELEGRAM_ISSUES.md)
+
+## Most `WhatsApp -> GitHub Issues`
+
+Ten wariant może również pełnić rolę lekkiej bramki dla mobilnych zgłoszeń:
+
+- `Pomysl: ...`
+- `Uwaga: ...`
+- `zastrzezenie: ...`
+
+Model jest celowo prosty:
+
+1. wiadomość trafia na numer `WhatsApp Business Platform`,
+2. Meta wywołuje webhook Worker'a,
+3. Worker rozpoznaje typ zgłoszenia,
+4. Worker tworzy `Issue` w repozytorium Straży Przyszłości.
+
+To nie jest kanał do przesyłania danych pomiarowych providera. Służy tylko do szybkiego zapisu pomysłów, uwag i ryzyk do backlogu repozytorium.
+
+Wersja `v1` obsługuje wyłącznie wiadomości tekstowe. To dobrze pasuje do wpisywania lub dyktowania treści na smartfonie. Nie obsługujemy jeszcze automatycznej transkrypcji notatek głosowych.
+
+Szczegóły architektoniczne opisuje dokument:
+
+- [`docs/ARCHITEKTURA_MOSTU_WHATSAPP_GITHUB_ISSUES.md`](../docs/ARCHITEKTURA_MOSTU_WHATSAPP_GITHUB_ISSUES.md)
+- [`docs/RUNBOOK_URUCHOMIENIA_WHATSAPP_ISSUES.md`](../docs/RUNBOOK_URUCHOMIENIA_WHATSAPP_ISSUES.md)
 
 ## Autoryzacja providera
 
@@ -49,6 +97,76 @@ Token jest wymagany dla:
 - `POST /v1/events`
 - `POST /v1/recommendations/fish-pond`
 
+## Konfiguracja mostu `WhatsApp -> GitHub Issues`
+
+Zmienne środowiskowe `v1`:
+
+- `WHATSAPP_ISSUES_ENABLED` — włącza webhook do tworzenia `Issues`,
+- `WHATSAPP_ISSUES_DRY_RUN` — tryb testowy bez realnego zapisu do GitHub,
+- `WHATSAPP_ALLOWED_SENDERS` — opcjonalna lista numerów testowych rozdzielona przecinkami,
+- `WHATSAPP_IDEA_LABEL` — opcjonalna etykieta dla pomysłów,
+- `WHATSAPP_FEEDBACK_LABEL` — opcjonalna etykieta dla uwag,
+- `WHATSAPP_CHANNEL_LABEL` — opcjonalna etykieta kanału, np. `whatsapp`,
+- `GITHUB_REPO_OWNER` i `GITHUB_REPO_NAME` — repo docelowe.
+
+Sekrety:
+
+- `GITHUB_TOKEN` — token z prawem do tworzenia `Issues`,
+- `WHATSAPP_VERIFY_TOKEN` — token weryfikacji webhooka,
+- opcjonalnie `WHATSAPP_APP_SECRET` — do weryfikacji podpisu `X-Hub-Signature-256`.
+
+Przykładowe komendy:
+
+```bash
+npx wrangler secret put GITHUB_TOKEN
+npx wrangler secret put WHATSAPP_VERIFY_TOKEN
+npx wrangler secret put WHATSAPP_APP_SECRET
+```
+
+W bezpiecznej wersji startowej rekomendowane jest:
+
+- `WHATSAPP_ISSUES_ENABLED = "false"` dopóki nie ma pełnej konfiguracji,
+- `WHATSAPP_ISSUES_DRY_RUN = "true"` dla pierwszych testów webhooka.
+
+## Konfiguracja mostu `Telegram -> GitHub Issues`
+
+Zmienne środowiskowe `v1`:
+
+- `TELEGRAM_ISSUES_ENABLED`
+- `TELEGRAM_ISSUES_DRY_RUN`
+- `TELEGRAM_ALLOWED_CHAT_IDS`
+- `TELEGRAM_MIN_INTERVAL_SECONDS`
+- `TELEGRAM_WEBHOOK_SECRET_TOKEN`
+- `TELEGRAM_WEBHOOK_PATH_SEGMENT`
+- `TELEGRAM_IDEA_LABEL`
+- `TELEGRAM_FEEDBACK_LABEL`
+- `TELEGRAM_CHANNEL_LABEL`
+
+W bezpiecznej wersji startowej rekomendowane jest:
+
+- `TELEGRAM_ISSUES_ENABLED = "true"` dopiero po wdrożeniu webhooka,
+- `TELEGRAM_ISSUES_DRY_RUN = "true"` dla pierwszych testów,
+- używanie zarówno sekretnego segmentu ścieżki, jak i `TELEGRAM_WEBHOOK_SECRET_TOKEN`.
+- `TELEGRAM_MIN_INTERVAL_SECONDS = "60"` dla lekkiej ochrony przed spamem z jednego czatu albo użytkownika.
+
+## Jak założyć numer WhatsApp
+
+Praktyczna instrukcja krok po kroku znajduje się tutaj:
+
+- [`docs/RUNBOOK_URUCHOMIENIA_WHATSAPP_ISSUES.md`](../docs/RUNBOOK_URUCHOMIENIA_WHATSAPP_ISSUES.md)
+
+Najkrócej:
+
+1. załóż aplikację w `Meta App Dashboard`,
+2. wybierz use case `Connect with customers through WhatsApp`,
+3. uruchom numer testowy albo dodaj własny numer,
+4. dla własnego numeru wykonaj rejestrację `PHONE_NUMBER_ID/register`,
+5. ustaw webhook na:
+
+```text
+https://<twoj-worker>.workers.dev/integrations/whatsapp/webhook
+```
+
 Powtórna rejestracja tego samego `provider_id` nie służy do odnowienia dostępu. Worker zwraca w takiej sytuacji `409`, a prawidłową ścieżką jest rotacja tokenu.
 
 ## Jak wdrożyć
@@ -65,6 +183,8 @@ npx wrangler d1 migrations list DB --remote
 npx wrangler d1 migrations apply DB --remote
 npx wrangler deploy
 python3 cloudflare/provider_smoke_test.py https://fish-pond-api-v1.<twoj-subdomain>.workers.dev --provider-environment preview
+python3 cloudflare/telegram_issue_smoke_test.py https://fish-pond-api-v1.<twoj-subdomain>.workers.dev --message "Pomysl: test webhooka Telegram do Issues"
+python3 cloudflare/whatsapp_issue_smoke_test.py https://fish-pond-api-v1.<twoj-subdomain>.workers.dev --message "Pomysl: test webhooka WhatsApp do Issues"
 ```
 
 ## Polityka środowisk providera
@@ -114,3 +234,10 @@ Szczegóły procesu organizacyjnego są opisane w:
 ## Pierwszy publiczny deployment
 
 Pierwsze środowisko publiczne nie powinno być uznane za gotowe tylko dlatego, że `wrangler deploy` zakończył się bez błędu. Warunkiem wejścia w pracę z realnymi providerami jest przejście smoke testu end-to-end.
+
+To samo dotyczy mostu komunikatorowego. Najpierw trzeba przejść:
+
+1. weryfikację webhooka,
+2. test `dry-run`,
+3. próbę utworzenia testowego `Issue`,
+4. dopiero potem wejść w realne przyjmowanie wiadomości z kanału publicznego.

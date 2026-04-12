@@ -19,6 +19,8 @@ Te dwa onboardingi nie powinny być mieszane w jednej instrukcji, jednym formula
 
 Onboarding Strażnika powinien być realizowany na **zewnętrznej stronie inicjatywy** jako ankieta i rekomendator zadań.
 
+Ta ścieżka musi być zaprojektowana w sposób merytokratyczny również wobec osób, które nie mają klasycznej pozycji zawodowej, ale potrafią skutecznie pracować z pomocą nowoczesnych narzędzi agentowych i generatywnych, takich jak `Codex`. Jeżeli ktoś umie osiągać realne cele, łączyć zasoby, adaptować kod i dowozić efekty, powinien być traktowany jako pełnoprawny współtwórca sieci intelektualnej, a nie jako uczestnik drugiej kategorii.
+
 Jego rola:
 
 - przyjąć zgłoszenie osoby, która chce włączyć się do inicjatywy po raz pierwszy,
@@ -30,6 +32,7 @@ Minimalne dane wejściowe dla rekomendatora:
 
 - pasje i obszary zainteresowań,
 - kompetencje techniczne lub organizacyjne,
+- sposób pracy i używane narzędzia, także narzędzia AI-native,
 - dostępny czas,
 - dostępne zasoby, na przykład stary smartfon, ESP32, czujniki, kamera, wiedza domenowa,
 - preferowany rodzaj wkładu: kod, hardware, dokumentacja, analiza, marketing, badania, provider danych.

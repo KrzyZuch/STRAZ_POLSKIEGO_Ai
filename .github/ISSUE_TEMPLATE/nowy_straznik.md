@@ -26,6 +26,7 @@ assignees: ""
 ## Twoje kompetencje
 
 - narzędzia i technologie, które znasz:
+- czy pracujesz także z narzędziami AI, np. Codex, ChatGPT, Cursor, Claude lub podobnymi:
 - doświadczenie praktyczne:
 - czego chcesz się nauczyć w ramach inicjatywy:
 

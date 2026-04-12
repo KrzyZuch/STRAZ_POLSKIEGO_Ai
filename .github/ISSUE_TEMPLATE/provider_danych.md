@@ -24,6 +24,7 @@ Opisz krótko, czy jesteś:
 ## Opis providera lub węzła
 
 - `provider_id`:
+  format: `kind-environment-slug-01`, np. `community-demo-node-01`
 - `provider_kind`:
 - `provider_label`:
 - `node_class`:

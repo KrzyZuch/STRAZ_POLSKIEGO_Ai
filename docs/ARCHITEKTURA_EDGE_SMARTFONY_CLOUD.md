@@ -33,6 +33,8 @@ Smartfon nie musi dźwigać całej analityki. Wystarczy, że wykona to, co ma se
 Centralne API odpowiada za:
 
 - rejestrację providerów,
+- wydawanie i weryfikację tokenów zapisu providera,
+- rotację tokenów bez konieczności zmiany `provider_id`,
 - przyjmowanie obserwacji i zdarzeń,
 - zwracanie rekomendacji,
 - utrzymywanie operacyjnej bazy danych poza repozytorium,
@@ -60,7 +62,7 @@ Repozytorium nie powinno przechowywać hurtowo surowych, bieżących odczytów p
 Docelowy przepływ powinien wyglądać tak:
 
 ```text
-czujnik -> ESP32 lub stary smartfon -> provider registration -> observations/events -> central API -> rekomendacje -> baza operacyjna -> wiedza opracowana w repo
+czujnik -> ESP32 lub stary smartfon -> provider registration -> write_token -> observations/events -> central API -> rekomendacje -> baza operacyjna -> snapshot wiedzy -> repo
 ```
 
 ## Wariant Cloudflare Workers

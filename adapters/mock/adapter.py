@@ -38,7 +38,7 @@ def send_result(result: Dict[str, Any]) -> Dict[str, Any]:
 
 def check_status() -> Dict[str, Any]:
     return make_provider_status(
-        "mock-provider",
+        "community-demo-mock-01",
         supports_water_quality=True,
         supports_flow_monitoring=True,
         supports_edge_vision_summary=True,

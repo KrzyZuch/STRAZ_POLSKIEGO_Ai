@@ -1,8 +1,26 @@
 name = "fish-pond-api-v1"
 main = "src/worker.js"
 compatibility_date = "2026-04-12"
+workers_dev = true
+
+[observability]
+enabled = true
+head_sampling_rate = 0.1
+
+[vars]
+DEPLOYMENT_ENVIRONMENT = "preview"
+ALLOWED_PROVIDER_ENVIRONMENTS = "demo,preview"
+
+[env.staging.vars]
+DEPLOYMENT_ENVIRONMENT = "staging"
+ALLOWED_PROVIDER_ENVIRONMENTS = "staging"
+
+[env.prod.vars]
+DEPLOYMENT_ENVIRONMENT = "prod"
+ALLOWED_PROVIDER_ENVIRONMENTS = "prod"
 
 [[d1_databases]]
 binding = "DB"
 database_name = "fish-pond-v1"
 database_id = "replace-with-real-d1-id"
+preview_database_id = "replace-with-preview-d1-id-or-real-d1-id"

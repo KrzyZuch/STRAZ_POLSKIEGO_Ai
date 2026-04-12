@@ -81,10 +81,21 @@ Niezależnie od tego, jakie posiadasz kompetencje – techniczne, analityczne cz
 > [!NOTE]
 > **System błyskawicznego onboardingu jest w przygotowaniu.** Docelowo będzie on dostępny na zewnętrznej platformie, która na podstawie Twoich pasji i zasobów skieruje Cię precyzyjnie do odpowiednich obszarów tego repozytorium.
 
+W projekcie rozdzielamy dwa osobne onboardingi:
+
+* onboarding Strażnika, czyli pierwsze wejście nowej osoby do inicjatywy przez ankietę i rekomendator zadań na stronie zewnętrznej,
+* onboarding providera danych, czyli techniczną ścieżkę dla węzłów pomiarowych, smartfonów edge, gospodarstw i partnerów, którzy chcą zasilać API danymi.
+
 > [!IMPORTANT]
 > **Masz pomysł? Pytanie? Chcesz dołączyć?** Nie szukaj maila – wejdź prosto w **[ZAKŁADKĘ ISSUES](https://github.com/StrazPrzyszlosci/STRAZ_PRZYSZLOSCI/issues)**. Chcemy, żeby tam roiło się jak w ulu! Każda myśl, analiza czy pytanie to cenny wkład w Narodowe Siły Intelektualne.
 
 Jeśli chcesz już teraz otrzymać zadanie dopasowane do Twoich pasji, wypełnij naszą **[Ankietę Kompetencyjną (REKRUTACJA_ANKIETA.md)](REKRUTACJA_ANKIETA.md)**. Przygotowaliśmy również **[Zasady współpracy i instrukcję obsługi Git (CONTRIBUTING.md)](CONTRIBUTING.md)**, w której znajdziesz przystępny poradnik m.in. jak zgłaszać swoje pomysły.
+
+Jeżeli wchodzisz do inicjatywy po raz pierwszy jako Strażnik Przyszłości, zacznij od:
+
+* **[Architektura Onboardingu](docs/ARCHITEKTURA_ONBOARDINGU.md)**
+* **[Nowy Strażnik / pierwsze zaangażowanie](.github/ISSUE_TEMPLATE/nowy_straznik.md)**
+* **[Katalog rekomendatora zadań Strażnika](data/onboarding/straznik_rekomendator_v1.json)**
 
 ## Dokumentacja integracyjna
 
@@ -95,6 +106,7 @@ Rozwijamy publiczną warstwę integracyjną dla projektów Straży Przyszłości
 * **[Model: Otwarte Standardy, Zamknięte Wdrożenia](docs/MODEL_OTWARTE_STANDARDY_ZAMKNIETE_WDROZENIA.md)**
 * **[Zasady Nazwy i Marki](docs/ZASADY_NAZWY_I_MARKI.md)**
 * **[Jak Zostać Dostawcą Danych](docs/JAK_ZOSTAC_DOSTAWCA_DANYCH.md)**
+* **[Architektura Onboardingu](docs/ARCHITEKTURA_ONBOARDINGU.md)**
 * **[Architektura Węzłów Pomiarowych](docs/ARCHITEKTURA_WEZLOW_POMIAROWYCH.md)**
 * **[Architektura Edge: Smartfony + Centralne API + Baza Wiedzy](docs/ARCHITEKTURA_EDGE_SMARTFONY_CLOUD.md)**
 

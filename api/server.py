@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 from urllib.parse import urlparse
 
 
@@ -14,29 +15,39 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from adapters.utils import (  # noqa: E402
-    make_provider_status,
-    utc_now_iso,
+    ensure_provider_environment_allowed,
+    parse_allowed_provider_environments,
     validate_event_payload,
     validate_observation_payload,
+    validate_provider_descriptor_payload,
+)
+from api.storage import (  # noqa: E402
+    DEFAULT_DB_PATH,
+    OperationalStore,
+    ProviderConflictError,
+    ProviderNotFoundError,
 )
 from models.fish_pond.recommendation_engine import generate_recommendation  # noqa: E402
 
 
-REGISTRY: Dict[str, Dict[str, Any]] = {}
-OBSERVATIONS: list[Dict[str, Any]] = []
-EVENTS: list[Dict[str, Any]] = []
-
-
-def validate_provider_descriptor(payload: Dict[str, Any]) -> Dict[str, Any]:
-    required = ["provider_id", "provider_kind", "provider_label"]
-    missing = [field for field in required if field not in payload]
-    if missing:
-        raise ValueError(f"Brak wymaganych pól providera: {', '.join(missing)}")
-    return payload
+class ProviderEnvironmentPolicyError(Exception):
+    pass
 
 
 class FishPondAPIHandler(BaseHTTPRequestHandler):
-    server_version = "FishPondAPIServer/0.1"
+    server_version = "FishPondAPIServer/0.2"
+
+    @property
+    def store(self) -> OperationalStore:
+        return self.server.store  # type: ignore[attr-defined]
+
+    @property
+    def allowed_provider_environments(self) -> set[str] | None:
+        return self.server.allowed_provider_environments  # type: ignore[attr-defined]
+
+    @property
+    def deployment_environment(self) -> str | None:
+        return self.server.deployment_environment  # type: ignore[attr-defined]
 
     def _send_json(self, status: int, payload: Dict[str, Any]) -> None:
         data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
@@ -60,77 +71,75 @@ class FishPondAPIHandler(BaseHTTPRequestHandler):
     def _bad_request(self, message: str) -> None:
         self._send_json(HTTPStatus.BAD_REQUEST, {"error": message})
 
-    def _handle_provider_register(self, payload: Dict[str, Any]) -> None:
-        provider = validate_provider_descriptor(payload)
-        provider_id = provider["provider_id"]
-        REGISTRY[provider_id] = {
-            "descriptor": provider,
-            "status": make_provider_status(
+    def _unauthorized(self, message: str) -> None:
+        self._send_json(HTTPStatus.UNAUTHORIZED, {"error": message})
+
+    def _conflict(self, message: str) -> None:
+        self._send_json(HTTPStatus.CONFLICT, {"error": message})
+
+    def _forbidden(self, message: str) -> None:
+        self._send_json(HTTPStatus.FORBIDDEN, {"error": message})
+
+    def _enforce_provider_environment(self, provider_id: str) -> None:
+        try:
+            ensure_provider_environment_allowed(
                 provider_id,
-                supports_water_quality=provider.get("supports_water_quality", False),
-                supports_flow_monitoring=provider.get("supports_flow_monitoring", False),
-                supports_edge_vision_summary=provider.get("supports_edge_vision_summary", False),
-            ),
-        }
-        self._send_json(
-            HTTPStatus.CREATED,
-            {
-                "provider_id": provider_id,
-                "registration_status": "registered",
-                "schema_version": "v1",
-                "message": "Provider został zarejestrowany.",
-            },
-        )
+                self.allowed_provider_environments,
+                self.deployment_environment,
+            )
+        except ValueError as exc:
+            raise ProviderEnvironmentPolicyError(str(exc)) from exc
+
+    def _require_provider_token(self, provider_id: str) -> None:
+        provided_token = self.headers.get("X-Provider-Token")
+        if self.store.get_provider(provider_id) is None:
+            raise PermissionError("Provider musi zostać najpierw zarejestrowany.")
+        if not self.store.verify_provider_token(provider_id, provided_token):
+            raise PermissionError("Brak poprawnego tokenu providera.")
+
+    def _handle_provider_register(self, payload: Dict[str, Any]) -> None:
+        provider = validate_provider_descriptor_payload(payload)
+        self._enforce_provider_environment(provider["provider_id"])
+        response = self.store.register_provider(provider)
+        self._send_json(HTTPStatus.CREATED, response)
+
+    def _handle_provider_token_rotate(self, provider_id: str) -> None:
+        if self.store.get_provider(provider_id) is None:
+            raise ProviderNotFoundError("Provider nie istnieje.")
+        self._enforce_provider_environment(provider_id)
+        self._require_provider_token(provider_id)
+        response = self.store.rotate_provider_token(provider_id)
+        self._send_json(HTTPStatus.OK, response)
 
     def _handle_observation(self, payload: Dict[str, Any]) -> None:
         observation = validate_observation_payload(payload)
         provider_id = observation["provider"]["provider_id"]
-        if provider_id not in REGISTRY:
-            REGISTRY[provider_id] = {
-                "descriptor": observation["provider"],
-                "status": make_provider_status(
-                    provider_id,
-                    supports_water_quality=observation["provider"].get("supports_water_quality", True),
-                    supports_flow_monitoring=observation["provider"].get("supports_flow_monitoring", True),
-                    supports_edge_vision_summary=observation["provider"].get(
-                        "supports_edge_vision_summary", False
-                    ),
-                ),
-            }
-        REGISTRY[provider_id]["status"]["last_seen_at"] = utc_now_iso()
-        OBSERVATIONS.append(observation)
+        self._enforce_provider_environment(provider_id)
+        self._require_provider_token(provider_id)
+        self.store.update_provider_seen(provider_id)
+        self.store.save_observation(observation)
         self._send_json(
             HTTPStatus.ACCEPTED,
             {
                 "status": "accepted",
                 "provider_id": provider_id,
-                "observation_count": len(OBSERVATIONS),
+                "message": "Obserwacja została zapisana w bazie operacyjnej.",
             },
         )
 
     def _handle_event(self, payload: Dict[str, Any]) -> None:
         event = validate_event_payload(payload)
         provider_id = event["provider"]["provider_id"]
-        if provider_id not in REGISTRY:
-            REGISTRY[provider_id] = {
-                "descriptor": event["provider"],
-                "status": make_provider_status(
-                    provider_id,
-                    supports_water_quality=event["provider"].get("supports_water_quality", False),
-                    supports_flow_monitoring=event["provider"].get("supports_flow_monitoring", False),
-                    supports_edge_vision_summary=event["provider"].get(
-                        "supports_edge_vision_summary", True
-                    ),
-                ),
-            }
-        REGISTRY[provider_id]["status"]["last_seen_at"] = utc_now_iso()
-        EVENTS.append(event)
+        self._enforce_provider_environment(provider_id)
+        self._require_provider_token(provider_id)
+        self.store.update_provider_seen(provider_id)
+        self.store.save_event(event)
         self._send_json(
             HTTPStatus.ACCEPTED,
             {
                 "status": "accepted",
                 "provider_id": provider_id,
-                "event_count": len(EVENTS),
+                "message": "Zdarzenie zostało zapisane w bazie operacyjnej.",
             },
         )
 
@@ -138,14 +147,23 @@ class FishPondAPIHandler(BaseHTTPRequestHandler):
         if "observation" not in payload:
             raise ValueError("Brak pola observation.")
         observation = validate_observation_payload(payload["observation"])
-        last_event = payload.get("last_behavior_event")
+        provider_id = observation["provider"]["provider_id"]
+        self._enforce_provider_environment(provider_id)
+        self._require_provider_token(provider_id)
+
+        last_event = payload.get("last_event")
+        if last_event is None:
+            last_event = payload.get("last_behavior_event")
         if last_event is not None:
             last_event = validate_event_payload(last_event)
+
         recommendation = generate_recommendation(
             observation,
             context=payload.get("context"),
             last_event=last_event,
         )
+        self.store.update_provider_seen(provider_id)
+        self.store.save_recommendation(recommendation)
         self._send_json(HTTPStatus.OK, recommendation)
 
     def do_POST(self) -> None:  # noqa: N802
@@ -154,6 +172,14 @@ class FishPondAPIHandler(BaseHTTPRequestHandler):
             payload = self._read_json()
             if parsed.path == "/v1/providers/register":
                 self._handle_provider_register(payload)
+                return
+            parts = [part for part in parsed.path.split("/") if part]
+            if (
+                len(parts) == 5
+                and parts[:2] == ["v1", "providers"]
+                and parts[3:] == ["tokens", "rotate"]
+            ):
+                self._handle_provider_token_rotate(parts[2])
                 return
             if parsed.path == "/v1/observations":
                 self._handle_observation(payload)
@@ -167,17 +193,25 @@ class FishPondAPIHandler(BaseHTTPRequestHandler):
             self._not_found()
         except ValueError as exc:
             self._bad_request(str(exc))
+        except PermissionError as exc:
+            self._unauthorized(str(exc))
+        except ProviderConflictError as exc:
+            self._conflict(str(exc))
+        except ProviderNotFoundError as exc:
+            self._not_found()
+        except ProviderEnvironmentPolicyError as exc:
+            self._forbidden(str(exc))
 
     def do_GET(self) -> None:  # noqa: N802
         parsed = urlparse(self.path)
         parts = [part for part in parsed.path.split("/") if part]
         if len(parts) == 4 and parts[:2] == ["v1", "providers"] and parts[3] == "status":
             provider_id = parts[2]
-            provider = REGISTRY.get(provider_id)
-            if provider is None:
+            provider_status = self.store.provider_status(provider_id)
+            if provider_status is None:
                 self._not_found()
                 return
-            self._send_json(HTTPStatus.OK, provider["status"])
+            self._send_json(HTTPStatus.OK, provider_status)
             return
         self._not_found()
 
@@ -185,17 +219,49 @@ class FishPondAPIHandler(BaseHTTPRequestHandler):
         return
 
 
-def create_server(host: str = "127.0.0.1", port: int = 8000) -> ThreadingHTTPServer:
-    return ThreadingHTTPServer((host, port), FishPondAPIHandler)
+def create_server(
+    host: str = "127.0.0.1",
+    port: int = 8000,
+    db_path: str | Path | None = None,
+    deployment_environment: str | None = None,
+    allowed_provider_environments: set[str] | None = None,
+) -> ThreadingHTTPServer:
+    server = ThreadingHTTPServer((host, port), FishPondAPIHandler)
+    server.store = OperationalStore(db_path)  # type: ignore[attr-defined]
+    server.deployment_environment = deployment_environment  # type: ignore[attr-defined]
+    server.allowed_provider_environments = allowed_provider_environments  # type: ignore[attr-defined]
+    return server
 
 
 def main() -> None:
     host = "127.0.0.1"
     port = 8000
+    db_path = os.environ.get("FISH_POND_DB_PATH", str(DEFAULT_DB_PATH))
+    deployment_environment = os.environ.get("DEPLOYMENT_ENVIRONMENT")
+    allowed_provider_environments = parse_allowed_provider_environments(
+        os.environ.get("ALLOWED_PROVIDER_ENVIRONMENTS"),
+        deployment_environment,
+    )
     if len(sys.argv) >= 2:
         port = int(sys.argv[1])
-    server = create_server(host, port)
+    if len(sys.argv) >= 3:
+        db_path = sys.argv[2]
+    server = create_server(
+        host,
+        port,
+        db_path=db_path,
+        deployment_environment=deployment_environment,
+        allowed_provider_environments=allowed_provider_environments,
+    )
     print(f"Fish pond API server listening on http://{host}:{port}")
+    print(f"Operational DB: {db_path}")
+    if deployment_environment:
+        print(f"Deployment environment: {deployment_environment}")
+    if allowed_provider_environments is not None:
+        print(
+            "Allowed provider environments: "
+            + ", ".join(sorted(allowed_provider_environments))
+        )
     try:
         server.serve_forever()
     except KeyboardInterrupt:

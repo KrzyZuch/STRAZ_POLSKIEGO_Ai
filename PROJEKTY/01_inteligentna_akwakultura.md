@@ -11,6 +11,22 @@ Koncepcja "Smart Fish Farming" opiera się na stworzeniu w pełni autonomicznych
 ## Wizja Straży Przyszłości
 Właśnie tego typu skalowalne, bezobsługowe rozwiązania są jednym z głównych celów **Narodowych Sił Intelektualnych Polski**. Naszym celem jest zaprojektowanie i uruchomienie całkowicie autonomicznych węzłów produkcji żywności, które będą tworzyć technologiczną "gospodarkę bis". Wygenerowane w ten sposób nadwyżki i tania żywność mają docelowo zasilać fundusz **Bezwarunkowego Dochodu Podstawowego (UBI)**.
 
+## Dwa kanały wejścia do projektu
+
+Ten projekt potrzebuje dwóch osobnych onboardingów:
+
+1. **onboardingu Strażnika**, czyli wejścia nowej osoby do inicjatywy przez zewnętrzną ankietę i rekomendator zadań,
+2. **onboardingu providera**, czyli technicznej ścieżki dla węzłów i uczestników, którzy chcą wysyłać dane do API.
+
+To rozróżnienie jest ważne, bo większość nowych osób nie zacznie od rejestracji providera. Najpierw potrzebują zrozumieć, gdzie w projekcie mogą wnieść najlepszy wkład: w hardware, analizę danych, dokumentację, edge vision, API albo organizację.
+
+Dlatego zewnętrzna strona inicjatywy powinna działać jako rekomendator ścieżek wejścia, a to repozytorium powinno utrzymywać:
+
+- katalog rekomendacji zadań,
+- projekty i dokumenty startowe,
+- backlog pierwszych Issues,
+- osobny onboarding providera dla tych, którzy chcą zasilać wspólne API.
+
 ## Minimalne API `v1` dla pilotażu stawu hodowlanego
 
 Pierwsza wersja interfejsu powinna być minimalistyczna i skupiona na dwóch rzeczach:
@@ -30,6 +46,7 @@ Minimalna powierzchnia API dla projektu:
 
 ```text
 POST /v1/providers/register
+POST /v1/providers/{provider_id}/tokens/rotate
 POST /v1/observations
 POST /v1/events
 POST /v1/recommendations/fish-pond
@@ -46,6 +63,10 @@ Endpoint `POST /v1/providers/register` jest potrzebny po to, aby każdy provider
 - czy wspiera monitoring jakości wody, przepływu i edge vision.
 
 To ważne, ponieważ w naszym modelu providerem może zostać każdy, a nie tylko duży partner zewnętrzny.
+
+Po rejestracji provider powinien otrzymywać jednorazowo `write_token`, który następnie służy do autoryzacji zapisów przez nagłówek `X-Provider-Token`.
+
+Ponowna rejestracja tego samego `provider_id` nie powinna służyć do odzyskiwania dostępu. Wymiana sekretu powinna odbywać się wyłącznie przez dedykowany endpoint rotacji tokenu.
 
 ### Zakres `POST /v1/observations`
 
@@ -174,6 +195,7 @@ Jednym z najbardziej praktycznych wariantów `v1` jest lekka warstwa koordynacyj
 W tym wariancie:
 
 - rejestracja providerów odbywa się przez publiczny endpoint,
+- provider po rejestracji otrzymuje `write_token`,
 - obserwacje i zdarzenia trafiają do centralnego API,
 - operacyjne dane są przechowywane poza repozytorium,
 - stare smartfony i węzły społecznościowe nie muszą wystawiać własnych publicznych serwerów,
@@ -186,6 +208,8 @@ Artefakty dla tego wariantu są utrzymywane w katalogu:
 - [`cloudflare/src/worker.js`](../cloudflare/src/worker.js)
 - [`cloudflare/src/recommendation.js`](../cloudflare/src/recommendation.js)
 - [`cloudflare/migrations/0001_init.sql`](../cloudflare/migrations/0001_init.sql)
+- [`cloudflare/provider_smoke_test.py`](../cloudflare/provider_smoke_test.py)
+- [`docs/RUNBOOK_WDROZENIA_CLOUDFLARE_D1.md`](../docs/RUNBOOK_WDROZENIA_CLOUDFLARE_D1.md)
 
 ## Inteligentne podejście do wideo
 
@@ -206,10 +230,30 @@ Dla tego projektu warstwa minimalnej integracji powinna być utrzymywana jako:
 - [`openapi/fish_pond_api_v1.yaml`](../openapi/fish_pond_api_v1.yaml)
 - [`api/server.py`](../api/server.py)
 - [`api/README.md`](../api/README.md)
+- [`api/storage.py`](../api/storage.py)
 - [`cloudflare/README.md`](../cloudflare/README.md)
 - [`data/sample/fish_pond_observation.json`](../data/sample/fish_pond_observation.json)
 - [`data/sample/fish_behavior_event.json`](../data/sample/fish_behavior_event.json)
 - [`data/sample/fish_pond_recommendation.json`](../data/sample/fish_pond_recommendation.json)
+- [`pipelines/export_knowledge_snapshot.py`](../pipelines/export_knowledge_snapshot.py)
+- [`reports/README.md`](../reports/README.md)
+
+## Eksport wiedzy z warstwy operacyjnej
+
+To, że repozytorium nie przechowuje surowych odczytów providerów, nie oznacza utraty wartości poznawczej tych danych. Przeciwnie, potrzebna jest jawna ścieżka:
+
+1. provider przesyła dane do warstwy operacyjnej,
+2. dane są przechowywane poza repozytorium,
+3. z danych wyprowadzany jest snapshot wiedzy lub raport zbiorczy,
+4. dopiero taki opracowany materiał trafia do repozytorium jako wkład społeczności.
+
+W praktyce oznacza to, że stary smartfon, węzeł ESP32 albo provider zewnętrzny dokłada realne pomiary do wspólnego systemu, a Straż Przyszłości zachowuje w repozytorium to, co najcenniejsze: standard, interpretację, modele i wiedzę.
+
+Operacyjna obsługa dostępu providera również musi być częścią tego dorobku. Dlatego w repozytorium powinny być utrzymywane nie tylko schematy i modele, ale także jawne runbooki i narzędzia dla maintainera, które pozwalają bezpiecznie odzyskać działanie społecznościowego węzła bez publikowania sekretów.
+
+Równie ważna jest wspólna konwencja `provider_id`, bo to ona pozwala odróżnić środowiska `local`, `demo`, `preview`, `staging` i `prod`, a także uniknąć chaosu wśród społecznościowych węzłów oraz partnerów zewnętrznych.
+
+Sama poprawna nazwa to jeszcze nie wszystko. Publiczne API powinno dodatkowo pilnować, czy environment wpisany w `provider_id` jest dopuszczony w danym deploymentcie. Dzięki temu środowisko `prod` nie przyjmie przez pomyłkę providerów z `demo`.
 
 ## Najrozsądniejsza ścieżka wdrożenia
 
@@ -471,6 +515,120 @@ Poniżej znajduje się pierwszy operacyjny backlog dla tego projektu. Każdy z t
 - Rozpisać, które moduły z `KnowFlow_AWM`, `IoT-WQMS` i `IoT-Water-Quality-Monitoring` są warte przejęcia.
 - Odróżnić elementy przydatne od tych, które nie pasują do naszego standardu.
 - Zostawić jasne notatki dla kolejnych osób wchodzących do projektu.
+
+### `issue:aq-13` Tokeny providerów i cykl życia rejestracji
+
+- Doprecyzować zasady rotacji `write_token`.
+- Opisać odzyskiwanie dostępu po utracie tokenu.
+- Rozdzielić środowisko testowe, lokalne i publiczne.
+
+### `issue:aq-14` Snapshot wiedzy z bazy operacyjnej
+
+- Rozszerzyć generator raportu o trendy, histogramy i zakresy ostrzegawcze.
+- Dodać anonimizację wybranych pól przed publikacją raportów.
+- Opracować zasady, które snapshoty trafiają do repozytorium.
+
+### `issue:aq-15` Wdrożenie D1 dla wariantu Cloudflare
+
+- Spiąć migracje, bindingi i instrukcję wdrożeniową dla pierwszego publicznego środowiska.
+- Zweryfikować retencję i limity kosztowe dla ruchu społecznościowego.
+- Udokumentować minimalny plan odzyskiwania po awarii.
+
+### `issue:aq-16` Kuracja wiedzy z danych społecznościowych
+
+- Zdefiniować, jak z obserwacji wielu providerów budować porównywalne przypadki.
+- Opracować proces ręcznej lub półautomatycznej kuracji przypadków do repozytorium.
+- Przygotować pierwszy wzorzec opisu przypadku dla stawu hodowlanego.
+
+### `issue:aq-17` Ręczne odzyskiwanie dostępu providera
+
+- Opracować bezpieczny proces organizacyjny dla utraty tokenu.
+- Rozdzielić odzyskiwanie dla providerów społecznościowych, badawczych i partnerskich.
+- Udokumentować, kto i na jakiej podstawie może odtworzyć dostęp.
+
+### `issue:aq-18` Audyt stabilności identyfikatorów providerów
+
+- Doprecyzować zasady nadawania `provider_id`.
+- Ograniczyć kolizje nazw między społecznością i partnerami.
+- Zaproponować konwencję nazewniczą dla stawów, węzłów i providera.
+
+### `issue:aq-19` Narzędzie administracyjne dla maintainera
+
+- Rozwinąć `api/admin_provider_access.py` o dodatkowe operacje diagnostyczne.
+- Dodać bezpieczny tryb eksportu statusów bez sekretów.
+- Przygotować minimalny workflow dla lokalnej bazy i wariantu edge/cloud.
+
+### `issue:aq-20` Runbook i kanał incydentowy dla utraty dostępu
+
+- Doprecyzować, jak weryfikować tożsamość providera bez publikowania sekretów.
+- Spiąć szablon GitHub Issue z runbookiem maintainera.
+- Zostawić jasny proces dla społecznościowych węzłów i partnerów zewnętrznych.
+
+### `issue:aq-21` Pierwszy publiczny deployment Cloudflare + D1
+
+- Uzupełnić realne `database_id` i `preview_database_id`.
+- Wykonać pierwsze zdalne migracje i deployment Worker'a.
+- Zostawić notatkę operatorską z wynikiem deploymentu.
+
+### `issue:aq-22` Smoke test publicznego API
+
+- Utrzymywać `cloudflare/provider_smoke_test.py` jako standard po deploymencie.
+- Dodać wynik smoke testu do procesu odbioru środowiska.
+- Nie wpuszczać realnych providerów bez pełnego przejścia testu.
+
+### `issue:aq-23` Rollback i gotowość operatorska
+
+- Udokumentować minimalny proces rollbacku Worker'a.
+- Określić, kto może wykonać rollback w środowisku publicznym.
+- Dodać checklistę po rollbacku, w tym ponowny smoke test.
+
+### `issue:aq-24` Wdrożenie konwencji provider_id w całym repo
+
+- Utrzymywać wspólny format `kind-environment-slug-01`.
+- Dopilnować zgodności sample data, testów, dokumentacji i onboardingów.
+- Ograniczyć kolizje między środowiskami lokalnymi, demo i produkcyjnymi.
+
+### `issue:aq-25` Konwencja nazw środowisk dla operatorów i providerów
+
+- Spiąć nazwy środowisk `local`, `demo`, `preview`, `staging`, `prod` z praktyką deploymentu.
+- Opisać, kiedy provider powinien zmienić identyfikator przy przejściu do innego środowiska.
+- Przygotować checklistę migracji węzła z `demo` do `prod`.
+
+### `issue:aq-26` Environment policy w API i Workerze
+
+- Utrzymywać zgodność między `provider_id` a polityką środowiska deploymentu.
+- Nie wpuszczać providerów `demo` do `prod`.
+- Testować politykę środowisk na lokalnym API i w wariancie Cloudflare.
+
+### `issue:aq-27` Profile deploymentu preview, staging i prod
+
+- Doprecyzować domyślne `ALLOWED_PROVIDER_ENVIRONMENTS` dla każdego profilu.
+- Spiąć profile z runbookiem wdrożeniowym.
+- Zostawić operatorowi jasną checklistę, kiedy i jak przejść do `prod`.
+
+### `issue:aq-28` Architektura dwóch onboardingów
+
+- Rozdzielić onboarding Strażnika od onboardingu providera we wszystkich dokumentach i punktach wejścia.
+- Utrzymać osobną narrację dla pierwszego zaangażowania społeczności i osobną dla integracji danych.
+- Dopilnować, żeby nowa osoba nie trafiała od razu do technicznej dokumentacji API bez kontekstu.
+
+### `issue:aq-29` Katalog rekomendatora zadań dla strony zewnętrznej
+
+- Utrzymywać kanoniczny katalog tras wejścia dla zewnętrznej strony inicjatywy.
+- Mapować pasje, kompetencje i zasoby Strażnika na konkretne sekcje repozytorium i pierwsze Issues.
+- Zostawić format łatwy do wykorzystania przez repo strony `straz_landing`.
+
+### `issue:aq-30` Issue template dla nowego Strażnika
+
+- Przygotować prosty punkt wejścia dla osoby przekierowanej ze strony zewnętrznej.
+- Zbierać pasje, kompetencje, zasoby i oczekiwania wobec pierwszego wkładu.
+- Łączyć zgłoszenie z katalogiem rekomendacji i opieką społeczności.
+
+### `issue:aq-31` Integracja ankiety z repo strony inicjatywy
+
+- Spiąć repo strony z katalogiem rekomendatora zadań utrzymywanym w tym repozytorium.
+- Zaprojektować przekierowania do właściwych projektów, dokumentów i szablonów Issue.
+- Rozdzielić przekierowanie dla nowego Strażnika od przekierowania do ścieżki providera danych.
 
 ## Inspiracje i źródła:
 - [Wideo: Smart Fish Farming](https://www.youtube.com/watch?v=N84PUuxThP4)

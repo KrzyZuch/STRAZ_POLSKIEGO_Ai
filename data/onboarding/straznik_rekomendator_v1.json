@@ -1,0 +1,114 @@
+{
+  "version": "1.0.0",
+  "description": "Kanoniczny katalog rekomendacji zadan dla onboardingu Straznika Przyszlosci. Ten plik jest przeznaczony do wykorzystania przez zewnetrzna strone inicjatywy jako mapa przekierowan do odpowiednich sekcji repozytorium.",
+  "entry_issue_template": ".github/ISSUE_TEMPLATE/nowy_straznik.md",
+  "routes": [
+    {
+      "route_id": "aquaculture_water_monitoring",
+      "label": "Akwakultura i monitoring wody",
+      "summary": "Dla osob zainteresowanych stawami hodowlanymi, jakoscia wody, biologicznym kontekstem pomiarow i rozwojem pilota Inteligentnej Akwakultury.",
+      "signals": {
+        "passions": ["akwakultura", "woda", "rolnictwo", "hodowla", "biologia"],
+        "skills": ["analiza terenowa", "pomiary", "diagnostyka", "eksperymenty"],
+        "resources": ["staw", "czujniki", "notatki terenowe"]
+      },
+      "recommended_repo_sections": [
+        "PROJEKTY/01_inteligentna_akwakultura.md",
+        "docs/STRATEGIA_INTEGRACJI.md",
+        "docs/ARCHITEKTURA_WEZLOW_POMIAROWYCH.md"
+      ],
+      "first_tasks": ["issue:aq-03", "issue:aq-05", "issue:aq-11"],
+      "next_step": "Po przejsciu przez materialy startowe otworz Issue nowego Straznika i opisz swoj kontekst pomiarowy albo domenowy."
+    },
+    {
+      "route_id": "edge_iot_hardware",
+      "label": "Edge IoT i hardware",
+      "summary": "Dla osob budujacych wezly terenowe, czujniki, mostki danych i konfiguracje oparte o ESP32, stare smartfony i lekkie urzadzenia pomiarowe.",
+      "signals": {
+        "passions": ["iot", "hardware", "elektronika", "esp32", "diy"],
+        "skills": ["lutowanie", "mikrokontrolery", "kalibracja", "integracja sensorow"],
+        "resources": ["esp32", "arduino", "stary smartfon", "czujniki ph", "czujnik do", "kamera"]
+      },
+      "recommended_repo_sections": [
+        "PROJEKTY/01_inteligentna_akwakultura.md",
+        "PROJEKTY/06_smartfony_jako_sterowniki.md",
+        "docs/ARCHITEKTURA_WEZLOW_POMIAROWYCH.md",
+        "docs/ARCHITEKTURA_EDGE_SMARTFONY_CLOUD.md"
+      ],
+      "first_tasks": ["issue:aq-01", "issue:aq-02", "issue:aq-03", "issue:aq-04"],
+      "next_step": "Jezeli poza budowa wezla chcesz tez wysylac dane do API, przejdz dalej do onboardingu providera danych."
+    },
+    {
+      "route_id": "edge_vision_behavior",
+      "label": "Analiza obrazu i zachowania ryb",
+      "summary": "Dla osob zainteresowanych lekkimi modelami edge AI, analiza obrazu na starych smartfonach i raportowaniem streszczen zachowania ryb zamiast przesylania surowego wideo.",
+      "signals": {
+        "passions": ["computer vision", "edge ai", "android", "kamery", "ryby"],
+        "skills": ["ml", "opencv", "tflite", "analiza obrazu"],
+        "resources": ["kamera", "stary smartfon", "nagrania testowe"]
+      },
+      "recommended_repo_sections": [
+        "PROJEKTY/01_inteligentna_akwakultura.md",
+        "docs/ARCHITEKTURA_EDGE_SMARTFONY_CLOUD.md",
+        "data/sample/fish_behavior_event.json"
+      ],
+      "first_tasks": ["issue:aq-07", "issue:aq-08"],
+      "next_step": "Skup sie na lekkich metrykach i zdarzeniach. Nie projektuj od razu ciezkiego strumienia wideo do API."
+    },
+    {
+      "route_id": "api_data_integration",
+      "label": "API, adaptery i integracja danych",
+      "summary": "Dla osob backendowych i integracyjnych, ktore chca pracowac nad schematami, OpenAPI, adapterami providerow i warstwa operacyjna.",
+      "signals": {
+        "passions": ["backend", "api", "integracja", "schematy", "data engineering"],
+        "skills": ["python", "http", "openapi", "walidacja", "cloudflare"],
+        "resources": ["laptop", "srodowisko developerskie", "czas na testy"]
+      },
+      "recommended_repo_sections": [
+        "schemas/fish_pond_v1.yaml",
+        "openapi/fish_pond_api_v1.yaml",
+        "api/README.md",
+        "cloudflare/README.md",
+        "docs/JAK_ZOSTAC_DOSTAWCA_DANYCH.md"
+      ],
+      "first_tasks": ["issue:aq-09", "issue:aq-13", "issue:aq-26", "issue:aq-27"],
+      "next_step": "Jezeli budujesz prawdziwy wezel lub integracje terenowa, zaplanuj tez przejscie przez onboarding providera."
+    },
+    {
+      "route_id": "knowledge_research_documentation",
+      "label": "Kuracja wiedzy, dokumentacja i badania",
+      "summary": "Dla osob, ktore wola analizowac, dokumentowac, opisywac przypadki i budowac baze wiedzy zamiast zaczynac od integracji technicznej.",
+      "signals": {
+        "passions": ["badania", "dokumentacja", "analiza", "knowledge management"],
+        "skills": ["pisanie", "synteza", "czytanie repozytoriow", "porzadkowanie wiedzy"],
+        "resources": ["czas na research", "umiejetnosc pracy z dokumentacja"]
+      },
+      "recommended_repo_sections": [
+        "PROJEKTY/01_inteligentna_akwakultura.md",
+        "docs/STRATEGIA_INTEGRACJI.md",
+        "reports/README.md",
+        "pipelines/export_knowledge_snapshot.py"
+      ],
+      "first_tasks": ["issue:aq-12", "issue:aq-14", "issue:aq-16"],
+      "next_step": "Ta sciezka nie wymaga zostania providerem. Jej celem jest wzmacnianie wspolnej bazy wiedzy repozytorium."
+    },
+    {
+      "route_id": "community_growth_and_coordination",
+      "label": "Spolecznosc, onboarding i koordynacja",
+      "summary": "Dla osob, ktore chca organizowac naplyw nowych Straznikow, porzadkowac sciezki wejscia i pomagac ludziom odnalezc dla siebie pierwszy sensowny wkład.",
+      "signals": {
+        "passions": ["spolecznosc", "koordynacja", "onboarding", "marketing", "ux"],
+        "skills": ["komunikacja", "pisanie", "moderacja", "organizacja"],
+        "resources": ["czas na wsparcie innych", "pomysly na system wejscia"]
+      },
+      "recommended_repo_sections": [
+        "README.md",
+        "MARKETING.md",
+        "docs/ARCHITEKTURA_ONBOARDINGU.md",
+        "docs/STRATEGIA_INTEGRACJI.md"
+      ],
+      "first_tasks": ["issue:aq-28", "issue:aq-29", "issue:aq-30", "issue:aq-31"],
+      "next_step": "Ta sciezka wspiera zewnetrzny rekomendator zadan i pomaga przekierowywac nowych ludzi do odpowiednich sekcji repo."
+    }
+  ]
+}

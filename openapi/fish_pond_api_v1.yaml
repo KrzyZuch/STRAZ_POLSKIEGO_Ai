@@ -29,7 +29,7 @@ paths:
             examples:
               communityProvider:
                 value:
-                  provider_id: community-node-01
+                  provider_id: community-demo-node-01
                   provider_kind: community
                   provider_label: Community Old Smartphone Gateway
                   node_class: old_smartphone
@@ -45,10 +45,41 @@ paths:
                 $ref: '#/components/schemas/ProviderRegistrationResponse'
         '400':
           description: Błąd walidacji danych wejściowych
+        '403':
+          description: Provider environment nie jest dozwolony w tym środowisku API
+        '409':
+          description: Provider o tym provider_id już istnieje
+  /v1/providers/{provider_id}/tokens/rotate:
+    post:
+      tags: [providers]
+      summary: Obraca token zapisu providera
+      security:
+        - ProviderWriteToken: []
+      parameters:
+        - in: path
+          name: provider_id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Token został obrócony
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProviderTokenRotationResponse'
+        '401':
+          description: Brak poprawnego tokenu providera
+        '404':
+          description: Nie znaleziono providera
+        '403':
+          description: Provider environment nie jest dozwolony w tym środowisku API
   /v1/observations:
     post:
       tags: [observations]
       summary: Przesyła pojedynczą obserwację stawu w schemacie kanonicznym
+      security:
+        - ProviderWriteToken: []
       requestBody:
         required: true
         content:
@@ -60,7 +91,7 @@ paths:
                 value:
                   schema_version: v1
                   provider:
-                    provider_id: community-node-01
+                    provider_id: community-demo-node-01
                     provider_kind: community
                     provider_label: Community Old Smartphone Gateway
                     node_class: old_smartphone
@@ -85,10 +116,16 @@ paths:
           description: Obserwacja przyjęta do dalszej analizy
         '400':
           description: Błąd walidacji danych wejściowych
+        '401':
+          description: Brak poprawnego tokenu providera
+        '403':
+          description: Provider environment nie jest dozwolony w tym środowisku API
   /v1/events:
     post:
       tags: [events]
       summary: Przesyła zdarzenie terenowe lub wynik lokalnej analizy zachowania ryb
+      security:
+        - ProviderWriteToken: []
       requestBody:
         required: true
         content:
@@ -100,7 +137,7 @@ paths:
                 value:
                   schema_version: v1
                   provider:
-                    provider_id: community-node-01
+                    provider_id: community-demo-node-01
                     provider_kind: community
                     provider_label: Community Old Smartphone Gateway
                     node_class: old_smartphone
@@ -130,10 +167,16 @@ paths:
           description: Zdarzenie przyjęte do analizy lub archiwizacji
         '400':
           description: Błąd walidacji danych wejściowych
+        '401':
+          description: Brak poprawnego tokenu providera
+        '403':
+          description: Provider environment nie jest dozwolony w tym środowisku API
   /v1/recommendations/fish-pond:
     post:
       tags: [recommendations]
       summary: Generuje rekomendację dla stawu hodowlanego
+      security:
+        - ProviderWriteToken: []
       requestBody:
         required: true
         content:
@@ -151,7 +194,7 @@ paths:
                 exampleRecommendation:
                   value:
                     schema_version: v1
-                    provider_id: community-node-01
+                    provider_id: community-demo-node-01
                     pond_id: pond-alpha
                     analysis_time: "2026-04-12T06:21:00Z"
                     risk_level: high
@@ -163,6 +206,10 @@ paths:
                     summary: Niskie natlenienie i nietypowa aktywność przy powierzchni.
         '400':
           description: Błąd walidacji danych wejściowych
+        '401':
+          description: Brak poprawnego tokenu providera
+        '403':
+          description: Provider environment nie jest dozwolony w tym środowisku API
   /v1/providers/{provider_id}/status:
     get:
       tags: [providers]
@@ -183,6 +230,14 @@ paths:
         '404':
           description: Nie znaleziono providera
 components:
+  securitySchemes:
+    ProviderWriteToken:
+      type: apiKey
+      in: header
+      name: X-Provider-Token
+      description: >
+        Token write-only zwracany jednorazowo po rejestracji providera.
+        Wymagany do przesyłania obserwacji, zdarzeń i pobierania rekomendacji.
   schemas:
     ProviderDescriptor:
       type: object
@@ -190,6 +245,11 @@ components:
       properties:
         provider_id:
           type: string
+          pattern: "^(company|farm|community|research|edge)-(local|demo|preview|staging|prod)-[a-z0-9]+(?:-[a-z0-9]+)*-[0-9]{2,}$"
+          description: >
+            Stabilny identyfikator providera w formacie
+            kind-environment-slug-01, np. community-demo-node-01.
+            Drugi segment powinien być zgodny z polityką środowiska wdrożeniowego API.
         provider_kind:
           type: string
           enum: [company, farm, community, research, edge_node]
@@ -351,6 +411,7 @@ components:
           enum: [v1]
         provider_id:
           type: string
+          pattern: "^(company|farm|community|research|edge)-(local|demo|preview|staging|prod)-[a-z0-9]+(?:-[a-z0-9]+)*-[0-9]{2,}$"
         pond_id:
           type: string
         analysis_time:
@@ -380,6 +441,7 @@ components:
       properties:
         provider_id:
           type: string
+          pattern: "^(company|farm|community|research|edge)-(local|demo|preview|staging|prod)-[a-z0-9]+(?:-[a-z0-9]+)*-[0-9]{2,}$"
         status:
           type: string
           enum: [ok, degraded, offline]
@@ -397,7 +459,7 @@ components:
           type: boolean
     ProviderRegistrationResponse:
       type: object
-      required: [provider_id, registration_status, schema_version]
+      required: [provider_id, registration_status, schema_version, write_token]
       properties:
         provider_id:
           type: string
@@ -409,3 +471,23 @@ components:
           enum: [v1]
         message:
           type: string
+        write_token:
+          type: string
+          description: Token zwracany jednorazowo po rejestracji providera.
+    ProviderTokenRotationResponse:
+      type: object
+      required: [provider_id, rotation_status, schema_version, write_token]
+      properties:
+        provider_id:
+          type: string
+        rotation_status:
+          type: string
+          enum: [rotated]
+        schema_version:
+          type: string
+          enum: [v1]
+        message:
+          type: string
+        write_token:
+          type: string
+          description: Nowy token zwracany jednorazowo po rotacji.

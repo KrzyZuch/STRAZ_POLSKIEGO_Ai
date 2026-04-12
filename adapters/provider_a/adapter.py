@@ -9,6 +9,8 @@ from adapters.utils import (
     validate_observation_payload,
 )
 
+CANONICAL_PROVIDER_ID = "company-demo-provider-a-01"
+
 
 def fetch_or_receive(resource: str = "observation") -> Dict[str, Any]:
     mapping = {
@@ -25,7 +27,7 @@ def normalize(payload: Dict[str, Any]) -> Dict[str, Any]:
         return {
             "schema_version": "v1",
             "provider": {
-                "provider_id": payload["providerCode"],
+                "provider_id": CANONICAL_PROVIDER_ID,
                 "provider_kind": "company",
                 "provider_label": payload["providerLabel"],
                 "node_class": "cloud_connector",
@@ -52,7 +54,7 @@ def normalize(payload: Dict[str, Any]) -> Dict[str, Any]:
     return {
         "schema_version": "v1",
         "provider": {
-            "provider_id": payload["providerCode"],
+            "provider_id": CANONICAL_PROVIDER_ID,
             "provider_kind": "company",
             "provider_label": payload["providerLabel"],
             "node_class": "cloud_connector",
@@ -93,7 +95,7 @@ def validate(payload: Dict[str, Any]) -> Dict[str, Any]:
 
 def send_result(result: Dict[str, Any]) -> Dict[str, Any]:
     return {
-        "provider_id": "provider-a",
+        "provider_id": CANONICAL_PROVIDER_ID,
         "status": "accepted",
         "result": result,
     }
@@ -101,7 +103,7 @@ def send_result(result: Dict[str, Any]) -> Dict[str, Any]:
 
 def check_status() -> Dict[str, Any]:
     return make_provider_status(
-        "provider-a",
+        CANONICAL_PROVIDER_ID,
         supports_water_quality=True,
         supports_flow_monitoring=True,
         supports_edge_vision_summary=True,

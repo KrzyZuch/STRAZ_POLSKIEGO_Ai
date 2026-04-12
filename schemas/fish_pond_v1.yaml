@@ -15,6 +15,10 @@ types:
     properties:
       provider_id:
         type: string
+        description: >
+          Stabilny identyfikator providera w formacie
+          kind-environment-slug-01, np. community-demo-node-01.
+        pattern: "^(company|farm|community|research|edge)-(local|demo|preview|staging|prod)-[a-z0-9]+(?:-[a-z0-9]+)*-[0-9]{2,}$"
       provider_kind:
         type: string
         enum:
@@ -196,6 +200,7 @@ types:
         enum: [v1]
       provider_id:
         type: string
+        pattern: "^(company|farm|community|research|edge)-(local|demo|preview|staging|prod)-[a-z0-9]+(?:-[a-z0-9]+)*-[0-9]{2,}$"
       pond_id:
         type: string
       analysis_time:
@@ -234,6 +239,7 @@ types:
     properties:
       provider_id:
         type: string
+        pattern: "^(company|farm|community|research|edge)-(local|demo|preview|staging|prod)-[a-z0-9]+(?:-[a-z0-9]+)*-[0-9]{2,}$"
       status:
         type: string
         enum:

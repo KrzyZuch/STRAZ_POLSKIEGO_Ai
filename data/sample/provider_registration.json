@@ -1,5 +1,5 @@
 {
-  "provider_id": "community-node-01",
+  "provider_id": "community-demo-node-01",
   "provider_kind": "community",
   "provider_label": "Community Old Smartphone Gateway",
   "node_class": "old_smartphone",

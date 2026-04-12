@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS providers (
   supports_flow_monitoring INTEGER NOT NULL DEFAULT 0,
   supports_edge_vision_summary INTEGER NOT NULL DEFAULT 0,
   schema_version TEXT NOT NULL DEFAULT 'v1',
+  write_token_hash TEXT NOT NULL,
   registered_at TEXT NOT NULL,
   last_seen_at TEXT NOT NULL
 );

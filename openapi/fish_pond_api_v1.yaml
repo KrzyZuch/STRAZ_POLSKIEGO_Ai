@@ -1,0 +1,368 @@
+openapi: 3.0.3
+info:
+  title: Fish Pond Monitoring API
+  version: v1
+  description: >
+    Minimalne API Straży Przyszłości dla projektu Inteligentna Akwakultura.
+    Wersja v1 obejmuje monitoring jakości i przepływu wody oraz odbiór
+    wyników lokalnej analizy zachowania ryb. Surowe wideo nie jest częścią
+    minimalnego kontraktu publicznego.
+servers:
+  - url: https://api.straz-przyszlosci.local
+    description: Example server
+tags:
+  - name: observations
+  - name: events
+  - name: recommendations
+  - name: providers
+paths:
+  /v1/observations:
+    post:
+      tags: [observations]
+      summary: Przesyła pojedynczą obserwację stawu w schemacie kanonicznym
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SensorObservation'
+            examples:
+              waterObservation:
+                value:
+                  schema_version: v1
+                  provider:
+                    provider_id: community-node-01
+                    provider_kind: community
+                    provider_label: Community Old Smartphone Gateway
+                    node_class: old_smartphone
+                    supports_water_quality: true
+                    supports_flow_monitoring: true
+                    supports_edge_vision_summary: true
+                  pond:
+                    pond_id: pond-alpha
+                    site_id: site-mazury-01
+                    pond_label: Staw Poludniowy
+                    species: carp
+                  measurement_time: "2026-04-12T06:15:00Z"
+                  water_temperature_c: 21.8
+                  dissolved_oxygen_mg_l: 6.9
+                  ph: 7.4
+                  ammonia_mg_l: 0.08
+                  flow_rate_l_min: 118.0
+                  source_quality: measured
+                  raw_reference: local-log-001
+      responses:
+        '202':
+          description: Obserwacja przyjęta do dalszej analizy
+        '400':
+          description: Błąd walidacji danych wejściowych
+  /v1/events:
+    post:
+      tags: [events]
+      summary: Przesyła zdarzenie terenowe lub wynik lokalnej analizy zachowania ryb
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventEnvelope'
+            examples:
+              fishBehaviorSummary:
+                value:
+                  schema_version: v1
+                  provider:
+                    provider_id: community-node-01
+                    provider_kind: community
+                    provider_label: Community Old Smartphone Gateway
+                    node_class: old_smartphone
+                    supports_water_quality: true
+                    supports_flow_monitoring: true
+                    supports_edge_vision_summary: true
+                  pond:
+                    pond_id: pond-alpha
+                    site_id: site-mazury-01
+                    pond_label: Staw Poludniowy
+                    species: carp
+                  event_time: "2026-04-12T06:20:00Z"
+                  event_type: fish_behavior_summary
+                  severity: warning
+                  behavior_summary:
+                    activity_level: low
+                    surface_gasping_score: 0.71
+                    school_dispersion_score: 0.42
+                    feeding_response_score: 0.26
+                    visible_mortality_count: 0
+                    anomaly_score: 0.77
+                    confidence: 0.68
+                    clip_reference: local-buffer://pond-alpha/2026-04-12T06:19:30Z
+                    notes: Podwyższona aktywność przy powierzchni
+      responses:
+        '202':
+          description: Zdarzenie przyjęte do analizy lub archiwizacji
+        '400':
+          description: Błąd walidacji danych wejściowych
+  /v1/recommendations/fish-pond:
+    post:
+      tags: [recommendations]
+      summary: Generuje rekomendację dla stawu hodowlanego
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FishPondRecommendationRequest'
+      responses:
+        '200':
+          description: Wygenerowana rekomendacja
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recommendation'
+              examples:
+                exampleRecommendation:
+                  value:
+                    schema_version: v1
+                    provider_id: community-node-01
+                    pond_id: pond-alpha
+                    analysis_time: "2026-04-12T06:21:00Z"
+                    risk_level: high
+                    recommendation: check_aeration
+                    confidence: 0.82
+                    reason_codes:
+                      - LOW_DISSOLVED_OXYGEN
+                      - SURFACE_ACTIVITY_ANOMALY
+                    summary: Niskie natlenienie i nietypowa aktywność przy powierzchni.
+        '400':
+          description: Błąd walidacji danych wejściowych
+  /v1/providers/{provider_id}/status:
+    get:
+      tags: [providers]
+      summary: Zwraca status providera lub węzła danych
+      parameters:
+        - in: path
+          name: provider_id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Aktualny status providera
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProviderStatus'
+        '404':
+          description: Nie znaleziono providera
+components:
+  schemas:
+    ProviderDescriptor:
+      type: object
+      required: [provider_id, provider_kind, provider_label]
+      properties:
+        provider_id:
+          type: string
+        provider_kind:
+          type: string
+          enum: [company, farm, community, research, edge_node]
+        provider_label:
+          type: string
+        node_class:
+          type: string
+          enum: [old_smartphone, embedded_gateway, cloud_connector, manual_import]
+        supports_water_quality:
+          type: boolean
+        supports_flow_monitoring:
+          type: boolean
+        supports_edge_vision_summary:
+          type: boolean
+    PondReference:
+      type: object
+      required: [pond_id]
+      properties:
+        pond_id:
+          type: string
+        site_id:
+          type: string
+        pond_label:
+          type: string
+        species:
+          type: string
+        notes:
+          type: string
+    SensorObservation:
+      type: object
+      required:
+        - schema_version
+        - provider
+        - pond
+        - measurement_time
+        - water_temperature_c
+        - dissolved_oxygen_mg_l
+        - ph
+      properties:
+        schema_version:
+          type: string
+          enum: [v1]
+        provider:
+          $ref: '#/components/schemas/ProviderDescriptor'
+        pond:
+          $ref: '#/components/schemas/PondReference'
+        measurement_time:
+          type: string
+          format: date-time
+        water_temperature_c:
+          type: number
+        dissolved_oxygen_mg_l:
+          type: number
+        ph:
+          type: number
+        ammonia_mg_l:
+          type: number
+        flow_rate_l_min:
+          type: number
+        source_quality:
+          type: string
+          enum: [measured, estimated, simulated]
+        raw_reference:
+          type: string
+    AquacultureContext:
+      type: object
+      properties:
+        species:
+          type: string
+        life_stage:
+          type: string
+        feeding_window:
+          type: string
+        stocking_density_note:
+          type: string
+        weather_note:
+          type: string
+    BehaviorAnalysisSummary:
+      type: object
+      required: [activity_level, anomaly_score, confidence]
+      properties:
+        activity_level:
+          type: string
+          enum: [very_low, low, normal, high, erratic]
+        surface_gasping_score:
+          type: number
+        school_dispersion_score:
+          type: number
+        feeding_response_score:
+          type: number
+        visible_mortality_count:
+          type: integer
+        anomaly_score:
+          type: number
+        confidence:
+          type: number
+        clip_reference:
+          type: string
+        notes:
+          type: string
+    EventEnvelope:
+      type: object
+      required:
+        - schema_version
+        - provider
+        - pond
+        - event_time
+        - event_type
+      properties:
+        schema_version:
+          type: string
+          enum: [v1]
+        provider:
+          $ref: '#/components/schemas/ProviderDescriptor'
+        pond:
+          $ref: '#/components/schemas/PondReference'
+        event_time:
+          type: string
+          format: date-time
+        event_type:
+          type: string
+          enum:
+            - fish_behavior_summary
+            - water_quality_alert
+            - flow_anomaly
+            - manual_inspection_note
+            - edge_vision_low_confidence
+        severity:
+          type: string
+          enum: [info, warning, critical]
+        behavior_summary:
+          $ref: '#/components/schemas/BehaviorAnalysisSummary'
+        notes:
+          type: string
+    FishPondRecommendationRequest:
+      type: object
+      required: [observation]
+      properties:
+        observation:
+          $ref: '#/components/schemas/SensorObservation'
+        context:
+          $ref: '#/components/schemas/AquacultureContext'
+        last_behavior_event:
+          $ref: '#/components/schemas/EventEnvelope'
+    Recommendation:
+      type: object
+      required:
+        - schema_version
+        - provider_id
+        - pond_id
+        - analysis_time
+        - risk_level
+        - recommendation
+        - confidence
+        - reason_codes
+      properties:
+        schema_version:
+          type: string
+          enum: [v1]
+        provider_id:
+          type: string
+        pond_id:
+          type: string
+        analysis_time:
+          type: string
+          format: date-time
+        risk_level:
+          type: string
+          enum: [low, medium, high, critical]
+        recommendation:
+          type: string
+          enum:
+            - observe
+            - inspect_pond
+            - check_aeration
+            - consider_water_exchange
+        confidence:
+          type: number
+        reason_codes:
+          type: array
+          items:
+            type: string
+        summary:
+          type: string
+    ProviderStatus:
+      type: object
+      required: [provider_id, status, last_seen_at, schema_version]
+      properties:
+        provider_id:
+          type: string
+        status:
+          type: string
+          enum: [ok, degraded, offline]
+        last_seen_at:
+          type: string
+          format: date-time
+        schema_version:
+          type: string
+          enum: [v1]
+        supports_water_quality:
+          type: boolean
+        supports_flow_monitoring:
+          type: boolean
+        supports_edge_vision_summary:
+          type: boolean

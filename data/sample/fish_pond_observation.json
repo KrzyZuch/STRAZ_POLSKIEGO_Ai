@@ -1,0 +1,26 @@
+{
+  "schema_version": "v1",
+  "provider": {
+    "provider_id": "community-node-01",
+    "provider_kind": "community",
+    "provider_label": "Community Old Smartphone Gateway",
+    "node_class": "old_smartphone",
+    "supports_water_quality": true,
+    "supports_flow_monitoring": true,
+    "supports_edge_vision_summary": true
+  },
+  "pond": {
+    "pond_id": "pond-alpha",
+    "site_id": "site-mazury-01",
+    "pond_label": "Staw Poludniowy",
+    "species": "carp"
+  },
+  "measurement_time": "2026-04-12T06:15:00Z",
+  "water_temperature_c": 21.8,
+  "dissolved_oxygen_mg_l": 6.9,
+  "ph": 7.4,
+  "ammonia_mg_l": 0.08,
+  "flow_rate_l_min": 118.0,
+  "source_quality": "measured",
+  "raw_reference": "local-log-001"
+}

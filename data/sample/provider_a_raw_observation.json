@@ -1,0 +1,15 @@
+{
+  "providerCode": "provider-a",
+  "providerLabel": "Provider A Pilot Connector",
+  "siteCode": "site-mazury-01",
+  "pondCode": "pond-alpha",
+  "pondLabel": "Staw Poludniowy",
+  "species": "carp",
+  "capturedAt": "2026-04-12T06:15:00Z",
+  "waterTempC": 21.8,
+  "oxygenMgL": 6.9,
+  "phValue": 7.4,
+  "nh3MgL": 0.08,
+  "flowLpm": 118.0,
+  "recordId": "provider-a-obs-001"
+}

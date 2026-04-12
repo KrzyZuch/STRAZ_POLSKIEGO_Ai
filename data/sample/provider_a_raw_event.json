@@ -1,0 +1,21 @@
+{
+  "providerCode": "provider-a",
+  "providerLabel": "Provider A Pilot Connector",
+  "siteCode": "site-mazury-01",
+  "pondCode": "pond-alpha",
+  "pondLabel": "Staw Poludniowy",
+  "species": "carp",
+  "capturedAt": "2026-04-12T06:20:00Z",
+  "severity": "warning",
+  "visionSummary": {
+    "activity": "low",
+    "surfaceGasping": 0.71,
+    "dispersion": 0.42,
+    "feedingResponse": 0.26,
+    "deadVisible": 0,
+    "anomalyScore": 0.77,
+    "confidence": 0.68,
+    "clipRef": "provider-a-buffer://pond-alpha/2026-04-12T06:19:30Z",
+    "notes": "Podwyzszona aktywnosc przy powierzchni"
+  }
+}

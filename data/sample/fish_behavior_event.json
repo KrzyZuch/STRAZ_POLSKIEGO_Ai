@@ -1,0 +1,32 @@
+{
+  "schema_version": "v1",
+  "provider": {
+    "provider_id": "community-node-01",
+    "provider_kind": "community",
+    "provider_label": "Community Old Smartphone Gateway",
+    "node_class": "old_smartphone",
+    "supports_water_quality": true,
+    "supports_flow_monitoring": true,
+    "supports_edge_vision_summary": true
+  },
+  "pond": {
+    "pond_id": "pond-alpha",
+    "site_id": "site-mazury-01",
+    "pond_label": "Staw Poludniowy",
+    "species": "carp"
+  },
+  "event_time": "2026-04-12T06:20:00Z",
+  "event_type": "fish_behavior_summary",
+  "severity": "warning",
+  "behavior_summary": {
+    "activity_level": "low",
+    "surface_gasping_score": 0.71,
+    "school_dispersion_score": 0.42,
+    "feeding_response_score": 0.26,
+    "visible_mortality_count": 0,
+    "anomaly_score": 0.77,
+    "confidence": 0.68,
+    "clip_reference": "local-buffer://pond-alpha/2026-04-12T06:19:30Z",
+    "notes": "Podwyzszona aktywnosc przy powierzchni"
+  }
+}

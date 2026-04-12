@@ -1,1 +1,4 @@
 .codex
+.firecrawl/
+__pycache__/
+*.pyc

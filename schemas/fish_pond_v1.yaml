@@ -1,0 +1,254 @@
+schema_name: fish_pond_v1
+schema_version: v1
+description: >
+  Minimalny schemat kanoniczny Straży Przyszłości dla pilotażu
+  inteligentnej akwakultury. Obejmuje monitoring jakości i przepływu
+  wody oraz wyniki lokalnej analizy zachowania ryb.
+
+types:
+  ProviderDescriptor:
+    type: object
+    required:
+      - provider_id
+      - provider_kind
+      - provider_label
+    properties:
+      provider_id:
+        type: string
+      provider_kind:
+        type: string
+        enum:
+          - company
+          - farm
+          - community
+          - research
+          - edge_node
+      provider_label:
+        type: string
+      node_class:
+        type: string
+        enum:
+          - old_smartphone
+          - embedded_gateway
+          - cloud_connector
+          - manual_import
+      supports_water_quality:
+        type: boolean
+      supports_flow_monitoring:
+        type: boolean
+      supports_edge_vision_summary:
+        type: boolean
+
+  PondReference:
+    type: object
+    required:
+      - pond_id
+    properties:
+      pond_id:
+        type: string
+      site_id:
+        type: string
+      pond_label:
+        type: string
+      species:
+        type: string
+      notes:
+        type: string
+
+  SensorObservation:
+    type: object
+    required:
+      - schema_version
+      - provider
+      - pond
+      - measurement_time
+      - water_temperature_c
+      - dissolved_oxygen_mg_l
+      - ph
+    properties:
+      schema_version:
+        type: string
+        enum: [v1]
+      provider:
+        $ref: "#/types/ProviderDescriptor"
+      pond:
+        $ref: "#/types/PondReference"
+      measurement_time:
+        type: string
+        format: date-time
+      water_temperature_c:
+        type: number
+      dissolved_oxygen_mg_l:
+        type: number
+      ph:
+        type: number
+      ammonia_mg_l:
+        type: number
+      flow_rate_l_min:
+        type: number
+      source_quality:
+        type: string
+        enum:
+          - measured
+          - estimated
+          - simulated
+      raw_reference:
+        type: string
+
+  AquacultureContext:
+    type: object
+    properties:
+      species:
+        type: string
+      life_stage:
+        type: string
+      feeding_window:
+        type: string
+      stocking_density_note:
+        type: string
+      weather_note:
+        type: string
+
+  BehaviorAnalysisSummary:
+    type: object
+    required:
+      - activity_level
+      - anomaly_score
+      - confidence
+    properties:
+      activity_level:
+        type: string
+        enum:
+          - very_low
+          - low
+          - normal
+          - high
+          - erratic
+      surface_gasping_score:
+        type: number
+      school_dispersion_score:
+        type: number
+      feeding_response_score:
+        type: number
+      visible_mortality_count:
+        type: integer
+      anomaly_score:
+        type: number
+      confidence:
+        type: number
+      clip_reference:
+        type: string
+      notes:
+        type: string
+
+  EventEnvelope:
+    type: object
+    required:
+      - schema_version
+      - provider
+      - pond
+      - event_time
+      - event_type
+    properties:
+      schema_version:
+        type: string
+        enum: [v1]
+      provider:
+        $ref: "#/types/ProviderDescriptor"
+      pond:
+        $ref: "#/types/PondReference"
+      event_time:
+        type: string
+        format: date-time
+      event_type:
+        type: string
+        enum:
+          - fish_behavior_summary
+          - water_quality_alert
+          - flow_anomaly
+          - manual_inspection_note
+          - edge_vision_low_confidence
+      severity:
+        type: string
+        enum:
+          - info
+          - warning
+          - critical
+      behavior_summary:
+        $ref: "#/types/BehaviorAnalysisSummary"
+      notes:
+        type: string
+
+  Recommendation:
+    type: object
+    required:
+      - schema_version
+      - provider_id
+      - pond_id
+      - analysis_time
+      - risk_level
+      - recommendation
+      - confidence
+      - reason_codes
+    properties:
+      schema_version:
+        type: string
+        enum: [v1]
+      provider_id:
+        type: string
+      pond_id:
+        type: string
+      analysis_time:
+        type: string
+        format: date-time
+      risk_level:
+        type: string
+        enum:
+          - low
+          - medium
+          - high
+          - critical
+      recommendation:
+        type: string
+        enum:
+          - observe
+          - inspect_pond
+          - check_aeration
+          - consider_water_exchange
+      confidence:
+        type: number
+      reason_codes:
+        type: array
+        items:
+          type: string
+      summary:
+        type: string
+
+  ProviderStatus:
+    type: object
+    required:
+      - provider_id
+      - status
+      - last_seen_at
+      - schema_version
+    properties:
+      provider_id:
+        type: string
+      status:
+        type: string
+        enum:
+          - ok
+          - degraded
+          - offline
+      last_seen_at:
+        type: string
+        format: date-time
+      schema_version:
+        type: string
+        enum: [v1]
+      supports_water_quality:
+        type: boolean
+      supports_flow_monitoring:
+        type: boolean
+      supports_edge_vision_summary:
+        type: boolean

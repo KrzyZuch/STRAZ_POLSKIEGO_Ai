@@ -1,0 +1,1 @@
+"""Example provider-a adapter."""

@@ -60,6 +60,7 @@ Do warstwy prywatnej mogą należeć:
 2. Wyniki zwracane przez system mają charakter analityczny, rekomendacyjny i dokumentacyjny.
 3. Repozytorium Straży Przyszłości nie jest systemem zdalnego sterowania cudzymi urządzeniami i nie powinno być tak prezentowane.
 4. Jeśli partner lub provider wykorzystuje wyniki lokalnie w swoim środowisku, odpowiedzialność za warstwę wykonawczą pozostaje po jego stronie.
+5. Surowe, bieżące odczyty providerów nie powinny być składowane bezpośrednio w repozytorium. Powinny być przyjmowane przez działający serwer i bazę operacyjną, a do repozytorium trafiają jedynie dane przykładowe, opracowane lub anonimizowane.
 
 ## Zasady komunikacji i widoczności partnerów
 

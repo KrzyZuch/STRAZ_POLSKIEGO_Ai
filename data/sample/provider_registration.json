@@ -1,0 +1,9 @@
+{
+  "provider_id": "community-node-01",
+  "provider_kind": "community",
+  "provider_label": "Community Old Smartphone Gateway",
+  "node_class": "old_smartphone",
+  "supports_water_quality": true,
+  "supports_flow_monitoring": true,
+  "supports_edge_vision_summary": true
+}

@@ -1,0 +1,8 @@
+name = "fish-pond-api-v1"
+main = "src/worker.js"
+compatibility_date = "2026-04-12"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "fish-pond-v1"
+database_id = "replace-with-real-d1-id"

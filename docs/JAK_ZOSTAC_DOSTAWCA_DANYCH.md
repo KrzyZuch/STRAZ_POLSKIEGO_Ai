@@ -104,7 +104,23 @@ Dane niskiej jakości również mogą być wartościowe, jeżeli są jasno oznac
 2. Ustal, czy chcesz działać przez plik, adapter lokalny czy pełne API.
 3. Przygotuj mapowanie swoich danych do wspólnego schematu.
 4. Udokumentuj źródło pomiarów i ograniczenia swojej konfiguracji.
-5. Prześlij propozycję integracji lub opisz swój przypadek w repozytorium.
+5. Otwórz zgłoszenie w repozytorium przez szablon providera danych i opisz swój przypadek.
+
+## Kanał onboardingowy
+
+Pierwszym, rzeczywistym kanałem wejścia do systemu jest zgłoszenie GitHub Issue z wykorzystaniem szablonu:
+
+- [Nowy provider danych / węzeł pomiarowy](../.github/ISSUE_TEMPLATE/provider_danych.md)
+
+To zgłoszenie powinno zawierać:
+
+- typ providera,
+- typ węzła,
+- obsługiwane sensory,
+- sposób łączności,
+- przykładowy payload,
+- ograniczenia konfiguracji,
+- planowaną ścieżkę integracji z API Straży Przyszłości.
 
 ## Providerzy społeczni
 

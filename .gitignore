@@ -2,3 +2,4 @@
 .firecrawl/
 __pycache__/
 *.pyc
+.wrangler/

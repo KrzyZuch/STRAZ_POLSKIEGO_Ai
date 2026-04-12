@@ -50,6 +50,21 @@ python3 api/server.py 8080
 4. Provider pobiera rekomendację przez `POST /v1/recommendations/fish-pond`.
 5. Provider sprawdza stan integracji przez `GET /v1/providers/{provider_id}/status`.
 
+## Materiały onboardingowe
+
+W repozytorium są gotowe materiały dla pierwszego wejścia providera:
+
+- [`data/sample/provider_registration.json`](../data/sample/provider_registration.json)
+- [`api/examples/provider_demo_flow.py`](examples/provider_demo_flow.py)
+
+Przykładowy przebieg:
+
+1. uruchamiasz lokalny serwer,
+2. wysyłasz przykładową rejestrację providera,
+3. wysyłasz obserwację i zdarzenie,
+4. pobierasz rekomendację,
+5. sprawdzasz status providera.
+
 ## Założenia tej wersji
 
 - serwer jest minimalny i działa bez zewnętrznych zależności,

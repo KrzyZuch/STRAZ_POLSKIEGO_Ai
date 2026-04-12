@@ -13,6 +13,7 @@ Strategia zakłada współpracę zarówno z partnerami zewnętrznymi, jak i ze s
 3. Społeczność ma pełne prawo uczestniczyć w systemie jako provider danych, badacz, autor modeli lub dokumentalista.
 4. Wyniki zwracane przez system służą budowie wspólnej bazy wiedzy, walidacji hipotez i rozwojowi modeli. Nie są traktowane jako kanał zdalnego sterowania cudzą infrastrukturą.
 5. Warstwa logiki i modeli działa wyłącznie na własnym schemacie Straży Przyszłości. Format partnera kończy się na adapterze.
+6. Repozytorium nie jest magazynem bieżących, surowych odczytów providerów. Surowe dane operacyjne powinny być przechowywane w działającym serwerze i bazie operacyjnej, a do repozytorium trafiają tylko dane przykładowe, opracowane, anonimizowane lub syntetyczne oraz wiedza wyprowadzona z analizy.
 
 ## Docelowa struktura repozytorium
 
@@ -40,6 +41,22 @@ Rola poszczególnych katalogów:
 - `pipelines/` spina dane, modele i wyniki w powtarzalny przepływ.
 - `data/` przechowuje dane przykładowe i zestawy demonstracyjne bez naruszania cudzej poufności.
 
+## Retencja danych i baza wiedzy
+
+Należy rozdzielić dwie warstwy:
+
+- **warstwę operacyjną**, która przyjmuje bieżące odczyty providerów i przechowuje je w bazie serwera,
+- **warstwę repozytoryjną**, która przechowuje tylko schematy, logikę, przykłady, dokumentację i wiedzę opracowaną.
+
+Do repozytorium nie powinny trafiać hurtowo surowe odczyty z API providerów. Do repozytorium mogą trafiać:
+
+- dane przykładowe,
+- zanonimizowane próbki,
+- zestawy testowe,
+- opisane przypadki,
+- wnioski analityczne,
+- reguły i modele wypracowane na podstawie danych operacyjnych.
+
 ## Publiczny kontrakt integracyjny `v1`
 
 Wersja `v1` ma opierać się o minimalny, stabilny zestaw typów:
@@ -57,6 +74,7 @@ SchemaVersion
 Minimalna publiczna powierzchnia API:
 
 ```text
+POST /v1/providers/register
 POST /v1/observations
 POST /v1/events
 POST /v1/recommendations/fish-pond
@@ -142,7 +160,9 @@ W praktyce oznacza to:
 4. Dodać pierwszy model referencyjny w `models/fish_pond/`.
 5. Przygotować `adapters/provider-template/` jako wzorzec dla kolejnych integracji.
 6. Dodać pierwszego realnego providera bez naruszania kontraktu publicznego.
-7. Rozszerzać bazę wiedzy repozytorium o kolejne pomiary, interpretacje i przypadki użycia.
+7. Dodać działający serwer z rejestracją providerów i operacyjną bazą danych poza repozytorium.
+8. Przygotować wariant wdrożeniowy typu edge/cloud, np. dla Cloudflare Workers.
+9. Rozszerzać bazę wiedzy repozytorium o kolejne interpretacje, przypadki użycia i dane opracowane.
 
 ## Kryteria sukcesu
 

@@ -20,6 +20,8 @@ Pierwsza wersja interfejsu powinna być minimalistyczna i skupiona na dwóch rze
 
 Jeżeli Strażnicy Przyszłości mają rzeczywiście dostarczać dane do wspólnego systemu, to ten kontrakt musi być obsługiwany przez **działający serwer**, a nie tylko dokumentację. Dlatego minimalna architektura projektu zakłada punkt rejestracji providerów i żywe endpointy HTTP, przez które węzły terenowe, stare smartfony, gospodarstwa i partnerzy zewnętrzni będą mogli włączać się do wspólnej warstwy wiedzy.
 
+Repozytorium nie powinno być miejscem składowania surowych, bieżących odczytów providerów. Te dane powinny trafiać do działającego serwera i bazy operacyjnej, natomiast do repozytorium powinny trafiać tylko dane przykładowe, dane opracowane, przypadki użycia, dokumentacja i wiedza wyprowadzona z analizy.
+
 Na tym etapie nie zakładamy przesyłania ciągłego strumienia wideo przez publiczne API. Byłoby to zbyt ciężkie infrastrukturalnie, kosztowne energetycznie i trudne do utrzymania w warunkach społecznościowych oraz terenowych.
 
 ### Publiczne ścieżki API
@@ -145,6 +147,46 @@ Na starszym urządzeniu trzeba unikać:
 - ciągłego uploadu nagrań,
 - zbyt ciężkich modeli wymagających nowoczesnego NPU lub GPU.
 
+## Oficjalna architektura: stare smartfony + centralne API + wspólna baza wiedzy
+
+Najbardziej realistyczny i najcenniejszy dla Straży Przyszłości model nie polega na budowie ciężkiego klastra obliczeniowego ze smartfonów, lecz na budowie **rozproszonej sieci węzłów edge**.
+
+W tym modelu:
+
+1. stary smartfon lub lekki węzeł z ESP32 zbiera dane z czujników,
+2. smartfon pełni rolę providera lub bramki danych,
+3. smartfon może wykonać lekką analizę lokalną, np. zachowania ryb,
+4. dane i zdarzenia trafiają do centralnego API z rejestracją providerów,
+5. centralna warstwa operacyjna przechowuje bieżące odczyty i zwraca wyniki analityczne,
+6. repozytorium przechowuje standard, modele, dokumentację i wiedzę opracowaną.
+
+To właśnie ten model daje społeczności realny wkład w inicjatywę:
+
+- każdy może uruchomić własny węzeł,
+- każdy może zasilać wspólne API,
+- każdy może rozwijać adaptery i logikę analityczną,
+- wspólny dorobek zostaje po stronie Straży Przyszłości.
+
+## Wariant wdrożeniowy Cloudflare Workers
+
+Jednym z najbardziej praktycznych wariantów `v1` jest lekka warstwa koordynacyjna typu edge/cloud, np. **Cloudflare Workers**.
+
+W tym wariancie:
+
+- rejestracja providerów odbywa się przez publiczny endpoint,
+- obserwacje i zdarzenia trafiają do centralnego API,
+- operacyjne dane są przechowywane poza repozytorium,
+- stare smartfony i węzły społecznościowe nie muszą wystawiać własnych publicznych serwerów,
+- wspólny standard pozostaje pod kontrolą Straży Przyszłości.
+
+Artefakty dla tego wariantu są utrzymywane w katalogu:
+
+- [`cloudflare/README.md`](../cloudflare/README.md)
+- [`cloudflare/wrangler.toml`](../cloudflare/wrangler.toml)
+- [`cloudflare/src/worker.js`](../cloudflare/src/worker.js)
+- [`cloudflare/src/recommendation.js`](../cloudflare/src/recommendation.js)
+- [`cloudflare/migrations/0001_init.sql`](../cloudflare/migrations/0001_init.sql)
+
 ## Inteligentne podejście do wideo
 
 Jeśli kiedyś wideo ma wejść do projektu, to nie jako domyślny strumień do API, lecz jako mechanizm wyjątków:
@@ -164,6 +206,7 @@ Dla tego projektu warstwa minimalnej integracji powinna być utrzymywana jako:
 - [`openapi/fish_pond_api_v1.yaml`](../openapi/fish_pond_api_v1.yaml)
 - [`api/server.py`](../api/server.py)
 - [`api/README.md`](../api/README.md)
+- [`cloudflare/README.md`](../cloudflare/README.md)
 - [`data/sample/fish_pond_observation.json`](../data/sample/fish_pond_observation.json)
 - [`data/sample/fish_behavior_event.json`](../data/sample/fish_behavior_event.json)
 - [`data/sample/fish_pond_recommendation.json`](../data/sample/fish_pond_recommendation.json)

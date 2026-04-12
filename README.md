@@ -96,6 +96,11 @@ Rozwijamy publiczną warstwę integracyjną dla projektów Straży Przyszłości
 * **[Zasady Nazwy i Marki](docs/ZASADY_NAZWY_I_MARKI.md)**
 * **[Jak Zostać Dostawcą Danych](docs/JAK_ZOSTAC_DOSTAWCA_DANYCH.md)**
 * **[Architektura Węzłów Pomiarowych](docs/ARCHITEKTURA_WEZLOW_POMIAROWYCH.md)**
+* **[Architektura Edge: Smartfony + Centralne API + Baza Wiedzy](docs/ARCHITEKTURA_EDGE_SMARTFONY_CLOUD.md)**
+
+Jeżeli chcesz wejść do systemu jako provider danych lub węzeł pomiarowy, użyj szablonu zgłoszenia:
+
+* **[Nowy provider danych / węzeł pomiarowy](.github/ISSUE_TEMPLATE/provider_danych.md)**
 
 **Dołącz, jeśli chcesz współtworzyć przyszłość Polskiej Gospodarki!**
 

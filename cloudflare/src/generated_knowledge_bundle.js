@@ -1,6 +1,6 @@
 export const knowledgeBundle = {
   "schema_version": "v1",
-  "generated_at": "2026-04-13T15:07:40.864838+00:00",
+  "generated_at": "2026-04-13T20:40:08.135769+00:00",
   "allowlist": [
     "README.md",
     "MARKETING.md",
@@ -9,6 +9,18 @@ export const knowledgeBundle = {
     "docs/PRZYKLADY_GOTOWEGO_KODU.md",
     "docs/JAK_ZOSTAC_DOSTAWCA_DANYCH.md",
     "docs/ARCHITEKTURA_MOSTU_TELEGRAM_GITHUB_ISSUES.md",
+    "PROJEKTY/01_inteligentna_akwakultura.md",
+    "PROJEKTY/02_wirtualne_ogrodzenia.md",
+    "PROJEKTY/03_ai_monitoring_porodow.md",
+    "PROJEKTY/04_lampa_z_recyklingu_tv.md",
+    "PROJEKTY/05_recykling_pv_laserem.md",
+    "PROJEKTY/05_recykling_pv_szczegoly_techniczne.md",
+    "PROJEKTY/06_smartfony_jako_sterowniki.md",
+    "PROJEKTY/07_uniwersalna_platforma_sterowania.md",
+    "PROJEKTY/08_openbot_autonomiczne_maszyny_rolnicze.md",
+    "PROJEKTY/09_monitoring_iot_livestock.md",
+    "PROJEKTY/10_lacznosc_mesh_lora.md",
+    "PROJEKTY/11_autonomiczne_systemy_rd.md",
     ".github/ISSUE_TEMPLATE/nowy_straznik.md",
     ".github/ISSUE_TEMPLATE/pomysl_rozwiazanie.md",
     ".github/ISSUE_TEMPLATE/zastrzezenie_uwaga.md",
@@ -48,6 +60,66 @@ export const knowledgeBundle = {
     {
       "path": "docs/ARCHITEKTURA_MOSTU_TELEGRAM_GITHUB_ISSUES.md",
       "title": "Architektura mostu Telegram -> GitHub Issues",
+      "category": "document"
+    },
+    {
+      "path": "PROJEKTY/01_inteligentna_akwakultura.md",
+      "title": "01. Inteligentna Akwakultura (Smart Fish Farming)",
+      "category": "document"
+    },
+    {
+      "path": "PROJEKTY/02_wirtualne_ogrodzenia.md",
+      "title": "02. Wirtualne Ogrodzenia (eShepherd)",
+      "category": "document"
+    },
+    {
+      "path": "PROJEKTY/03_ai_monitoring_porodow.md",
+      "title": "03. Edge AI w Pasterstwie (Monitoring Porodów)",
+      "category": "document"
+    },
+    {
+      "path": "PROJEKTY/04_lampa_z_recyklingu_tv.md",
+      "title": "04. Upcykling LED TV (Słoneczne \"Sztuczne Okno\")",
+      "category": "document"
+    },
+    {
+      "path": "PROJEKTY/05_recykling_pv_laserem.md",
+      "title": "05. Laserowy Recykling Paneli Fotowoltaicznych",
+      "category": "document"
+    },
+    {
+      "path": "PROJEKTY/05_recykling_pv_szczegoly_techniczne.md",
+      "title": "Analiza Techniczna: Delaminacja Laserowa Paneli PV",
+      "category": "document"
+    },
+    {
+      "path": "PROJEKTY/06_smartfony_jako_sterowniki.md",
+      "title": "06. Upcykling Smartfonów jako Sterowników (Edge Computing)",
+      "category": "document"
+    },
+    {
+      "path": "PROJEKTY/07_uniwersalna_platforma_sterowania.md",
+      "title": "07. Uniwersalna Platforma Sterowania (Sensory i Aktuatory)",
+      "category": "document"
+    },
+    {
+      "path": "PROJEKTY/08_openbot_autonomiczne_maszyny_rolnicze.md",
+      "title": "08. Autonomiczne Maszyny Rolnicze (OpenBot)",
+      "category": "document"
+    },
+    {
+      "path": "PROJEKTY/09_monitoring_iot_livestock.md",
+      "title": "09. Monitoring IoT i Akcelerometria (Smart Health Tracker)",
+      "category": "document"
+    },
+    {
+      "path": "PROJEKTY/10_lacznosc_mesh_lora.md",
+      "title": "10. Łączność Mesh i LoRa w Gospodarce (MeshCore, Reticulum, Meshtastic)",
+      "category": "document"
+    },
+    {
+      "path": "PROJEKTY/11_autonomiczne_systemy_rd.md",
+      "title": "11. Przyszłe Pola Automatyzacji i Eksperymentalne R+D",
       "category": "document"
     },
     {
@@ -576,6 +648,580 @@ export const knowledgeBundle = {
       "title": "Runbook wdrożeniowy",
       "category": "document",
       "content": "Praktyczna instrukcja uruchomienia bota, webhooka i testu znajduje się tutaj:\n\n- [Runbook uruchomienia kanału Telegram -> GitHub Issues](RUNBOOK_URUCHOMIENIA_TELEGRAM_ISSUES.md)"
+    },
+    {
+      "id": "projekty-01-inteligentna-akwakultura-md-intro",
+      "source_path": "PROJEKTY/01_inteligentna_akwakultura.md",
+      "title": "Wprowadzenie",
+      "category": "document",
+      "content": "# 01. Inteligentna Akwakultura (Smart Fish Farming)"
+    },
+    {
+      "id": "projekty-01-inteligentna-akwakultura-md-1-opis-projektu",
+      "source_path": "PROJEKTY/01_inteligentna_akwakultura.md",
+      "title": "Opis Projektu",
+      "category": "document",
+      "content": "Koncepcja \"Smart Fish Farming\" opiera się na stworzeniu w pełni autonomicznych systemów hodowli ryb, w których ludzka praca jest wspierana przez Sztuczną Inteligencję oraz Internet Rzeczy (IoT). System ten ma na celu zapewnienie stabilnego i wydajnego źródła żywności przy minimalnym nakładzie pracy i zasobów.\n\n### Kluczowe funkcjonalności:\n- **Pełna autonomia i monitoring:** Czujniki IoT na bieżąco badają jakość wody (poziom pH, tlenu, amoniaku) i błyskawicznie reagują na zagrożenia.\n- **Optymalizacja zasobów:** Algorytmy AI analizują wiek, rozmiar i zachowanie ryb, precyzyjnie dawkując pokarm, co eliminuje marnotrawstwo.\n- **Bezpieczeństwo i ekologia:** Wczesne wykrywanie chorób oraz inteligentne zarządzanie wodą i energią (zasilanie OZE)."
+    },
+    {
+      "id": "projekty-01-inteligentna-akwakultura-md-2-wizja-stra-y-przysz-o-ci",
+      "source_path": "PROJEKTY/01_inteligentna_akwakultura.md",
+      "title": "Wizja Straży Przyszłości",
+      "category": "document",
+      "content": "Właśnie tego typu skalowalne, bezobsługowe rozwiązania są jednym z głównych celów **Narodowych Sił Intelektualnych Polski**. Naszym celem jest zaprojektowanie i uruchomienie całkowicie autonomicznych węzłów produkcji żywności, które będą tworzyć technologiczną \"gospodarkę bis\". Wygenerowane w ten sposób nadwyżki i tania żywność mają docelowo zasilać fundusz **Bezwarunkowego Dochodu Podstawowego (UBI)**."
+    },
+    {
+      "id": "projekty-01-inteligentna-akwakultura-md-3-dwa-kana-y-wej-cia-do-projektu",
+      "source_path": "PROJEKTY/01_inteligentna_akwakultura.md",
+      "title": "Dwa kanały wejścia do projektu",
+      "category": "document",
+      "content": "Ten projekt potrzebuje dwóch osobnych onboardingów:\n\n1. **onboardingu Strażnika**, czyli wejścia nowej osoby do inicjatywy przez zewnętrzną ankietę i rekomendator zadań,\n2. **onboardingu providera**, czyli technicznej ścieżki dla węzłów i uczestników, którzy chcą wysyłać dane do API.\n\nTo rozróżnienie jest ważne, bo większość nowych osób nie zacznie od rejestracji providera. Najpierw potrzebują zrozumieć, gdzie w projekcie mogą wnieść najlepszy wkład: w hardware, analizę danych, dokumentację, edge vision, API albo organizację.\n\nDlatego zewnętrzna strona inicjatywy powinna działać jako rekomendator ścieżek wejścia, a to repozytorium powinno utrzymywać:\n\n- katalog rekomendacji zadań,\n- projekty i dokumenty startowe,\n- backlog pierwszych Issues,\n- osobny onboarding providera dla tych, którzy chcą zasilać wspólne API."
+    },
+    {
+      "id": "projekty-01-inteligentna-akwakultura-md-4-minimalne-api-v1-dla-pilota-u-stawu-hodowlanego",
+      "source_path": "PROJEKTY/01_inteligentna_akwakultura.md",
+      "title": "Minimalne API `v1` dla pilotażu stawu hodowlanego",
+      "category": "document",
+      "content": "Pierwsza wersja interfejsu powinna być minimalistyczna i skupiona na dwóch rzeczach:\n\n1. monitoringu jakości i przepływu wody,\n2. odbieraniu wyników lokalnej analizy zachowania ryb.\n\nJeżeli Strażnicy Przyszłości mają rzeczywiście dostarczać dane do wspólnego systemu, to ten kontrakt musi być obsługiwany przez **działający serwer**, a nie tylko dokumentację. Dlatego minimalna architektura projektu zakłada punkt rejestracji providerów i żywe endpointy HTTP, przez które węzły terenowe, stare smartfony, gospodarstwa i partnerzy zewnętrzni będą mogli włączać się do wspólnej warstwy wiedzy.\n\nRepozytorium nie powinno być miejscem składowania surowych, bieżących odczytów providerów. Te dane powinny trafiać do działającego serwera i bazy operacyjnej, natomiast do repozytorium powinny trafiać tylko dane przykładowe, dane opracowane, przypadki użycia, dokumentacja i wiedza wyprowadzona z analizy.\n\nNa tym etapie nie zakładamy przesyłania ciągłego strumienia wideo przez publiczne API. Byłoby to zbyt ciężkie infrastrukturalnie, kosztowne energetycznie i trudne do utrzymania w warunkach społecznościowych oraz terenowych.\n\n### Publiczne ścieżki API\n\nMinimalna powierzchnia API dla projektu:\n\n```text\nPOST /v1/providers/register\nPOST /v1/providers/{provider_id}/tokens/rotate\nPOST /v1/observations\nPOST /v1/events\nPOST /v1/recommendations/fish-pond\nGET /v1/providers/{provider_id}/status\n```\n\n### Punkt rejestracji providerów\n\nEndpoint `POST /v1/providers/register` jest potrzebny po to, aby każdy provider mógł jawnie zgłosić się do systemu z informacją:\n\n- kim jest,\n- jakie typy danych obsługuje,\n- czy działa jako firma, gospodarstwo, provider społecznościowy lub stary smartfon,\n- czy wspiera monitoring jakości wody, przepływu i edge vision.\n\nTo ważne, ponieważ w naszym modelu providerem może zostać każdy, a nie tylko duży partner zewnętrzny.\n\nPo rejestracji provider powinien otrzymywać jednorazowo `write_token`, który następnie służy do autoryzacji zapisów przez nagłówek `X-Provider-Token`.\n\nPonowna rejestracja tego samego `provider_id` nie powinna służyć do odzyskiwania dostępu. Wymiana sekretu powinna odbywać się wyłącznie przez dedykowany endpoint rotacji tokenu.\n\n### Zakres `POST /v1/observations`\n\nTen endpoint przyjmuje podstawowe pomiary stawu. W pierwszej wersji powinien obsługiwać:\n\n```text\npond_id\nmeasurement_time\nwater_temperature\ndissolved_oxygen\npH\noptional ammonia\noptional flow_rate\n```\n\nTo jest rdzeń minimalnego monitoringu, który pozwala:\n\n- wykrywać ryzyko przyduchy,\n- sygnalizować pogorszenie jakości wody,\n- porównywać stan stawu między pomiarami i providerami,\n- budować wspólną bazę wiedzy w repozytorium.\n\n### Zakres `POST /v1/events`\n\nTen endpoint powinien przyjmować zdarzenia z analizy lokalnej i z warstwy terenowej, na przykład:\n\n- `fish_behavior_summary`\n- `water_quality_alert`\n- `flow_anomaly`\n- `manual_inspection_note`\n- `edge_vision_low_confidence`\n\nTo właśnie tutaj powinny trafiać wyniki analizy obrazu ryb wykonywanej lokalnie na urządzeniu brzegowym.\n\n### Zakres `POST /v1/recommendations/fish-pond`\n\nTen endpoint powinien zwracać wynik analityczny w ujednoliconej postaci:\n\n```text\nrisk_level\nrecommendation\nconfidence\nreason_codes\nprovider_id\nschema_version\n```\n\nWynik ma służyć budowie bazy wiedzy, porównywaniu przypadków i dokumentowaniu sytuacji w stawie. Nie jest to kanał zdalnego sterowania urządzeniami."
+    },
+    {
+      "id": "projekty-01-inteligentna-akwakultura-md-5-analiza-obrazu-ryb-podej-cie-edge-first",
+      "source_path": "PROJEKTY/01_inteligentna_akwakultura.md",
+      "title": "Analiza obrazu ryb: podejście `edge-first`",
+      "category": "document",
+      "content": "Najbardziej sensowny model dla tego projektu to analiza obrazowa wykonywana lokalnie, blisko kamery, a nie przesyłanie surowego obrazu do centralnego API.\n\n### Dlaczego nie surowe wideo w `v1`\n\nCiągłe przesyłanie wideo ze stawu jest na tym etapie karkołomne, ponieważ:\n\n- wymaga dużej przepustowości i stabilnego łącza,\n- szybko zużywa energię na urządzeniu terenowym,\n- komplikuje archiwizację i przegląd materiału,\n- utrudnia udział społeczności korzystającej z tanich i starych urządzeń,\n- daje dużo danych o niskiej wartości, jeśli nie ma wcześniej selekcji zdarzeń.\n\n### Zalecany model działania\n\nWersja minimalna powinna działać tak:\n\n1. kamera lub stary smartfon obserwuje wybrany fragment stawu,\n2. lokalny moduł robi analizę na małej liczbie klatek lub krótkich oknach czasowych,\n3. urządzenie wylicza wskaźniki zachowania ryb,\n4. do API trafia tylko wynik analizy, a nie pełny materiał wideo.\n\n### Jakie wyniki analizy obrazu warto wysyłać\n\nW pierwszej wersji warto wysyłać tylko lekkie metryki i flagi, na przykład:\n\n- poziom aktywności ryb,\n- wykrycie nietypowego skupiania się przy powierzchni,\n- sygnał możliwego łapania powietrza,\n- anomalię ruchu lub nagły spadek aktywności,\n- liczbę wykrytych martwych lub nieruchomych obiektów, jeśli model daje radę,\n- poziom pewności wyniku.\n\nTakie wyniki są wystarczające, by zasilać wspólny model wiedzy i porównywać przypadki między stawami."
+    },
+    {
+      "id": "projekty-01-inteligentna-akwakultura-md-6-stare-smartfony-jako-urz-dzenia-brzegowe",
+      "source_path": "PROJEKTY/01_inteligentna_akwakultura.md",
+      "title": "Stare smartfony jako urządzenia brzegowe",
+      "category": "document",
+      "content": "Stare smartfony są tu bardzo ciekawym kandydatem, ale tylko przy dobrze dobranym zakresie zadań. Najbardziej realistyczny scenariusz to:\n\n- prosty model skwantyzowany,\n- analiza co kilka sekund lub na ograniczonej liczbie klatek,\n- praca na wycinku obrazu zamiast pełnej rozdzielczości,\n- wysyłka jedynie wyników liczbowych i zdarzeń,\n- opcjonalny zapis bardzo krótkich klipów tylko przy wykryciu anomalii.\n\nNa starszym urządzeniu trzeba unikać:\n\n- ciągłej analizy pełnego wideo w wysokiej rozdzielczości,\n- ciągłego uploadu nagrań,\n- zbyt ciężkich modeli wymagających nowoczesnego NPU lub GPU."
+    },
+    {
+      "id": "projekty-01-inteligentna-akwakultura-md-7-oficjalna-architektura-stare-smartfony-centralne-api-wsp-lna-baza-wiedzy",
+      "source_path": "PROJEKTY/01_inteligentna_akwakultura.md",
+      "title": "Oficjalna architektura: stare smartfony + centralne API + wspólna baza wiedzy",
+      "category": "document",
+      "content": "Najbardziej realistyczny i najcenniejszy dla Straży Przyszłości model nie polega na budowie ciężkiego klastra obliczeniowego ze smartfonów, lecz na budowie **rozproszonej sieci węzłów edge**.\n\nW tym modelu:\n\n1. stary smartfon lub lekki węzeł z ESP32 zbiera dane z czujników,\n2. smartfon pełni rolę providera lub bramki danych,\n3. smartfon może wykonać lekką analizę lokalną, np. zachowania ryb,\n4. dane i zdarzenia trafiają do centralnego API z rejestracją providerów,\n5. centralna warstwa operacyjna przechowuje bieżące odczyty i zwraca wyniki analityczne,\n6. repozytorium przechowuje standard, modele, dokumentację i wiedzę opracowaną.\n\nTo właśnie ten model daje społeczności realny wkład w inicjatywę:\n\n- każdy może uruchomić własny węzeł,\n- każdy może zasilać wspólne API,\n- każdy może rozwijać adaptery i logikę analityczną,\n- wspólny dorobek zostaje po stronie Straży Przyszłości."
+    },
+    {
+      "id": "projekty-01-inteligentna-akwakultura-md-8-wariant-wdro-eniowy-cloudflare-workers",
+      "source_path": "PROJEKTY/01_inteligentna_akwakultura.md",
+      "title": "Wariant wdrożeniowy Cloudflare Workers",
+      "category": "document",
+      "content": "Jednym z najbardziej praktycznych wariantów `v1` jest lekka warstwa koordynacyjna typu edge/cloud, np. **Cloudflare Workers**.\n\nW tym wariancie:\n\n- rejestracja providerów odbywa się przez publiczny endpoint,\n- provider po rejestracji otrzymuje `write_token`,\n- obserwacje i zdarzenia trafiają do centralnego API,\n- operacyjne dane są przechowywane poza repozytorium,\n- stare smartfony i węzły społecznościowe nie muszą wystawiać własnych publicznych serwerów,\n- wspólny standard pozostaje pod kontrolą Straży Przyszłości.\n\nArtefakty dla tego wariantu są utrzymywane w katalogu:\n\n- [`cloudflare/README.md`](../cloudflare/README.md)\n- [`cloudflare/wrangler.toml`](../cloudflare/wrangler.toml)\n- [`cloudflare/src/worker.js`](../cloudflare/src/worker.js)\n- [`cloudflare/src/recommendation.js`](../cloudflare/src/recommendation.js)\n- [`cloudflare/migrations/0001_init.sql`](../cloudflare/migrations/0001_init.sql)\n- [`cloudflare/provider_smoke_test.py`](../cloudflare/provider_smoke_test.py)\n- [`docs/RUNBOOK_WDROZENIA_CLOUDFLARE_D1.md`](../docs/RUNBOOK_WDROZENIA_CLOUDFLARE_D1.md)"
+    },
+    {
+      "id": "projekty-01-inteligentna-akwakultura-md-9-mobilny-kana-pomys-i-uwaga",
+      "source_path": "PROJEKTY/01_inteligentna_akwakultura.md",
+      "title": "Mobilny kanał `pomysł` i `uwaga`",
+      "category": "document",
+      "content": "Ten projekt potrzebuje również bardzo prostego kanału mobilnego dla ludzi, którzy:\n\n- mają obserwację,\n- widzą ryzyko,\n- chcą zgłosić pomysł architektoniczny,\n- chcą szybko dopisać uwagę z telefonu.\n\nNajtańszy i najprostszy model to:\n\n1. strona inicjatywy,\n2. gotowy link do odpowiedniego `Issue template`,\n3. wpisanie albo wydyktowanie treści przez smartfon.\n\nJako drugi etap można dodać most:\n\n```text\nTelegram -> Cloudflare Worker -> GitHub Issues\nWhatsApp -> Cloudflare Worker -> GitHub Issues\n```\n\nW tym modelu wiadomość z prefiksem:\n\n```text\npomysl: ...\nuwaga: ...\n```\n\njest zamieniana na `Issue` w repozytorium.\n\nTo nie jest tor dla danych pomiarowych providera. To jest wyłącznie kanał mobilnego przechwytywania:\n\n- pomysłów,\n- uwag,\n- zastrzeżeń,\n- ryzyk technicznych i organizacyjnych.\n\nOpis architektury znajduje się tutaj:\n\n- [`docs/ARCHITEKTURA_MOSTU_TELEGRAM_GITHUB_ISSUES.md`](../docs/ARCHITEKTURA_MOSTU_TELEGRAM_GITHUB_ISSUES.md)\n- [`docs/RUNBOOK_URUCHOMIENIA_TELEGRAM_ISSUES.md`](../docs/RUNBOOK_URUCHOMIENIA_TELEGRAM_ISSUES.md)\n- [`docs/ARCHITEKTURA_MOSTU_WHATSAPP_GITHUB_ISSUES.md`](../docs/ARCHITEKTURA_MOSTU_WHATSAPP_GITHUB_ISSUES.md)\n- [`docs/RUNBOOK_URUCHOMIENIA_WHATSAPP_ISSUES.md`](../docs/RUNBOOK_URUCHOMIENIA_WHATSAPP_ISSUES.md)"
+    },
+    {
+      "id": "projekty-01-inteligentna-akwakultura-md-10-inteligentne-podej-cie-do-wideo",
+      "source_path": "PROJEKTY/01_inteligentna_akwakultura.md",
+      "title": "Inteligentne podejście do wideo",
+      "category": "document",
+      "content": "Jeśli kiedyś wideo ma wejść do projektu, to nie jako domyślny strumień do API, lecz jako mechanizm wyjątków:\n\n- zapis krótkiego klipu tylko przy wykryciu anomalii,\n- lokalny bufor kołowy nadpisujący stare nagrania,\n- wysyłka wyłącznie miniatury, metadanych albo referencji do lokalnego pliku,\n- ręczne lub okresowe zgrywanie materiału do analizy badawczej.\n\nTo pozwala zachować użyteczny materiał dowodowy bez zamieniania całego systemu w ciężką platformę wideo."
+    },
+    {
+      "id": "projekty-01-inteligentna-akwakultura-md-11-artefakty-techniczne-w-repozytorium",
+      "source_path": "PROJEKTY/01_inteligentna_akwakultura.md",
+      "title": "Artefakty techniczne w repozytorium",
+      "category": "document",
+      "content": "Dla tego projektu warstwa minimalnej integracji powinna być utrzymywana jako:\n\n- [`schemas/fish_pond_v1.yaml`](../schemas/fish_pond_v1.yaml)\n- [`openapi/fish_pond_api_v1.yaml`](../openapi/fish_pond_api_v1.yaml)\n- [`api/server.py`](../api/server.py)\n- [`api/README.md`](../api/README.md)\n- [`api/storage.py`](../api/storage.py)\n- [`cloudflare/README.md`](../cloudflare/README.md)\n- [`data/sample/fish_pond_observation.json`](../data/sample/fish_pond_observation.json)\n- [`data/sample/fish_behavior_event.json`](../data/sample/fish_behavior_event.json)\n- [`data/sample/fish_pond_recommendation.json`](../data/sample/fish_pond_recommendation.json)\n- [`pipelines/export_knowledge_snapshot.py`](../pipelines/export_knowledge_snapshot.py)\n- [`reports/README.md`](../reports/README.md)"
+    },
+    {
+      "id": "projekty-01-inteligentna-akwakultura-md-12-eksport-wiedzy-z-warstwy-operacyjnej",
+      "source_path": "PROJEKTY/01_inteligentna_akwakultura.md",
+      "title": "Eksport wiedzy z warstwy operacyjnej",
+      "category": "document",
+      "content": "To, że repozytorium nie przechowuje surowych odczytów providerów, nie oznacza utraty wartości poznawczej tych danych. Przeciwnie, potrzebna jest jawna ścieżka:\n\n1. provider przesyła dane do warstwy operacyjnej,\n2. dane są przechowywane poza repozytorium,\n3. z danych wyprowadzany jest snapshot wiedzy lub raport zbiorczy,\n4. dopiero taki opracowany materiał trafia do repozytorium jako wkład społeczności.\n\nW praktyce oznacza to, że stary smartfon, węzeł ESP32 albo provider zewnętrzny dokłada realne pomiary do wspólnego systemu, a Straż Przyszłości zachowuje w repozytorium to, co najcenniejsze: standard, interpretację, modele i wiedzę.\n\nOperacyjna obsługa dostępu providera również musi być częścią tego dorobku. Dlatego w repozytorium powinny być utrzymywane nie tylko schematy i modele, ale także jawne runbooki i narzędzia dla maintainera, które pozwalają bezpiecznie odzyskać działanie społecznościowego węzła bez publikowania sekretów.\n\nRównie ważna jest wspólna konwencja `provider_id`, bo to ona pozwala odróżnić środowiska `local`, `demo`, `preview`, `staging` i `prod`, a także uniknąć chaosu wśród społecznościowych węzłów oraz partnerów zewnętrznych.\n\nSama poprawna nazwa to jeszcze nie wszystko. Publiczne API powinno dodatkowo pilnować, czy environment wpisany w `provider_id` jest dopuszczony w danym deploymentcie. Dzięki temu środowisko `prod` nie przyjmie przez pomyłkę providerów z `demo`."
+    },
+    {
+      "id": "projekty-01-inteligentna-akwakultura-md-13-najrozs-dniejsza-cie-ka-wdro-enia",
+      "source_path": "PROJEKTY/01_inteligentna_akwakultura.md",
+      "title": "Najrozsądniejsza ścieżka wdrożenia",
+      "category": "document",
+      "content": "1. Najpierw uruchomić stabilny monitoring jakości i przepływu wody.\n2. Następnie dodać lekką analizę zachowania ryb na urządzeniu brzegowym.\n3. Dopiero później rozważać anomaliowe klipy wideo jako materiał pomocniczy.\n\nTaka kolejność daje największą szansę na działający system, który realnie zasili bazę wiedzy Straży Przyszłości i Narodowych Sił Intelektualnych."
+    },
+    {
+      "id": "projekty-01-inteligentna-akwakultura-md-14-repozytoria-do-adaptacji-i-dalszej-pracy-stra-nik-w-przysz-o-ci",
+      "source_path": "PROJEKTY/01_inteligentna_akwakultura.md",
+      "title": "Repozytoria do adaptacji i dalszej pracy Strażników Przyszłości",
+      "category": "document",
+      "content": "Najważniejsza wiadomość dla pasjonatów jest prosta: **kod już istnieje**. Nie musimy zaczynać od zera. Naszym zadaniem jest wyszukiwanie, rozumienie, łączenie i adaptacja gotowych rozwiązań do warunków polskich, do realnych stawów hodowlanych oraz do wspólnego API Straży Przyszłości.\n\nCo równie ważne, nie każdy Strażnik musi zaczynać od posiadania własnego urządzenia pomiarowego albo własnego sterownika. Jeżeli dane są dostarczane przez providerów i społeczność przez wspólne API, to można wnosić pełnoprawny wkład również przez:\n\n- projektowanie schematów i kontraktów,\n- budowę adapterów,\n- walidację jakości danych,\n- analizę przypadków i reguł rekomendacyjnych,\n- dokumentację i porządkowanie wiedzy,\n- kurację gotowego kodu do adaptacji.\n\nDlatego obok repozytoriów stricte sensorowych warto pokazywać również przykłady otwartych ekosystemów danych."
+    },
+    {
+      "id": "projekty-01-inteligentna-akwakultura-md-15-przyk-ad-referencyjny-opensensemap",
+      "source_path": "PROJEKTY/01_inteligentna_akwakultura.md",
+      "title": "Przykład referencyjny: openSenseMap",
+      "category": "document",
+      "content": "Jednym z najlepszych przykładów, które warto pokazywać nowym Strażnikom, jest `openSenseMap`.\n\n- Repozytorium GitHub: [https://github.com/sensebox/openSenseMap](https://github.com/sensebox/openSenseMap)\n- Strona projektu: [https://sensebox.github.io/en/osem](https://sensebox.github.io/en/osem)\n- FAQ i dokumentacja: [https://docs.sensebox.de/docs/misc/opensensemap/faq/](https://docs.sensebox.de/docs/misc/opensensemap/faq/)\n- Film YouTube: [https://www.youtube.com/watch?v=I8ZeT6hzjKQ](https://www.youtube.com/watch?v=I8ZeT6hzjKQ)\n\nTo nie jest projekt stawowy jeden do jednego, ale jest bardzo ważny jako wzorzec architektury opartej na danych dostarczanych przez API. Pokazuje, że:\n\n- otwarta platforma może gromadzić dane sensoryczne od społeczności,\n- różne urządzenia i aplikacje mogą zasilać wspólny system,\n- wartość projektu rośnie dzięki danym, API i pracy interpretacyjnej, a nie tylko dzięki samemu hardware,\n- osoby bez własnego sprzętu mogą nadal budować warstwę wiedzy, integracji i analizy.\n\nWłaśnie dlatego `openSenseMap` powinien być traktowany u nas nie jako ciekawostka, ale jako **dowód, że model współpracy oparty na wspólnym API i społecznościowych danych badawczych jest realny**.\n\nPoniższe repozytoria są szczególnie cenne, bo mogą przyspieszyć budowę monitoringu jakości wody, lekkich węzłów terenowych i warstwy edge dla akwakultury:\n\n### 1. Gotowe systemy monitoringu jakości wody\n\n- **KnowFlow_AWM**  \n  Link: [https://github.com/KnowFlow/KnowFlow_AWM](https://github.com/KnowFlow/KnowFlow_AWM)  \n  Bardzo wartościowy punkt startowy dla otwartego monitoringu jakości wody. Obejmuje pomiary takich parametrów jak temperatura, pH i dissolved oxygen. To świetny materiał do adaptacji dla osób, które chcą zrozumieć architekturę całego urządzenia i firmware.\n\n- **IoT-WQMS**  \n  Link: [https://github.com/pkErbynn/IoT-WQMS](https://github.com/pkErbynn/IoT-WQMS)  \n  Dobry przykład kompletnego przepływu: czujniki, mikrokontroler, backend, baza danych, dashboard i alerty. Repo może być szczególnie cenne dla tych, którzy chcą budować pełny tor `pomiar -> przesył -> analiza -> wizualizacja`.\n\n- **IoT-Water-Quality-Monitoring**  \n  Link: [https://github.com/JuliaSteiwer/IoT-Water-Quality-Monitoring](https://github.com/JuliaSteiwer/IoT-Water-Quality-Monitoring)  \n  Bardzo ciekawy projekt dla rozproszonych węzłów pomiarowych. Zawiera wątki związane z LoRaWAN, deep sleep i wieloma parametrami jakości wody, w tym pH i dissolved oxygen. To może być skarb dla osób myślących o czujnikach terenowych o niskim poborze energii.\n\n### 2. Klocki do budowy własnych węzłów i driverów sensorów\n\n- **atlas_scientific**  \n  Link: [https://github.com/jvsalo/atlas_scientific](https://github.com/jvsalo/atlas_scientific)  \n  Zestaw narzędzi CLI do obsługi czujników Atlas Scientific dla pH, EC i dissolved oxygen. Bardzo wartościowy dla osób, które chcą budować stabilny pomiar na Raspberry Pi lub innym lekkim węźle Linuxowym.\n\n- **Renke_DissolvedOxygen_Sensor**  \n  Link: [https://github.com/bartzdev/Renke_DissolvedOxygen_Sensor](https://github.com/bartzdev/Renke_DissolvedOxygen_Sensor)  \n  Konkretny klocek do priorytetowego dla nas parametru, czyli natlenienia. Jeśli ktoś chce zająć się przede wszystkim warstwą `dissolved oxygen`, to tu jest bardzo dobry materiał startowy pod ESP32 i urządzenia terenowe.\n\n- **M5StickC_PH_sensor**  \n  Link: [https://github.com/McOrts/M5StickC_PH_sensor](https://github.com/McOrts/M5StickC_PH_sensor)  \n  Prosty i bardzo praktyczny przykład pod pH na ESP32. Może być szczególnie interesujący dla tych, którzy chcą szybko zbudować tani moduł pomiarowy lub przetestować odczyt pH bez wchodzenia od razu w duży system.\n\n- **Open-Water-Level**  \n  Link: [https://github.com/COAST-Lab/Open-Water-Level](https://github.com/COAST-Lab/Open-Water-Level)  \n  To nie jest system stricte do chemii wody, ale może być bardzo cenny dla poziomu wody, ubytków i kontekstu przepływu. Dla części stawów i kanałów doprowadzających taki komponent może być niezwykle ważny.\n\n### 3. Projekty pokrewne, z których można brać wzorce modułowości\n\n- **Aquareo**  \n  Link: [https://github.com/fnandes/aquareo](https://github.com/fnandes/aquareo)  \n  Projekt akwaryjny, ale bardzo wartościowy jako przykład modułowej architektury na ESP32. Pokazuje, jak budować monitoring parametrów wody i lekkie komponenty terenowe bez zamykania się w jednym ciężkim systemie."
+    },
+    {
+      "id": "projekty-01-inteligentna-akwakultura-md-16-jak-stra-nicy-przysz-o-ci-powinni-z-tego-korzysta",
+      "source_path": "PROJEKTY/01_inteligentna_akwakultura.md",
+      "title": "Jak Strażnicy Przyszłości powinni z tego korzystać",
+      "category": "document",
+      "content": "Te repozytoria nie mają być traktowane jako gotowy „produkt końcowy”, tylko jako **surowiec strategiczny** dla Narodowych Sił Intelektualnych."
+    },
+    {
+      "id": "projekty-01-inteligentna-akwakultura-md-17-trzy-repozytoria-priorytetowe-do-realnego-reuse",
+      "source_path": "PROJEKTY/01_inteligentna_akwakultura.md",
+      "title": "Trzy repozytoria priorytetowe do realnego reuse",
+      "category": "document",
+      "content": "Jeżeli mamy zacząć od najbardziej użytecznych źródeł kodu, to na ten moment najlepsza trójka wygląda tak:\n\n### 1. KnowFlow_AWM\n\nLink: [https://github.com/KnowFlow/KnowFlow_AWM](https://github.com/KnowFlow/KnowFlow_AWM)\n\nTo jest najlepszy kandydat do przejęcia wzorców sprzętowych i firmware dla podstawowego monitoringu jakości wody.\n\nCo warto z niego adaptować:\n\n- architekturę urządzenia pomiarowego,\n- obsługę czujników temperatury, pH i dissolved oxygen,\n- logikę cyklicznego odczytu parametrów,\n- podejście do modułowości sensorów i późniejszej rozbudowy,\n- wzorce dla węzłów terenowych budowanych przez społeczność.\n\nDo czego u nas to pasuje:\n\n- do `POST /v1/observations`,\n- do budowy społecznościowych węzłów pomiarowych,\n- do pierwszych eksperymentów z natlenieniem i pH w realnym stawie.\n\n### 2. IoT-WQMS\n\nLink: [https://github.com/pkErbynn/IoT-WQMS](https://github.com/pkErbynn/IoT-WQMS)\n\nTo jest najlepszy kandydat do przejęcia wzorców pełnego przepływu danych od sensora do backendu.\n\nCo warto z niego adaptować:\n\n- logikę przesyłania danych z mikrokontrolera do serwera,\n- strukturę prostego backendu i przechowywania obserwacji,\n- wzorce alertów i wizualizacji wyników,\n- pomysł na prosty tor `pomiar -> zapis -> analiza -> odczyt wyniku`.\n\nDo czego u nas to pasuje:\n\n- do `openapi/fish_pond_api_v1.yaml`,\n- do budowy `adapters/provider_template/`,\n- do późniejszego `pipelines/demo/` i prostego dashboardu lub eksportu danych.\n\n### 3. IoT-Water-Quality-Monitoring\n\nLink: [https://github.com/JuliaSteiwer/IoT-Water-Quality-Monitoring](https://github.com/JuliaSteiwer/IoT-Water-Quality-Monitoring)\n\nTo jest najlepszy kandydat do przejęcia wzorców dla rozproszonych i energooszczędnych węzłów danych.\n\nCo warto z niego adaptować:\n\n- wzorce komunikacji dla czujników pracujących daleko od infrastruktury,\n- podejście do niskiego poboru energii i pracy okresowej,\n- logikę rozproszonego zbierania pomiarów,\n- pomysły na stacje terenowe, które nie muszą mieć stałego Wi-Fi.\n\nDo czego u nas to pasuje:\n\n- do stawów oddalonych od zabudowań,\n- do społecznościowych instalacji DIY,\n- do budowy tanich węzłów z ESP32, LoRa i ewentualnie starym smartfonem jako bramką danych."
+    },
+    {
+      "id": "projekty-01-inteligentna-akwakultura-md-18-co-konkretnie-powinni-my-z-tych-repo-wyci-ga",
+      "source_path": "PROJEKTY/01_inteligentna_akwakultura.md",
+      "title": "Co konkretnie powinniśmy z tych repo wyciągać",
+      "category": "document",
+      "content": "Najlepsza ścieżka pracy nie polega na kopiowaniu całych cudzych systemów. Lepiej wyciągać z nich tylko to, co wzmacnia nasz własny standard.\n\nZ repozytoriów zewnętrznych warto przejmować:\n\n- sterowniki i biblioteki do sensorów,\n- przykłady kalibracji czujników,\n- struktury odczytu i próbkowania danych,\n- lekkie wzorce transmisji HTTP, MQTT albo LoRa,\n- rozwiązania dla pracy w terenie i przy słabym zasilaniu,\n- wzorce zapisu lokalnego przy chwilowej utracie łączności.\n\nNie powinniśmy bezrefleksyjnie przejmować:\n\n- całej obcej architektury backendowej jako naszego rdzenia,\n- cudzych modeli danych jako formatu nadrzędnego,\n- zamkniętych zależności sprzętowych lub usługowych,\n- logiki, która związałaby nas z jednym dostawcą albo jedną platformą."
+    },
+    {
+      "id": "projekty-01-inteligentna-akwakultura-md-19-jak-to-prze-o-y-na-zadania-dla-spo-eczno-ci",
+      "source_path": "PROJEKTY/01_inteligentna_akwakultura.md",
+      "title": "Jak to przełożyć na zadania dla społeczności",
+      "category": "document",
+      "content": "Każdy zainteresowany Strażnik Przyszłości może wejść w ten projekt jedną z trzech ścieżek:\n\n### Ścieżka 1: sensory i elektronika\n\n- testowanie sterowników pH, DO, temperatury i przepływu,\n- porównywanie jakości odczytów,\n- dokumentowanie kalibracji i stabilności pomiarów,\n- budowa węzłów terenowych na ESP32 lub Raspberry Pi.\n\n### Ścieżka 2: integracja i API\n\n- mapowanie danych z cudzych repo do naszego schematu `fish_pond_v1`,\n- tworzenie adapterów providerów,\n- dopracowanie payloadów dla `observations` i `events`,\n- budowa prostych mostów dla importu danych z istniejących systemów.\n\n### Ścieżka 3: edge i analiza zachowania ryb\n\n- szukanie lekkich modeli pod stare smartfony,\n- testowanie analizy obrazu na małej liczbie klatek,\n- zamiana obrazu na lekkie wyniki analityczne,\n- budowa warstwy `fish_behavior_summary`, bez pchania surowego wideo do API.\n\nNajbardziej wartościowe działania społeczności to:\n\n- analiza, które fragmenty kodu są stabilne i warte przejęcia,\n- mapowanie gotowych sterowników i formatów danych do naszego wspólnego API,\n- dokumentowanie kalibracji czujników pH, DO, temperatury, amoniaku i przepływu,\n- przygotowanie lekkich wersji dla ESP32, Raspberry Pi i starych smartfonów,\n- wyciąganie z obcych repo tego, co uniwersalne, bez uzależniania się od ich całej architektury."
+    },
+    {
+      "id": "projekty-01-inteligentna-akwakultura-md-20-wa-ny-przekaz-dla-pasjonat-w",
+      "source_path": "PROJEKTY/01_inteligentna_akwakultura.md",
+      "title": "Ważny przekaz dla pasjonatów",
+      "category": "document",
+      "content": "Jeżeli interesuje Cię elektronika, IoT, sensory, ESP32, Raspberry Pi, stare smartfony, akwakultura albo analiza obrazu w terenie, to ten obszar jest prawdopodobnie jednym z największych skarbów całego repozytorium.\n\nTutaj naprawdę nie chodzi o „wymyślanie wszystkiego od nowa”. Chodzi o to, żeby:\n\n- znaleźć gotowy kod,\n- zrozumieć go,\n- dopracować go do naszych warunków,\n- opisać go porządnie,\n- a potem przekształcić w trwały dorobek Straży Przyszłości.\n\n**Kod już jest. Potrzeba tylko ludzi, którzy potrafią go twórczo zaadaptować.**"
+    },
+    {
+      "id": "projekty-01-inteligentna-akwakultura-md-21-backlog-issues-dla-stra-nik-w-przysz-o-ci",
+      "source_path": "PROJEKTY/01_inteligentna_akwakultura.md",
+      "title": "Backlog Issues dla Strażników Przyszłości",
+      "category": "document",
+      "content": "Poniżej znajduje się pierwszy operacyjny backlog dla tego projektu. Każdy z tych punktów można zamienić w osobne Issue na GitHubie.\n\n### `issue:aq-01` Adaptacja odczytu dissolved oxygen dla ESP32\n\n- Przeanalizować repo `Renke_DissolvedOxygen_Sensor`.\n- Sprawdzić, jak najlepiej mapować odczyt do pola `dissolved_oxygen_mg_l`.\n- Udokumentować wymagania sprzętowe, konwertery i kalibrację.\n\n### `issue:aq-02` Adaptacja odczytu pH dla taniego węzła pomiarowego\n\n- Przeanalizować repo `M5StickC_PH_sensor` oraz rozwiązania Atlas Scientific.\n- Porównać stabilność i koszt wariantów pH.\n- Opisać minimalny tor `czujnik -> odczyt -> normalize()`.\n\n### `issue:aq-03` Węzeł terenowy jakości wody na ESP32\n\n- Połączyć odczyt temperatury, pH i DO w jednym lekkim firmware.\n- Zaprojektować format danych zgodny z `fish_pond_v1`.\n- Przygotować referencyjny adapter lub eksport JSON.\n\n### `issue:aq-04` Provider społecznościowy oparty o stary smartfon\n\n- Opisać architekturę, w której stary smartfon działa jako bramka danych.\n- Sprawdzić komunikację z ESP32 przez Wi-Fi, Bluetooth lub USB OTG.\n- Zdefiniować minimalny proces buforowania i wysyłki danych do API.\n\n### `issue:aq-05` Walidacja jakości danych pomiarowych\n\n- Rozszerzyć reguły walidacji o zakresy ostrzegawcze i diagnostyczne.\n- Rozróżnić dane `measured`, `estimated` i `simulated`.\n- Dodać czytelne komunikaty dla błędnych jednostek i niepełnych pomiarów.\n\n### `issue:aq-06` Reguły rekomendacyjne dla ryzyka przyduchy\n\n- Doprecyzować progi dla `dissolved_oxygen`, `pH`, temperatury i amoniaku.\n- Dodać więcej `reason_codes`.\n- Porównać zachowanie modelu dla kilku przykładowych scenariuszy stawu.\n\n### `issue:aq-07` Edge-first analiza zachowania ryb\n\n- Poszukać lekkich modeli możliwych do uruchomienia na starych smartfonach.\n- Ograniczyć wynik do prostych metryk: aktywność, zachowanie przy powierzchni, anomalie.\n- Zasilić endpoint `POST /v1/events` zamiast przesyłać pełne wideo.\n\n### `issue:aq-08` Anomaliowe klipy wideo jako materiał pomocniczy\n\n- Zbadać lokalny bufor kołowy dla krótkich klipów.\n- Opracować zasady zapisu tylko przy wykryciu anomalii.\n- Nie dopuszczać ciągłego przesyłania strumienia wideo do publicznego API.\n\n### `issue:aq-09` Import danych z zewnętrznego providera do wspólnego schematu\n\n- Rozwinąć `adapters/provider_a/` jako wzorzec realnej integracji.\n- Pokazać mapowanie natywnego payloadu providera do `SensorObservation`.\n- Udowodnić, że model daje ten sam wynik niezależnie od dostawcy.\n\n### `issue:aq-10` Demo end-to-end dla repozytorium\n\n- Utrzymać działający przepływ `sample data -> adapter -> model -> recommendation`.\n- Dodać instrukcję uruchomienia dla nowych współtwórców.\n- Użyć tego demo jako punktu wejścia dla nowych Strażników Przyszłości.\n\n### `issue:aq-11` Checklist kalibracji czujników\n\n- Przygotować checklistę dla pH, DO, temperatury i opcjonalnie amoniaku.\n- Opisać częstotliwość kalibracji i typowe błędy.\n- Związać dokumentację kalibracyjną z jakością danych w repo.\n\n### `issue:aq-12` Dokumentacja przeglądu repozytoriów do adaptacji\n\n- Rozpisać, które moduły z `KnowFlow_AWM`, `IoT-WQMS` i `IoT-Water-Quality-Monitoring` są warte przejęcia.\n- Odróżnić elementy przydatne od tych, które nie pasują do naszego standardu.\n- Zostawić jasne notatki dla kolejnych osób wchodzących do projektu.\n\n### `issue:aq-32` Adaptacja lekcji z openSenseMap do modelu Straży Przyszłości\n\n- Przeanalizować `sensebox/openSenseMap` jako wzorzec otwartego ekosystemu danych dostarczanych przez API.\n- Rozpisać, które elementy warto przejąć na poziomie architektury współpracy, a nie tylko sprzętu.\n- Pokazać w onboardingach, że pełnoprawny wkład jest możliwy także bez własnego urządzenia pomiarowego.\n\n### `issue:aq-33` Ścieżka wejścia bez własnego hardware\n\n- Dopiąć onboarding i rekomendator tak, aby osoba bez czujników, sterownika i dostępu do stawu dostawała jasną ścieżkę wejścia przez schematy, API, adaptery, dokumentację i adaptację gotowego kodu.\n- Powiązać tę ścieżkę z `docs/PRZYKLADY_GOTOWEGO_KODU.md` oraz backlogiem pierwszych zadań.\n- Utrzymać profesjonalny przekaz: brak własnego sprzętu nie obniża rangi wkładu intelektualnego.\n\n### `issue:aq-13` Tokeny providerów i cykl życia rejestracji\n\n- Doprecyzować zasady rotacji `write_token`.\n- Opisać odzyskiwanie dostępu po utracie tokenu.\n- Rozdzielić środowisko testowe, lokalne i publiczne.\n\n### `issue:aq-14` Snapshot wiedzy z bazy operacyjnej\n\n- Rozszerzyć generator raportu o trendy, histogramy i zakresy ostrzegawcze.\n- Dodać anonimizację wybranych pól przed publikacją raportów.\n- Opracować zasady, które snapshoty trafiają do repozytorium.\n\n### `issue:aq-15` Wdrożenie D1 dla wariantu Cloudflare\n\n- Spiąć migracje, bindingi i instrukcję wdrożeniową dla pierwszego publicznego środowiska.\n- Zweryfikować retencję i limity kosztowe dla ruchu społecznościowego.\n- Udokumentować minimalny plan odzyskiwania po awarii.\n\n### `issue:aq-16` Kuracja wiedzy z danych społecznościowych\n\n- Zdefiniować, jak z obserwacji wielu providerów budować porównywalne przypadki.\n- Opracować proces ręcznej lub półautomatycznej kuracji przypadków do repozytorium.\n- Przygotować pierwszy wzorzec opisu przypadku dla stawu hodowlanego.\n\n### `issue:aq-17` Ręczne odzyskiwanie dostępu providera\n\n- Opracować bezpieczny proces organizacyjny dla utraty tokenu.\n- Rozdzielić odzyskiwanie dla providerów społecznościowych, badawczych i partnerskich.\n- Udokumentować, kto i na jakiej podstawie może odtworzyć dostęp.\n\n### `issue:aq-18` Audyt stabilności identyfikatorów providerów\n\n- Doprecyzować zasady nadawania `provider_id`.\n- Ograniczyć kolizje nazw między społecznością i partnerami.\n- Zaproponować konwencję nazewniczą dla stawów, węzłów i providera.\n\n### `issue:aq-19` Narzędzie administracyjne dla maintainera\n\n- Rozwinąć `api/admin_provider_access.py` o dodatkowe operacje diagnostyczne.\n- Dodać bezpieczny tryb eksportu statusów bez sekretów.\n- Przygotować minimalny workflow dla lokalnej bazy i wariantu edge/cloud.\n\n### `issue:aq-20` Runbook i kanał incydentowy dla utraty dostępu\n\n- Doprecyzować, jak weryfikować tożsamość providera bez publikowania sekretów.\n- Spiąć szablon GitHub Issue z runbookiem maintainera.\n- Zostawić jasny proces dla społecznościowych węzłów i partnerów zewnętrznych.\n\n### `issue:aq-21` Pierwszy publiczny deployment Cloudflare + D1\n\n- Uzupełnić realne `database_id` i `preview_database_id`.\n- Wykonać pierwsze zdalne migracje i deployment Worker'a.\n- Zostawić notatkę operatorską z wynikiem deploymentu.\n\n### `issue:aq-22` Smoke test publicznego API\n\n- Utrzymywać `cloudflare/provider_smoke_test.py` jako standard po deploymencie.\n- Dodać wynik smoke testu do procesu odbioru środowiska.\n- Nie wpuszczać realnych providerów bez pełnego przejścia testu.\n\n### `issue:aq-23` Rollback i gotowość operatorska\n\n- Udokumentować minimalny proces rollbacku Worker'a.\n- Określić, kto może wykonać rollback w środowisku publicznym.\n- Dodać checklistę po rollbacku, w tym ponowny smoke test.\n\n### `issue:aq-24` Wdrożenie konwencji provider_id w całym repo\n\n- Utrzymywać wspólny format `kind-environment-slug-01`.\n- Dopilnować zgodności sample data, testów, dokumentacji i onboardingów.\n- Ograniczyć kolizje między środowiskami lokalnymi, demo i produkcyjnymi.\n\n### `issue:aq-25` Konwencja nazw środowisk dla operatorów i providerów\n\n- Spiąć nazwy środowisk `local`, `demo`, `preview`, `staging`, `prod` z praktyką deploymentu.\n- Opisać, kiedy provider powinien zmienić identyfikator przy przejściu do innego środowiska.\n- Przygotować checklistę migracji węzła z `demo` do `prod`.\n\n### `issue:aq-26` Environment policy w API i Workerze\n\n- Utrzymywać zgodność między `provider_id` a polityką środowiska deploymentu.\n- Nie wpuszczać providerów `demo` do `prod`.\n- Testować politykę środowisk na lokalnym API i w wariancie Cloudflare.\n\n### `issue:aq-27` Profile deploymentu preview, staging i prod\n\n- Doprecyzować domyślne `ALLOWED_PROVIDER_ENVIRONMENTS` dla każdego profilu.\n- Spiąć profile z runbookiem wdrożeniowym.\n- Zostawić operatorowi jasną checklistę, kiedy i jak przejść do `prod`.\n\n### `issue:aq-28` Architektura dwóch onboardingów\n\n- Rozdzielić onboarding Strażnika od onboardingu providera we wszystkich dokumentach i punktach wejścia.\n- Utrzymać osobną narrację dla pierwszego zaangażowania społeczności i osobną dla integracji danych.\n- Dopilnować, żeby nowa osoba nie trafiała od razu do technicznej dokumentacji API bez kontekstu.\n\n### `issue:aq-29` Katalog rekomendatora zadań dla strony zewnętrznej\n\n- Utrzymywać kanoniczny katalog tras wejścia dla zewnętrznej strony inicjatywy.\n- Mapować pasje, kompetencje i zasoby Strażnika na konkretne sekcje repozytorium i pierwsze Issues.\n- Zostawić format łatwy do wykorzystania przez repo strony `straz_landing`.\n\n### `issue:aq-30` Issue template dla nowego Strażnika\n\n- Przygotować prosty punkt wejścia dla osoby przekierowanej ze strony zewnętrznej.\n- Zbierać pasje, kompetencje, zasoby i oczekiwania wobec pierwszego wkładu.\n- Łączyć zgłoszenie z katalogiem rekomendacji i opieką społeczności.\n\n### `issue:aq-31` Integracja ankiety z repo strony inicjatywy\n\n- Spiąć repo strony z katalogiem rekomendatora zadań utrzymywanym w tym repozytorium.\n- Zaprojektować przekierowania do właściwych projektów, dokumentów i szablonów Issue.\n- Rozdzielić przekierowanie dla nowego Strażnika od przekierowania do ścieżki providera danych.\n\n### `issue:aq-32` Mobilny kanał `pomysł` i `uwaga`\n\n- Utrzymywać na stronie inicjatywy bardzo prosty tor: `Zgłoś pomysł` i `Zgłoś zastrzeżenie`.\n- Zostawić możliwość wpisania albo wydyktowania treści na smartfonie bez wchodzenia od razu w rozbudowaną dokumentację.\n- Prowadzić użytkownika do najwłaściwszego miejsca w repozytorium.\n\n### `issue:aq-33` Most `WhatsApp -> GitHub Issues`\n\n- Przygotować webhook i klasyfikację wiadomości `pomysl:` oraz `uwaga:`.\n- Zamieniać tylko lekkie zgłoszenia organizacyjne i architektoniczne, nie dane providerów.\n- Oznaczać zgłoszenia jako pochodzące z kanału mobilnego i zachować możliwość moderacji.\n\n### `issue:aq-34` Koszty i tryb wdrożenia komunikatorowego\n\n- Utrzymywać `dry-run` dla pierwszych testów mostu komunikatorowego.\n- Jawnie rozdzielić wariant testowy od produkcyjnego kanału WhatsApp.\n- Udokumentować, które elementy mogą działać na planach darmowych, a które przechodzą w model płatny przy realnym ruchu.\n\n### `issue:aq-35` Operacyjne uruchomienie numeru WhatsApp\n\n- Przejść od numeru testowego Meta do numeru publicznego Straży Przyszłości.\n- Utrzymywać checklistę: dodanie numeru, weryfikacja, `PHONE_NUMBER_ID/register`, status `CONNECTED`, webhook.\n- Spiąć odpowiedzialność operatorską za numer, tokeny i politykę moderacji.\n\n### `issue:aq-36` Polityka komunikatów dla kanału WhatsApp\n\n- Zostawić użytkownikom tylko dwa proste prefiksy: `pomysl:` i `uwaga:`.\n- Nie dopuszczać rozlewania kanału na support techniczny, dane providerów i długie wątki dyskusyjne.\n- Opisać kiedy zgłoszenie z komunikatora powinno zostać rozwinięte ręcznie w pełnoprawne issue projektowe.\n\n### `issue:aq-37` Uruchomienie bota Telegram dla Straży Przyszłości\n\n- Utworzyć bota przez `@BotFather`.\n- Ustawić webhook do Worker'a.\n- Uruchomić bezpieczny `dry-run` dla pierwszych testów społecznościowych.\n\n### `issue:aq-38` Telegram jako rekomendowany szybki kanał wejścia\n\n- Oznaczyć Telegram jako prostszy kanał startowy niż biznesowy WhatsApp.\n- Utrzymywać tylko dwa prefiksy: `pomysl:` i `uwaga:`.\n- Zostawić ten kanał jako lekki most do `Issues`, nie jako miejsce docelowe pracy projektowej."
+    },
+    {
+      "id": "projekty-01-inteligentna-akwakultura-md-22-inspiracje-i-r-d-a",
+      "source_path": "PROJEKTY/01_inteligentna_akwakultura.md",
+      "title": "Inspiracje i źródła:",
+      "category": "document",
+      "content": "- [Wideo: Smart Fish Farming](https://www.youtube.com/watch?v=N84PUuxThP4)\n- [Projekt Open Source: IFishFarm (GitHub)](https://github.com/HussamElden/IFishFarm)\n\n---\n*Intelekt wyprzedza kapitał!*"
+    },
+    {
+      "id": "projekty-02-wirtualne-ogrodzenia-md-intro",
+      "source_path": "PROJEKTY/02_wirtualne_ogrodzenia.md",
+      "title": "Wprowadzenie",
+      "category": "document",
+      "content": "# 02. Wirtualne Ogrodzenia (eShepherd)"
+    },
+    {
+      "id": "projekty-02-wirtualne-ogrodzenia-md-1-opis-projektu",
+      "source_path": "PROJEKTY/02_wirtualne_ogrodzenia.md",
+      "title": "Opis Projektu",
+      "category": "document",
+      "content": "System wirtualnych pastwisk pozwala na eliminację fizycznych ogrodzeń na wielkich obszarach. Rolnik wyznacza granice wypasu w aplikacji na smartfonie, a zwierzęta noszą inteligentne obroże z GPS i panelami słonecznymi, które utrzymują stado w wyznaczonej strefie.\n\n### Jak to działa?\n1. **Definicja Strefy:** Rolnik \"rysuje\" granice na mapie w aplikacji.\n2. **Sygnalizacja:** Gdy zwierzę zbliża się do wirtualnej granicy, obroża emituje sygnał dźwiękowy.\n3. **Korekta:** Jeśli sygnał dźwiękowy zostanie zignorowany, obroża wysyła delikatny impuls dotykowy/elektryczny, ucząc zwierzę zawracania.\n\n### Zalety:\n- **Wypas Rotacyjny:** Błyskawiczna zmiana obszaru wypasu zapobiega wyjaławianiu gleby.\n- **Redukcja Kosztów:** Brak wydatków na materiały (drut, słupki) i serwisowanie ogrodzeń.\n- **Monitoring 24/7:** Stały podgląd lokalizacji i ścieżek przemieszczania się zwierząt."
+    },
+    {
+      "id": "projekty-02-wirtualne-ogrodzenia-md-2-kontekst-narodowych-si-intelektualnych",
+      "source_path": "PROJEKTY/02_wirtualne_ogrodzenia.md",
+      "title": "Kontekst Narodowych Sił Intelektualnych",
+      "category": "document",
+      "content": "To doskonały przykład cyfryzacji rolnictwa, który zdejmuje z barków człowieka ciężką pracę fizyczną i serwisową, zastępując ją inteligentnym zarządzaniem w chmurze."
+    },
+    {
+      "id": "projekty-02-wirtualne-ogrodzenia-md-3-inspiracje",
+      "source_path": "PROJEKTY/02_wirtualne_ogrodzenia.md",
+      "title": "Inspiracje:",
+      "category": "document",
+      "content": "- [Wideo: System Gallagher eShepherd](https://www.youtube.com/watch?v=wkWZaj_WQo0)\n\n---\n*Intelekt wyprzedza kapitał!*"
+    },
+    {
+      "id": "projekty-03-ai-monitoring-porodow-md-intro",
+      "source_path": "PROJEKTY/03_ai_monitoring_porodow.md",
+      "title": "Wprowadzenie",
+      "category": "document",
+      "content": "# 03. Edge AI w Pasterstwie (Monitoring Porodów)"
+    },
+    {
+      "id": "projekty-03-ai-monitoring-porodow-md-1-opis-projektu",
+      "source_path": "PROJEKTY/03_ai_monitoring_porodow.md",
+      "title": "Opis Projektu",
+      "category": "document",
+      "content": "Wykorzystanie systemów wizyjnych opartych na Sztucznej Inteligencji (Computer Vision) do automatycznego monitorowania zwierząt w ekstremalnych warunkach. Przykładem jest wykrywanie momentu porodu u owiec w temperaturach sięgających -30°C, gdzie szybka interwencja pasterza decyduje o przeżyciu młodych.\n\n### Technologia:\n- **Edge AI:** Obliczenia wykonywane są lokalnie na małych komputerach (Edge Computing), co zapewnia niezależność od zewnętrznej chmury i szybkość działania.\n- **Analiza Obrazu:** System analizuje zachowanie stada 24/7 i wysyła alarm na telefon pasterza w kluczowych momentach."
+    },
+    {
+      "id": "projekty-03-ai-monitoring-porodow-md-2-dlaczego-to-wa-ne-dla-polski",
+      "source_path": "PROJEKTY/03_ai_monitoring_porodow.md",
+      "title": "Dlaczego to ważne dla Polski?",
+      "category": "document",
+      "content": "W ramach **Straży Przyszłości** dążymy do budowy własnych, niezależnych i w 100% otwartych (Open-Source) systemów tego typu. Zamiast polegać na zamkniętych technologiach zagranicznych korporacji, chcemy rozwijać polski potencjał intelektualny w służbie automatyzacji produkcji żywności."
+    },
+    {
+      "id": "projekty-03-ai-monitoring-porodow-md-3-inspiracje",
+      "source_path": "PROJEKTY/03_ai_monitoring_porodow.md",
+      "title": "Inspiracje:",
+      "category": "document",
+      "content": "- [Wideo: Kamera AI w Mongolii](https://www.youtube.com/watch?v=LY7-xCeRIjs)\n\n---\n*Intelekt wyprzedza kapitał!*"
+    },
+    {
+      "id": "projekty-04-lampa-z-recyklingu-tv-md-intro",
+      "source_path": "PROJEKTY/04_lampa_z_recyklingu_tv.md",
+      "title": "Wprowadzenie",
+      "category": "document",
+      "content": "# 04. Upcykling LED TV (Słoneczne \"Sztuczne Okno\")"
+    },
+    {
+      "id": "projekty-04-lampa-z-recyklingu-tv-md-1-opis-projektu",
+      "source_path": "PROJEKTY/04_lampa_z_recyklingu_tv.md",
+      "title": "Opis Projektu",
+      "category": "document",
+      "content": "Projekt polega na transformacji uszkodzonych telewizorów LED (elektrośmieci z rozbitą matrycą) w wysokiej jakości panele oświetleniowe, które imitują naturalne światło dzienne. Takie \"sztuczne okna\" idealnie nadają się do piwnic, garaży, warsztatów i innych ciemnych pomieszczeń.\n\n### Koncepcja techniczna:\n1. **Recykling:** Wykorzystanie dyfuzorów z uszkodzonych TV, które doskonale rozpraszają światło.\n2. **Bezpieczeństwo:** Przerobienie zasilania na bezpieczne napięcie poniżej 48V.\n3. **Autonomia:** Podpięcie systemu pod panele solarne i akumulatory (systemy off-grid)."
+    },
+    {
+      "id": "projekty-04-lampa-z-recyklingu-tv-md-2-cel-operacyjny",
+      "source_path": "PROJEKTY/04_lampa_z_recyklingu_tv.md",
+      "title": "Cel Operacyjny",
+      "category": "document",
+      "content": "Oprócz wymiaru ekologicznego (upcykling), projekt ten ma na celu generowanie funduszy na rozwój open-source'owych projektów rolniczych **Straży Przyszłości**. Sprzedaż takich \"sztucznych okien\" to sposób na zamianę odpadów w kapitał wspierający wspólne dobro narodowe."
+    },
+    {
+      "id": "projekty-04-lampa-z-recyklingu-tv-md-3-inspiracje",
+      "source_path": "PROJEKTY/04_lampa_z_recyklingu_tv.md",
+      "title": "Inspiracje:",
+      "category": "document",
+      "content": "- [Wideo: DIY TV Lamp](https://www.youtube.com/shorts/xOgDQ9S-B2M)\n\n---\n*Intelekt wyprzedza kapitał!*"
+    },
+    {
+      "id": "projekty-05-recykling-pv-laserem-md-intro",
+      "source_path": "PROJEKTY/05_recykling_pv_laserem.md",
+      "title": "Wprowadzenie",
+      "category": "document",
+      "content": "# 05. Laserowy Recykling Paneli Fotowoltaicznych"
+    },
+    {
+      "id": "projekty-05-recykling-pv-laserem-md-1-opis-projektu",
+      "source_path": "PROJEKTY/05_recykling_pv_laserem.md",
+      "title": "Opis Projektu",
+      "category": "document",
+      "content": "Projekt zakłada wykorzystanie precyzyjnej technologii laserowej do odzysku surowców ze zużytych paneli fotowoltaicznych. Zamiast tradycyjnego mielenia paneli na granulat, co niszczy najcenniejsze komponenty, zastosowanie specjalistycznej maszyny CNC z głowicą laserową pozwala na separację warstw z zachowaniem ich struktury.\n\n### Jak to działa?\n1. **Delaminacja Laserowa:** Technika ta wykorzystuje precyzyjną wiązkę laserową do rozwarstwienia modułu (szkło–EVA–ogniwo) bez niszczenia samych ogniw. Wiązka odparowuje warstwę polimerowego kleju (EVA), umożliwiając bezinwazyjne oddzielenie warstw.\n2. **Wysoka Wydajność:** W przeciwieństwie do metod mechanicznych, które niszczą strukturę ogniwa, delaminacja laserowa pozwala odzyskać większość podłoża półprzewodnikowego w czystym stanie.\n\n### Statystyki Odzysku:\n- **Materiały półprzewodnikowe:** Możliwy jest odzysk **ok. 90–95% materiałów półprzewodnikowych**.\n- **Ogniwa krzemowe:** Szacuje się, że **80–90% ogniw** z modułu można odzyskać w stanie nadającym się do ponownego wykorzystania (o ile nie posiadały wcześniejszych uszkodzeń mechanicznych).\n- **Inne surowce:** Czyste szkło, srebro oraz miedź są odzyskiwane z wysoką precyzją, co znacznie przewyższa efektywność prostego recyklingu mechanicznego (mielenia).\n\n### Czynniki wpływające na proces:\nSkuteczność procesu zależy od kilku czynników:\n- Technologii modułu (monokrystaliczne vs polikrystaliczne).\n- Typu zastosowanej laminacji.\n- Stopnia zużycia i stopnia degradacji warstwy EVA."
+    },
+    {
+      "id": "projekty-05-recykling-pv-laserem-md-2-wizja-stra-y-przysz-o-ci",
+      "source_path": "PROJEKTY/05_recykling_pv_laserem.md",
+      "title": "Wizja Straży Przyszłości",
+      "category": "document",
+      "content": "Dążymy do zaprojektowania i udostępnienia planów takiej maszyny CNC w modelu **Open-Source**. Chcemy, aby technologia wysokowydajnego recyklingu była dostępna dla każdego polskiego inżyniera, zapobiegając uzależnieniu od zamkniętych patentów i budując realną gospodarkę obiegu zamkniętego.\n\n> [!TIP]\n> Więcej szczegółów technicznych, statystyk odzysku oraz porównań z innymi metodami znajdziesz w dokumencie:\n> **[Analiza Techniczna: Delaminacja Laserowa](05_recykling_pv_szczegoly_techniczne.md)**"
+    },
+    {
+      "id": "projekty-05-recykling-pv-laserem-md-3-inspiracje-i-materia-y-badawcze",
+      "source_path": "PROJEKTY/05_recykling_pv_laserem.md",
+      "title": "Inspiracje i materiały badawcze:",
+      "category": "document",
+      "content": "- [Wideo: Nowoczesny recykling PV laserem](https://www.youtube.com/watch?v=0J8GVWQQnVk)\n- [Badania: Odzysk czystego krzemu z modułów PV (Politechnika Gdańska)](https://pg.edu.pl/aktualnosci/2022-10/odzyskuja-czysty-krzem-z-modulow-fotowoltaicznych-sprawdza-czy-mozna-robic)\n- [Publikacja: Problemy recyklingu ogniw słonecznych (E. Radziemska, Yadda/ICM)](https://yadda.icm.edu.pl/baztech/element/bwmeta1.element.baztech-81d79ff4-9363-4e13-8af7-89f1e4bb7117/c/Radziemska.pdf)\n\n---\n*Intelekt wyprzedza kapitał!*"
+    },
+    {
+      "id": "projekty-05-recykling-pv-szczegoly-techniczne-md-intro",
+      "source_path": "PROJEKTY/05_recykling_pv_szczegoly_techniczne.md",
+      "title": "Wprowadzenie",
+      "category": "document",
+      "content": "# Analiza Techniczna: Delaminacja Laserowa Paneli PV"
+    },
+    {
+      "id": "projekty-05-recykling-pv-szczegoly-techniczne-md-1-wprowadzenie",
+      "source_path": "PROJEKTY/05_recykling_pv_szczegoly_techniczne.md",
+      "title": "Wprowadzenie",
+      "category": "document",
+      "content": "Odzysk wysokowartościowych surowców z wyeksploatowanych paneli fotowoltaicznych (EoL - End of Life) jest kluczowym wyzwaniem dla zrównoważonej energetyki. Tradycyjne metody mechaniczne (mielenie) bezpowrotnie niszczą strukturę ogniw krzemowych. **Delaminacja laserowa** jawi się jako przełomowa technologia pozwalająca na odzysk sprawnych struktur półprzewodnikowych."
+    },
+    {
+      "id": "projekty-05-recykling-pv-szczegoly-techniczne-md-2-mechanizm-procesu",
+      "source_path": "PROJEKTY/05_recykling_pv_szczegoly_techniczne.md",
+      "title": "Mechanizm Procesu",
+      "category": "document",
+      "content": "Delaminacja laserowa polega na precyzyjnym oddzieleniu tafli szkła od ogniw krzemowych poprzez termiczne lub mechaniczne osłabienie warstwy laminatu (zwykle kompozytu EVA).\n\n1. **Wiązka Ultrakrótka:** Zastosowanie impulsów femtosekundowych lub pikosekundowych pozwala skupić energię na granicy faz materiałów.\n2. **Selektywne Podgrzewanie:** Laser przenika przez szkło i reaguje z metalizacją ogniw, co powoduje miejscowy wzrost temperatury i spadek adhezji kleju EVA.\n3. **Bezinwazyjność:** Proces minimalizuje nagrzewanie całego panelu, co zapobiega pękaniu delikatnych wafli krzemowych."
+    },
+    {
+      "id": "projekty-05-recykling-pv-szczegoly-techniczne-md-3-wydajno-i-statystyki-odzysku",
+      "source_path": "PROJEKTY/05_recykling_pv_szczegoly_techniczne.md",
+      "title": "Wydajność i Statystyki Odzysku",
+      "category": "document",
+      "content": "Na podstawie analizy literatury naukowej i projektów pilotażowych (m.in. SolarWorld, TNO, Politechnika Gdańska), wskaźniki odzysku prezentują się następująco:\n\n| Parametr | Metoda Laserowa / Termiczna | Tradycyjny Recykling Mechaniczny |\n| :--- | :--- | :--- |\n| **Odzysk ogniw (intact)** | **80% – 98%** | ~0% (mielenie na granulat) |\n| **Czystość surowców** | Wysoka (selektywna separacja) | Niska (mieszanina frakcji) |\n| **Odzysk krzemu** | Możliwość bezpośredniego użycia wafli | Konieczność przetopu hutycznego |\n| **Emisyjność** | Bezemisyjny (wymagana filtracja pyłów) | Wysokie zapylenie |\n\n### Kluczowe czynniki sukcesu:\n- **Typ laminatu:** Standardowe moduły szkło-folia są łatwiejsze w obróbce niż konstrukcje szkło-szkło.\n- **Wiek paneli:** Starsze, zżółknięte warstwy EVA mogą wymagać innej długości fali lasera.\n- **Parametry lasera:** Optymalizacja mocy i częstotliwości impulsów jest niezbędna, aby uniknąć mikropęknięć krzemu."
+    },
+    {
+      "id": "projekty-05-recykling-pv-szczegoly-techniczne-md-4-wyzwania-i-bariery",
+      "source_path": "PROJEKTY/05_recykling_pv_szczegoly_techniczne.md",
+      "title": "Wyzwania i Bariery",
+      "category": "document",
+      "content": "Mimo wysokiej skuteczności, technologia ta stoi przed wyzwaniami:\n- **Prędkość procesu:** Obecne systemy operują z prędkością ok. 1 min/cm², co wymaga skalowania dla celów przemysłowych.\n- **Koszt inwestycyjny:** Wysoka cena precyzyjnych głowic laserowych i systemów CNC."
+    },
+    {
+      "id": "projekty-05-recykling-pv-szczegoly-techniczne-md-5-perspektywa-stra-y-przysz-o-ci",
+      "source_path": "PROJEKTY/05_recykling_pv_szczegoly_techniczne.md",
+      "title": "Perspektywa Straży Przyszłości",
+      "category": "document",
+      "content": "Dla Narodowych Sił Intelektualnych Polski celem jest **demokratyzacja tej technologii**. Zamiast polegać na zamkniętych rozwiązaniach korporacyjnych, dążymy do opracowania otwartych planów maszyn CNC typu \"LARS\" (Laser Recycling System). \n\nBudując własne, zautomatyzowane węzły recyklingu, możemy:\n1. Odzyskiwać krzem o wysokiej czystości bez energochłonnego przetopu.\n2. Tworzyć samowystarczalne obiegowe łańcuchy dostaw dla nowej energetyki.\n3. Finansować projekty społeczne (UBI) z zysków z wysokowartościowego odzysku surowców."
+    },
+    {
+      "id": "projekty-05-recykling-pv-szczegoly-techniczne-md-6-bibliografia-i-r-d-a",
+      "source_path": "PROJEKTY/05_recykling_pv_szczegoly_techniczne.md",
+      "title": "Bibliografia i Źródła",
+      "category": "document",
+      "content": "- **Zaidi et al. (2018):** Przegląd technologii recyklingu PV.\n- **SolarWorld (2013):** Raporty z pilotażowych procesów pirolizy i delaminacji (odzysk 98%).\n- **E. Radziemska (Politechnika Gdańska):** Badania nad odzyskiem krzemu z modułów EoL.\n- **Theelen et al. (TNO, 2025):** Prezentacja systemu LARS.\n\n---\n*Intelekt wyprzedza kapitał!*"
+    },
+    {
+      "id": "projekty-06-smartfony-jako-sterowniki-md-intro",
+      "source_path": "PROJEKTY/06_smartfony_jako_sterowniki.md",
+      "title": "Wprowadzenie",
+      "category": "document",
+      "content": "# 06. Upcykling Smartfonów jako Sterowników (Edge Computing)"
+    },
+    {
+      "id": "projekty-06-smartfony-jako-sterowniki-md-1-opis-projektu",
+      "source_path": "PROJEKTY/06_smartfony_jako_sterowniki.md",
+      "title": "Opis Projektu",
+      "category": "document",
+      "content": "Projekt zakłada wykorzystanie \"elektrośmieci\" w postaci starych smartfonów jako zaawansowanych sterowników i węzłów obliczeniowych (Edge Computing). Nawet starsze urządzenia posiadają komponenty o ogromnym potencjale: wydajne procesory, pamięć, baterię (UPS), WiFi, Bluetooth oraz bogaty zestaw czujników (akcelerometry, żyroskopy, barometry), GPS, wysokiej jakości mikrofony i kamery."
+    },
+    {
+      "id": "projekty-06-smartfony-jako-sterowniki-md-2-tryby-pracy-i-energooszcz-dno",
+      "source_path": "PROJEKTY/06_smartfony_jako_sterowniki.md",
+      "title": "Tryby pracy i Energooszczędność",
+      "category": "document",
+      "content": "Smartfon może pełnić rolę sterownika w dwóch kluczowych modelach:\n1. **Interaktywny panel (z ekranem):** Wykorzystanie ekranu dotykowego jako terminala sterującego, wizualizującego dane z czujników lub stanu urządzenia w czasie rzeczywistym.\n2. **Praca bez ekranu (Headless):** Usunięcie lub wyłączenie ekranu w celu drastycznego obniżenia zużycia energii, co czyni telefon realnym konkurentem dla Arduino i ESP w zastosowaniach niskomocowych."
+    },
+    {
+      "id": "projekty-06-smartfony-jako-sterowniki-md-3-wykorzystanie-potencja-u-sprz-towego",
+      "source_path": "PROJEKTY/06_smartfony_jako_sterowniki.md",
+      "title": "Wykorzystanie potencjału sprzętowego",
+      "category": "document",
+      "content": "- **Sensoryka:** Monitoring warunków środowiskowych (temperatura, światło - przez czujnik oświetlenia, wilgotność), wykrywanie drgań czy precyzyjna lokalizacja GPS.\n- **Wizja i Audio:** Wykorzystanie kamery do inspekcji wizualnej (np. stan wzrostu roślin) oraz mikrofonu do detekcji anomalii akustycznych (np. nieprawidłowa praca silników/pomp)."
+    },
+    {
+      "id": "projekty-06-smartfony-jako-sterowniki-md-4-aspekty-techniczne",
+      "source_path": "PROJEKTY/06_smartfony_jako_sterowniki.md",
+      "title": "Aspekty Techniczne",
+      "category": "document",
+      "content": "- **Komunikacja:** Wykorzystanie standardu USB OTG oraz konwerterów USB-UART (np. chip FT232R) do bezpośredniego sterowania elektroniką wykonawczą.\n- **Zasilanie:** Inteligentne zarządzanie ładowaniem, aby zapobiegać degradacji i puchnięciu baterii przy ciągłej pracy pod zasilaczem.\n- **Oprogramowanie i Firmware:**\n  - **[lk2nd](https://github.com/nphuracm/obsolete-lk2nd):** Customowy bootloader dla urządzeń Qualcomm, ułatwiający uruchamianie alternatywnych systemów i debugowanie.\n  - **[selfphone](https://github.com/monobogdan/selfphone):** Eksperymentalny projekt budowy lekkiego firmware/UI dla starszych chipsetów (MediaTek/Spreadtrum).\n  - **[postmarketOS](https://postmarketos.org/):** Prawdziwy Linux dla telefonów, idealny do stworzenia stabilnego terminala lub serwera embedded."
+    },
+    {
+      "id": "projekty-06-smartfony-jako-sterowniki-md-5-zastosowanie-w-stra-y-przysz-o-ci",
+      "source_path": "PROJEKTY/06_smartfony_jako_sterowniki.md",
+      "title": "Zastosowanie w Straży Przyszłości",
+      "category": "document",
+      "content": "Dążymy do stworzenia narodowego frameworku, który pozwoli na masowe wykorzystanie starych urządzeń do sterowania infrastrukturą autonomiczną:\n- Zarządzanie pompami wody i oświetleniem w węzłach produkcji żywności.\n- Monitoring wizyjny (wykorzystanie wbudowanej kamery) z lokalną analizą obrazu przez AI.\n- Centralne sterowniki dla systemów off-grid i magazynów energii."
+    },
+    {
+      "id": "projekty-06-smartfony-jako-sterowniki-md-6-inspiracje",
+      "source_path": "PROJEKTY/06_smartfony_jako_sterowniki.md",
+      "title": "Inspiracje:",
+      "category": "document",
+      "content": "- [Wideo: Smartfon potężniejszy niż Arduino](https://www.youtube.com/watch?v=iobvVl8jZ5o)\n- [Projekt \"Stary smartfon jako mikrokontroler\"](https://github.com/StrazPrzyszlosci/STRAZ_PRZYSZLOSCI/)\n\n---\n### Deep-Dive Techniczny:\nDla zainteresowanych konkretną implementacją odczytu sensorów i sterowania aktuatorami (USB/UART), przygotowaliśmy szczegółową analizę kodu źródłowego na bazie projektu PhoneUAV:\n👉 **[07. Uniwersalna Platforma Sterowania (Sensory i Aktuatory)](07_uniwersalna_platforma_sterowania.md)**\n\n---\n*Intelekt wyprzedza Kapitał!*"
+    },
+    {
+      "id": "projekty-07-uniwersalna-platforma-sterowania-md-intro",
+      "source_path": "PROJEKTY/07_uniwersalna_platforma_sterowania.md",
+      "title": "Wprowadzenie",
+      "category": "document",
+      "content": "# 07. Uniwersalna Platforma Sterowania (Sensory i Aktuatory)"
+    },
+    {
+      "id": "projekty-07-uniwersalna-platforma-sterowania-md-1-intelekt-wyprzedza-kapita",
+      "source_path": "PROJEKTY/07_uniwersalna_platforma_sterowania.md",
+      "title": "**Intelekt wyprzedza Kapitał!**",
+      "category": "document",
+      "content": "### Nobilitacja Twórcy\nTen projekt powstał dzięki wnikliwej analizie i udostępnieniu zasobów przez **Marka Sumę** ([@mareksuma1985](https://github.com/mareksuma1985)), twórcę projektu **PhoneUAV-server**. Marek przekazał tę wiedzę bezpośrednio na rzecz naszej inicjatywy, za co otrzymuje najwyższe wyrazy uznania. Jego praca nad sterowaniem dwiema tonami elektroniki i lotnictwem za pomocą smartfona to fundamentalny przykład **przewagi intelektu nad kapitałem**.\n\n---"
+    },
+    {
+      "id": "projekty-07-uniwersalna-platforma-sterowania-md-2-koncepcja-kod-jako-surowiec-strategiczny",
+      "source_path": "PROJEKTY/07_uniwersalna_platforma_sterowania.md",
+      "title": "Koncepcja: Kod jako Surowiec Strategiczny",
+      "category": "document",
+      "content": "W **NARODOWYCH SIŁACH INTELEKTUALNYCH** wychodzimy z założenia, że nie musimy odkrywać koła na nowo. Pozyskiwanie, katalogowanie i opisywanie tak zaawansowanych repozytoriów jak `PhoneUAV-server` to realna praca na rzecz wspólnego dobra. Dzięki temu przyszli twórcy – wspierani przez AI – nie muszą pisać systemów od zera, lecz mogą adaptować gotowe, sprawdzone moduły do nowych zastosowań (np. w akwakulturze, automatyzacji farm czy logistycznym Edge Computing)."
+    },
+    {
+      "id": "projekty-07-uniwersalna-platforma-sterowania-md-3-analiza-techniczna-deep-dive-w-kod",
+      "source_path": "PROJEKTY/07_uniwersalna_platforma_sterowania.md",
+      "title": "Analiza Techniczna (Deep Dive w kod)",
+      "category": "document",
+      "content": "Repozytorium [PhoneUAV-server](https://github.com/mareksuma1985/PhoneUAV-server) dostarcza gotowych rozwiązań dla dwóch krytycznych obszarów:\n\n### 1. Pozyskiwanie Danych (Sensory Telefonu)\nSmartfon to potężny zestaw czujników. Poniższe fragmenty kodu pokazują, jak w profesjonalny sposób odczytywać dane potrzebne do stabilizacji i pozycjonowania dowolnej maszyny:\n\n**Przykład: Odczyt Akcelerometru (`Accelerometer.java`)**\nKod filtruje szumy i pozwala na obrót wektora przyśpieszenia względem orientacji urządzenia, co jest kluczowe, gdy telefon nie jest zamontowany idealnie poziomo:\n```java\n// Filtracja zmian poniżej progu czułości\nif (deltaX < 0.01) deltaX = 0;\n\n// Obrót wektora wokół osi Z (Wikipedia: Rotation Matrix)\naccVectorVehicle = rotateAroundZ(accVectorDevice, main.device_orientation[2]);\n\n// Obliczanie kątów Roll i Pitch\nangle_roll = Math.toDegrees(Math.atan2((double) accVectorVehicle[0], (double) accVectorVehicle[2]));\nangle_pitch = Math.toDegrees(Math.atan2((double) accVectorVehicle[1], (double) accVectorVehicle[2]));\n```\n\n### 2. Sterowanie Fizyczne (USB i Aktuatory)\nNajwiększą wartością jest kod pozwalający smartfonowi na \"wyjście na zewnątrz\". Dzięki kontrolerom USB (np. CH340), telefon może bezpośrednio sterować serwomechanizmami i silnikami.\n\n**Przykład: Sterowanie serwami przez USB (`CH340comm.java`)**\nKod buduje ramkę danych dla kontrolera serw (np. USC-16) i przesyła ją przez USB OTG:\n```java\npublic void SetPositionArray(int[] channels, int width, int time) {\n    String message = \"\";\n    for (int i = 0; i < channels.length; i++) {\n        // Składanie komendy dla kontrolera (np. #1P1500T100)\n        message += \"#\" + Math.abs(channels[i]) + \"P\" + width;\n    }\n    message += \"T\" + time;\n    this.write(message); // Przesył przez sterownik CH34x\n}\n```"
+    },
+    {
+      "id": "projekty-07-uniwersalna-platforma-sterowania-md-4-potencja-adaptacji-i-wykorzystanie-ai",
+      "source_path": "PROJEKTY/07_uniwersalna_platforma_sterowania.md",
+      "title": "Potencjał Adaptacji i Wykorzystanie AI",
+      "category": "document",
+      "content": "Dzięki temu, że te kody są dostępne w naszym repozytorium jako \"surowiec\", modele AI mogą je natychmiastowo przekształcić w:\n-   **Autonomiczne pompy w akwakulturze:** Wykorzystanie sensora ciśnienia do monitorowania poziomu wody i sterowanie zaworami przez USB.\n-   **Robotykę polową:** GPS i magnetometr służą do nawigacji, a kod sterowania serwami porusza mechanizmem siewnika.\n-   **Monitoring wizyjny:** Adaptacja kodu `Camera2API.java` do inteligentnego rozpoznawania obrazu na krawędzi sieci (Edge AI).\n\n---\n\n### Zasoby referencyjne:\n- **Repozytorium źródłowe:** [https://github.com/mareksuma1985/PhoneUAV-server](https://github.com/mareksuma1985/PhoneUAV-server)\n- **Autor:** Marek Suma ([bezzalogowe.pl](http://bezzalogowe.pl))\n\n---\n*Intelekt wyprzedza Kapitał!*"
+    },
+    {
+      "id": "projekty-08-openbot-autonomiczne-maszyny-rolnicze-md-intro",
+      "source_path": "PROJEKTY/08_openbot_autonomiczne_maszyny_rolnicze.md",
+      "title": "Wprowadzenie",
+      "category": "document",
+      "content": "# 08. Autonomiczne Maszyny Rolnicze (OpenBot)"
+    },
+    {
+      "id": "projekty-08-openbot-autonomiczne-maszyny-rolnicze-md-2-opis-projektu",
+      "source_path": "PROJEKTY/08_openbot_autonomiczne_maszyny_rolnicze.md",
+      "title": "Opis Projektu",
+      "category": "document",
+      "content": "Wykorzystanie projektu **OpenBot** oraz zaawansowanych sterowników typu **Open-Source** do transformacji używanych smartfonów w zaawansowane mózgi dla autonomicznych systemów rolniczych. Projekt obejmuje zarówno jednostki mobilne (pielniki, siewniki), jak i stacjonarne systemy automatyzacji upraw (hydroponika, aeroponika)."
+    },
+    {
+      "id": "projekty-08-openbot-autonomiczne-maszyny-rolnicze-md-3-dlaczego-openbot",
+      "source_path": "PROJEKTY/08_openbot_autonomiczne_maszyny_rolnicze.md",
+      "title": "Dlaczego OpenBot?",
+      "category": "document",
+      "content": "OpenBot, opracowany przez zespół badawczy Intel, udowadnia, że moc obliczeniowa nowoczesnego smartfona jest w zupełności wystarczająca do obsługi zaawansowanych obciążeń robotycznych:\n- **Nawigacja w czasie rzeczywistym:** Wykorzystanie AI do śledzenia ścieżek i omijania przeszkód.\n- **Computer Vision:** Rozpoznawanie obiektów (np. odróżnianie chwastów od roślin uprawnych).\n- **Niski koszt:** Wykorzystanie elektroniki, która już istnieje, zamiast kupowania drogich, dedykowanych komputerów przemysłowych."
+    },
+    {
+      "id": "projekty-08-openbot-autonomiczne-maszyny-rolnicze-md-4-automatyzacja-upraw-hydroponika-i-aeroponika",
+      "source_path": "PROJEKTY/08_openbot_autonomiczne_maszyny_rolnicze.md",
+      "title": "Automatyzacja Upraw: Hydroponika i Aeroponika",
+      "category": "document",
+      "content": "Smartfon jako sterownik Edge Computing idealnie nadaje się do zarządzania precyzyjnymi systemami upraw bezglebowych. Dzięki gotowym projektom we wspólnocie Open-Source, możemy wdrażać:\n- **[Hydruino](https://github.com/NachtRaveVL/Simple-Hydroponics-Arduino):** Profesjonalny sterownik automatyzacji hydroponiki, obsługujący pompy, czujniki pH, EC i temperatury.\n- **[HydroTek](https://github.com/tangles-0/HydroTek):** System IoT, który można zintegrować ze smartfonem jako lokalnym serwerem danych i interfejsem AI.\n- **Monitorowanie AI:** Smartfon (kamera) analizuje stan liści i korzeni, wykrywając niedobory składników odżywczych szybciej niż standardowe czujniki."
+    },
+    {
+      "id": "projekty-08-openbot-autonomiczne-maszyny-rolnicze-md-5-architektura-systemu-uniwersalno",
+      "source_path": "PROJEKTY/08_openbot_autonomiczne_maszyny_rolnicze.md",
+      "title": "Architektura Systemu (Uniwersalność)",
+      "category": "document",
+      "content": "1. **Mózg (Smartfon):** Obsługuje stos OpenBot dla maszyn mobilnych LUB aplikację zarządzającą uprawami.\n2. **Mostek (Arduino/ESP32):** Na bazie kodu z [Projektu 07 (PhoneUAV)](07_uniwersalna_platforma_sterowania.md) – komunikacja USB/Wi-Fi ze światem fizycznym.\n3. **Efektor:** Silniki maszyn polowych LUB pompy i dozowniki w systemach hydroponicznych."
+    },
+    {
+      "id": "projekty-08-openbot-autonomiczne-maszyny-rolnicze-md-6-korzy-ci-dla-inicjatywy",
+      "source_path": "PROJEKTY/08_openbot_autonomiczne_maszyny_rolnicze.md",
+      "title": "Korzyści dla Inicjatywy",
+      "category": "document",
+      "content": "- **Skalowalność:** Technologia ta pozwala na budowę floty tanich robotów, które mogą pracować 24/7.\n- **Otwartość:** Całość oparta na modelu Open-Source, co pozwala każdemu polskiemu rolnikowi na adaptację systemu do własnych potrzeb bez opłat licencyjnych.\n- **Intelektualny Wkład:** Dokumentowanie procesu adaptacji OpenBot do warunków rolniczych (np. praca w pyle, zmienne oświetlenie) to kluczowa wartość naszego repozytorium."
+    },
+    {
+      "id": "projekty-08-openbot-autonomiczne-maszyny-rolnicze-md-7-iv-autonomiczne-maszyny-terenowe-open-hardware",
+      "source_path": "PROJEKTY/08_openbot_autonomiczne_maszyny_rolnicze.md",
+      "title": "IV. Autonomiczne Maszyny Terenowe (Open Hardware)",
+      "category": "document",
+      "content": "Wdrażamy i adaptujemy najbardziej zaawansowane otwarte projekty mechaniczne, które stanowią uzupełnienie cyfrowego \"mózgu\" OpenBot:\n\n*   **Acorn Precision Farming Rover (Twisted Fields):** Solarny, autonomiczny łazik terenowy. Precyzyjna platforma zorientowana na budowę i utrzymanie upraw bez paliw kopalnych.\n    - *Repo:* [Twisted-Fields/acorn-precision-farming-rover](https://github.com/Twisted-Fields/acorn-precision-farming-rover)\n    - *Mechanika:* [Twisted-Fields/acorn-mechanical-designs](https://github.com/Twisted-Fields/acorn-mechanical-designs)\n\n---\n\n### Zasoby techniczne:\n- **Repozytorium OpenBot:** [https://github.com/ob-f/OpenBot](https://github.com/ob-f/OpenBot)\n- **Oficjalna strona:** [www.openbot.org](https://www.openbot.org)\n- **Acorn Precision Farming Rover (Twisted Fields):** Solarny, autonomiczny łazik terenowy. Precyzyjna platforma zorientowana na budowę i utrzymanie upraw bez paliw kopalnych.\n    - *Repo:* [Twisted-Fields/acorn-precision-farming-rover](https://github.com/Twisted-Fields/acorn-precision-farming-rover)\n    - *Mechanika:* [Twisted-Fields/acorn-mechanical-designs](https://github.com/Twisted-Fields/acorn-mechanical-designs)\n\n---\n*Intelekt wyprzedza Kapitał!*\n\n**Nawet kod już jest, brakuje tylko Ciebie.**"
+    },
+    {
+      "id": "projekty-09-monitoring-iot-livestock-md-intro",
+      "source_path": "PROJEKTY/09_monitoring_iot_livestock.md",
+      "title": "Wprowadzenie",
+      "category": "document",
+      "content": "# 09. Monitoring IoT i Akcelerometria (Smart Health Tracker)"
+    },
+    {
+      "id": "projekty-09-monitoring-iot-livestock-md-2-opis-projektu",
+      "source_path": "PROJEKTY/09_monitoring_iot_livestock.md",
+      "title": "Opis Projektu",
+      "category": "document",
+      "content": "Projekt skupia się na wykorzystaniu sensorów wbudowanych w każdy smartfon (akcelerometr, żyroskop, magnetometr, GPS) oraz wysokiej jakości kamer do stworzenia taniego, inteligentnego systemu monitorowania zdrowia i bezpieczeństwa zwierząt gospodarskich (tzw. Smart Collar / Inteligentna Obroża).\n\nNawet 10-letni smartfon posiada czujniki o precyzji wystarczającej do wykrywania subtelnych zmian w zachowaniu zwierzęcia, które sygnalizują chorobę, ruję lub zbliżający się poród."
+    },
+    {
+      "id": "projekty-09-monitoring-iot-livestock-md-3-kluczowe-filary-technologiczne-gotowy-kod",
+      "source_path": "PROJEKTY/09_monitoring_iot_livestock.md",
+      "title": "Kluczowe Filary Technologiczne (Gotowy Kod)",
+      "category": "document",
+      "content": "### 1. Wizyjny Monitoring AI (Sentinel)\nZamiast budować system od zera, wykorzystujemy framework **Sentinel**, który zamienia telefony w bezobsługowe węzły kamer AI.\n- **Funkcja:** Detekcja ruchu w oborze, monitoring porodówek, nadzór nad paszami.\n- **Kod źródłowy:** [suzuran0y/CCTV-Smartphone-AI-Monitoring](https://github.com/suzuran0y/CCTV-Smartphone-AI-Monitoring)\n- **Zaleta:** Automatyczne wykrywanie serwera w sieci LAN i obsługa strumieniowania wysokiej klasy.\n\n### 2. Telemetria Sensorowa (Edge Analytics)\nWykorzystanie akcelerometru do analizy \"dobrostanu\" (welfare monitoring).\n- **Funkcja:** Monitorowanie czasu przeżuwania, aktywności ruchowej i wykrywanie upadków.\n- **Kod źródłowy:** [mqtt-sensor-android](https://github.com/dc297/mqtt-sensor-android) lub streamowanie przez **Node-RED**.\n- **Logika:** Dane są przesyłane przez protokół MQTT do centralnego punktu (np. Raspberry Pi lub inny smartfon działający jako serwer), gdzie AI analizuje wzorce ruchu."
+    },
+    {
+      "id": "projekty-09-monitoring-iot-livestock-md-4-implementacja-w-stra-y-przysz-o-ci",
+      "source_path": "PROJEKTY/09_monitoring_iot_livestock.md",
+      "title": "Implementacja w Straży Przyszłości",
+      "category": "document",
+      "content": "### Etap 1: Obudowa i Zasilanie (Upcykling)\n- Wykorzystanie wydrukowanych metodą 3D szczelnych obudów (IP67) montowanych na obrożach.\n- Zasilanie z dużych ogniw Li-Ion odzyskanych z baterii laptopowych lub małych paneli solarnych.\n\n### Etap 2: Komunikacja\n- Wykorzystanie Wi-Fi (na terenie gospodarstwa) lub technologii LoRa (poprzez adaptery USB podłączone do smartfona) do przesyłania danych z pastwisk.\n\n### Etap 3: Analiza AI (Model Narodowy)\n- Budowa otwartej bazy danych wzorców ruchu (np. \"charakterystyczne ruchy owcy przed porodem\"), która pozwoli na szkolenie lokalnych modeli Edge AI."
+    },
+    {
+      "id": "projekty-09-monitoring-iot-livestock-md-5-dlaczego-to-jest-prze-omowe",
+      "source_path": "PROJEKTY/09_monitoring_iot_livestock.md",
+      "title": "Dlaczego to jest przełomowe?",
+      "category": "document",
+      "content": "Komercyjne systemy monitorowania krów (np. elektroniczne kolczyki) kosztują tysiące złotych i są zamkniętymi ekosystemami. Nasze rozwiązanie oparte na **repurposed hardware** jest darmowe w warstwie licencyjnej i o rzędy wielkości tańsze sprzętowo, przy zachowaniu wyższej mocy obliczeniowej smartfona.\n\n---\n*Intelekt wyprzedza Kapitał!*"
+    },
+    {
+      "id": "projekty-10-lacznosc-mesh-lora-md-intro",
+      "source_path": "PROJEKTY/10_lacznosc_mesh_lora.md",
+      "title": "Wprowadzenie",
+      "category": "document",
+      "content": "# 10. Łączność Mesh i LoRa w Gospodarce (MeshCore, Reticulum, Meshtastic)"
+    },
+    {
+      "id": "projekty-10-lacznosc-mesh-lora-md-2-opis-projektu",
+      "source_path": "PROJEKTY/10_lacznosc_mesh_lora.md",
+      "title": "Opis Projektu",
+      "category": "document",
+      "content": "Projekt zakłada budowę suwerennej, odpornej na awarie infrastruktury komunikacyjnej opartej na sieciach kratowych (Mesh). Fundamentem są **wbudowane systemy łączności smartfonów z odzysku** (GSM, LTE/4G, Wi-Fi, Bluetooth), które uzupełniamy technologią LoRa dla uzyskania ekstremalnych zasięgów. Wykorzystujemy \"elektrośmieci\" jako uniwersalne mosty komunikacyjne (Gateways), które mogą inteligentnie przełączać się między siecią komórkową a darmowymi sieciami Mesh w zależności od dostępności sygnału i kosztów.\n\nW \"Straży Przyszłości\" sieć Mesh służy jako **Nerw Gospodarczy**, przesyłając dane z sensorów rolnych, informując o stanie sieci energetycznej oraz zabezpieczając komunikację bez polegania wyłącznie na zewnętrznych dostawcach."
+    },
+    {
+      "id": "projekty-10-lacznosc-mesh-lora-md-3-filary-technologiczne-i-gotowy-kod",
+      "source_path": "PROJEKTY/10_lacznosc_mesh_lora.md",
+      "title": "Filary Technologiczne i Gotowy Kod",
+      "category": "document",
+      "content": "### 1. Meshtastic – Gotowe Moduły Sterowania (Ekosystem Open-Source)\nWykorzystujemy wbudowane funkcjonalności Meshtastic, które eliminują potrzebę pisania oprogramowania układowego od zera:\n- **[Remote Hardware Module](https://meshtastic.org/docs/configuration/modules/remote-hardware/):** Kluczowy moduł pozwalający na zdalne sterowanie pinami GPIO (przekaźnikami) przez sieć Mesh.\n    - **Zastosowanie:** Zdalne włączanie pomp nawadniających (Projekt 01/08) lub otwieranie bram wirtualnych ogrodzeń (Projekt 02).\n- **[Telemetry Module](https://meshtastic.org/docs/configuration/modules/telemetry/):** Automatyczne przesyłanie danych z czujników środowiskowych (temperatura, wilgotność gleby, ciśnienie).\n    - **Zastosowanie:** Węzły monitorujące stan upraw i parametry w oborach (Projekt 09).\n- **Integracja Python:** Wykorzystanie [Meshtastic Python API](https://github.com/meshtastic/python) do budowy automatyzacji (np. \"jeśli wilgotność gleby < X, wyślij komendę do przekaźnika pompy\").\n\n### 2. Reticulum Network Stack (RNS) – Bezpieczny \"Pipe\" dla SCADA\nMimo że RNS jest ogólnego przeznaczenia, służy jako doskonały \"tunel\" dla danych sterowniczych w trudnych warunkach:\n- **[Sideband](https://github.com/markqvist/Sideband):** Gotowy komunikator graficzny do bezpiecznej wymiany raportów technicznych i logistycznych między pracownikami dużych gospodarstw i zakładów.\n- **Implementacja Transportowa:** Możliwość tunelowania protokołów przemysłowych (np. Modbus over Reticulum) w celu nadzorowania pracy magazynów energii (Projekt 05) w miejscach bez zasięgu komórkowego.\n\n### 3. Łączność Hybrydowa: Smartfon jako \"Brama Intelektualna\"\nWykorzystujemy pełen stos komunikacyjny wbudowany w smartfony:\n- **GSM/LTE/4G (Wbudowane):** Smartfon służy jako brama (Gateway), która zbiera dane z lokalnej sieci Mesh (Wi-Fi/BT/LoRa) i przesyła je do centralnych systemów analitycznych NSI przez sieć komórkową, gdy ta jest dostępna.\n- **[Briar](https://github.com/briar/briar) & P2P Protocols:** Wykorzystanie Bluetooth i Wi-Fi do tworzenia lokalnych, darmowych sieci bez dostępu do Internetu. Pozwala to na darmową wymianę danych sensorowych i wiadomości w obrębie gospodarstwa.\n- **Wi-Fi Aware / Wi-Fi Direct:** Tworzenie dynamicznych sieci \"telefon-do-telefonu\" przez natywne funkcje Androida, co pozwala na przekazywanie informacji (np. z Projektu 09) przez kolejne urządzenia aż do punktu z zasięgiem LTE lub LoRa.\n- **[MeshCore Firmware](https://github.com/meshcore-dev/MeshCore):** Energooszczędne zarządzanie modułami radiowymi w celu wydłużenia pracy węzła."
+    },
+    {
+      "id": "projekty-10-lacznosc-mesh-lora-md-4-implementacja-gospodarcza-scenariusze-poc",
+      "source_path": "PROJEKTY/10_lacznosc_mesh_lora.md",
+      "title": "Implementacja Gospodarcza (Scenariusze PoC)",
+      "category": "document",
+      "content": "1. **Efektywność Energetyczna i Grid Health:** Wykorzystanie sieci Mesh do monitorowania stanu transformatorów i magazynów energii (OZE). W przypadku wykrycia awarii przez sensory, system przesyła zapytanie przez sieć Mesh o dostępność energii w sąsiednich mikrosieciach lub informuje operatora o dokładnej lokalizacji usterki bez użycia Internetu.\n2. **Monitoring Gatunkowy i Inwentarski:** Smartfony na obrożach (Projekt 09) działają jako ruchome węzły (repeatery), dynamicznie budując zasięg sieci Mesh tam, gdzie przebywa stado. Pozwala to na pełny monitoring wizyjny (Sentinel) klatek/zagród w głębi pola.\n3. **Logistyka Gospodarcza (Suwerenny Komunikator):** Wymiana informacji o zapotrzebowaniu na paliwo, paszę czy gotowość produktów do odbioru, z pełnym szyfrowaniem end-to-end, niezależnie od awarii globalnych platform komunikacyjnych."
+    },
+    {
+      "id": "projekty-10-lacznosc-mesh-lora-md-5-dlaczego-lora-mesh",
+      "source_path": "PROJEKTY/10_lacznosc_mesh_lora.md",
+      "title": "Dlaczego LoRa Mesh?",
+      "category": "document",
+      "content": "- **Koszty:** Brak opłat za przesył danych (brak kart SIM).\n- **Zasięg:** Od kilku do kilkunastu kilometrów na jednym skoku (hop), z możliwością nieskończonego przedłużania przez kolejne węzły.\n- **Suwerenność:** Infrastruktura należy do użytkowników, nie do korporacji.\n\n---\n*Intelekt wyprzedza Kapitał!*"
+    },
+    {
+      "id": "projekty-11-autonomiczne-systemy-rd-md-intro",
+      "source_path": "PROJEKTY/11_autonomiczne_systemy_rd.md",
+      "title": "Wprowadzenie",
+      "category": "document",
+      "content": "# 11. Przyszłe Pola Automatyzacji i Eksperymentalne R+D"
+    },
+    {
+      "id": "projekty-11-autonomiczne-systemy-rd-md-1-intelekt-wyprzedza-kapita",
+      "source_path": "PROJEKTY/11_autonomiczne_systemy_rd.md",
+      "title": "**Intelekt wyprzedza Kapitał!**",
+      "category": "document",
+      "content": "W ramach budowy Krajowego Zasobu Intelektualnego identyfikujemy pola eksploatacji technologii Ai, które pozwalają na zerwanie z dotychczasowym paradygmatem „ładnych i czysztych” aplikacji. Skupiamy się na obszarach „odrażających”, brudnych i przede wszystkim śmierdzących, których nikt nie chce dotykać, a które zapewniają realną autonomię w gospodarce obiegu zamkniętego."
+    },
+    {
+      "id": "projekty-11-autonomiczne-systemy-rd-md-2-i-autonomiczny-cykl-przetwarzania-padliny-carcass-to-protein-loop",
+      "source_path": "PROJEKTY/11_autonomiczne_systemy_rd.md",
+      "title": "I. Autonomiczny Cykl Przetwarzania Padliny (Carcass-to-Protein Loop)",
+      "category": "document",
+      "content": "To najbardziej radykalny i strategiczny obszar: wykorzystanie Ai do domknięcia obiegu materii organicznej pochodzącej z padliny i odpadów rzeźnych.\n\n*   **Pętla Technologiczna:** Połączenie automatycznej detekcji padliny (Roadkill Detection) z bioreaktorami larw muchy czarnej (BSF).\n    *   **Krok 1 (Detekcja):** Wykorzystanie modeli YOLO do identyfikacji zwłok zwierząt na drogach i polach.\n        *   *Repo:* [GabrielFerrante/DetectAnimalsInRoads](https://github.com/GabrielFerrante/DetectAnimalsInRoads)\n    *   **Krok 2 (Konwersja):** Wykorzystanie larw BSF do błyskawicznej utylizacji tkanek miękkich. Larwy zamieniają \"odrażającą\" materię w czyste białko (pasza) i wysokiej jakości nawóz (frass).\n        *   *Repo:* [O-MyGot/O-MyGot-apps](https://github.com/O-MyGot/O-MyGot-apps)\n    *   **Krok 3 (Automatyzacja):** Ai monitoruje temperaturę, wilgotność i tempo dekompozycji, optymalizując czas wylęgu i zbioru larw bez kontaktu człowieka z procesem gnilnym."
+    },
+    {
+      "id": "projekty-11-autonomiczne-systemy-rd-md-3-ii-technologie-mierdz-ce-gas-odor-science",
+      "source_path": "PROJEKTY/11_autonomiczne_systemy_rd.md",
+      "title": "II. Technologie „Śmierdzące” (Gas & Odor Science)",
+      "category": "document",
+      "content": "Wykorzystanie Ai do rozpoznawania i zarządzania gazami powstałymi w wyniku rozkładu, ścieków i odchodów.\n\n*   **Elektroniczny Nos (Electronic Nose AI):** Wykorzystanie sieci neuronowych do klasyfikacji zapachów i gazów (metan, siarkowodór, amoniak). Kluczowe narzędzie do monitorowania postępu rozkładu padliny i bezpieczeństwa gazowego.\n    *   *Kierunek:* [Electronic-Nose-for-Gas-Classification](https://github.com/topics/electronic-nose)\n*   **Poultry_Bot – Autonomiczne Sprzątanie Kurników:** Robotyka przeznaczona do pracy w środowisku o skrajnie wysokim stężeniu amoniaku i odchodów.\n    *   *Repo:* [Ammar-Bin-Amir/Poultry_Bot](https://github.com/Ammar-Bin-Amir/Poultry_Bot)\n*   **Automatyzacja Biogasowni:** Przetwarzanie płynnych odchodów i gnojowicy w energię.\n    *   *Kierunek:* [Topics/Biogas-Monitor](https://github.com/topics/biogas)"
+    },
+    {
+      "id": "projekty-11-autonomiczne-systemy-rd-md-4-iii-autonomiczne-zarz-dzanie-nieczysto-ciami-dirty-jobs",
+      "source_path": "PROJEKTY/11_autonomiczne_systemy_rd.md",
+      "title": "III. Autonomiczne Zarządzanie Nieczystościami (Dirty Jobs)",
+      "category": "document",
+      "content": "Technologie operujące w ściekach i szlamie.\n\n*   **Inspekcja i Udrażnianie Rur Ściekowych (Pipe Cleaning Robot):** Robotyka i systemy wizyjne przeznaczone do pracy wewnątrz systemów kanalizacyjnych.\n    *   *Repo:* [DeyaaMuhammad/PICR](https://github.com/DeyaaMuhammad/PICR)\n*   **OceanGuardian / CleanBot:** Jednostki do usuwania śmieci, olejów i osadów z mętnych wód i kanałów.\n    *   *Repo:* [Roxonn-FutureTech/OceanGuardian](https://github.com/Roxonn-FutureTech/OceanGuardian)"
+    },
+    {
+      "id": "projekty-11-autonomiczne-systemy-rd-md-5-iv-automatyzacja-ugly-tech-waste-to-build",
+      "source_path": "PROJEKTY/11_autonomiczne_systemy_rd.md",
+      "title": "IV. Automatyzacja „Ugly-Tech” (Waste-to-Build)",
+      "category": "document",
+      "content": "*   **MushR:** Uprawa grzybów jadalnych i materiałów budowlanych na psujących się podłożach celulozowych.\n    *   *Repo:* [ETCE-LAB/MushR](https://github.com/ETCE-LAB/MushR)\n*   **Polyformer:** Recykling butelek PET bezpośrednio na filament do druku 3D.\n    *   *Repo:* [Reiten966/Polyformer](https://github.com/Reiten966/Polyformer)"
+    },
+    {
+      "id": "projekty-11-autonomiczne-systemy-rd-md-6-v-sortowanie-odpad-w-brudnych-i-medycznych",
+      "source_path": "PROJEKTY/11_autonomiczne_systemy_rd.md",
+      "title": "V. Sortowanie Odpadów Brudnych i Medycznych",
+      "category": "document",
+      "content": "*   **Smart-Waste-Segregator:** Rozpoznawanie i rozdzielanie odpadów na taśmach bez ingerencji ludzkich rąk.\n    *   *Repo:* [shaya-lr/smart-waste-segregator](https://github.com/shaya-lr/smart-waste-segregator)\n*   **MechaSort / RoboSort:** Zastępowanie pracowników przy najbrudniejszych etapach segregacji.\n    *   *Repo:* [qppd/robo-sort](https://github.com/qppd/robo-sort) / [Gaurang-1402/MechaSort](https://github.com/Gaurang-1402/MechaSort)\n\n*Klucz do sukcesu Straży Przyszłości leży tam, gdzie inni nie odważą się nawet zajrzeć – w domykaniu obiegu materii tam, gdzie inni widzą tylko odpad i smród.*"
     },
     {
       "id": "github-issue-template-nowy-straznik-md-template",

@@ -28,11 +28,22 @@ Smartfon jako sterownik Edge Computing idealnie nadaje się do zarządzania prec
 - **Otwartość:** Całość oparta na modelu Open-Source, co pozwala każdemu polskiemu rolnikowi na adaptację systemu do własnych potrzeb bez opłat licencyjnych.
 - **Intelektualny Wkład:** Dokumentowanie procesu adaptacji OpenBot do warunków rolniczych (np. praca w pyle, zmienne oświetlenie) to kluczowa wartość naszego repozytorium.
 
+## IV. Autonomiczne Maszyny Terenowe (Open Hardware)
+
+Wdrażamy i adaptujemy najbardziej zaawansowane otwarte projekty mechaniczne, które stanowią uzupełnienie cyfrowego "mózgu" OpenBot:
+
+*   **Acorn Precision Farming Rover (Twisted Fields):** Solarny, autonomiczny łazik terenowy. Precyzyjna platforma zorientowana na budowę i utrzymanie upraw bez paliw kopalnych.
+    - *Repo:* [Twisted-Fields/acorn-precision-farming-rover](https://github.com/Twisted-Fields/acorn-precision-farming-rover)
+    - *Mechanika:* [Twisted-Fields/acorn-mechanical-designs](https://github.com/Twisted-Fields/acorn-mechanical-designs)
+
 ---
 
 ### Zasoby techniczne:
 - **Repozytorium OpenBot:** [https://github.com/ob-f/OpenBot](https://github.com/ob-f/OpenBot)
 - **Oficjalna strona:** [www.openbot.org](https://www.openbot.org)
+- **Acorn Precision Farming Rover (Twisted Fields):** Solarny, autonomiczny łazik terenowy. Precyzyjna platforma zorientowana na budowę i utrzymanie upraw bez paliw kopalnych.
+    - *Repo:* [Twisted-Fields/acorn-precision-farming-rover](https://github.com/Twisted-Fields/acorn-precision-farming-rover)
+    - *Mechanika:* [Twisted-Fields/acorn-mechanical-designs](https://github.com/Twisted-Fields/acorn-mechanical-designs)
 
 ---
 *Intelekt wyprzedza Kapitał!*

@@ -1421,11 +1421,15 @@ export async function generateChatReply(env, message, history = [], options = {}
 export function buildCommandReply(command) {
   if (command === "start") {
     return [
-      "Witaj w bocie Straży Przyszłości.",
+      "Inicjatywa Straż Przyszłości – Intelekt wyprzedza Kapitał! 🇵🇱",
+      "",
+      "Jestem Twoim terminalem do budowy Narodowych Sił Intelektualnych. Pomogę Ci odnaleźć się w repozytorium, dopasować zadania do Twoich pasji oraz przekazać Twoje pomysły do zespołu.",
+      "",
       "Mogę działać w trzech trybach:",
-      "- zwykła rozmowa o repo i inicjatywie",
-      "- onboarding do odpowiednich zadań",
-      '- zgłoszenie do GitHub Issues po prefiksie "Pomysl:" albo "Uwaga:"',
+      "🤖 Asystent: Zadaj dowolne pytanie o inicjatywę i dokumenty.",
+      "🧭 Onboarding: Opisz swoje kompetencje, a wskażę Ci ścieżkę.",
+      "🚀 Zgłoszenia: Wyślij wiadomość z prefiksem \"Pomysl:\" lub \"Uwaga:\", aby utworzyć Issue na GitHubie.",
+      "",
       "Komendy: /help, /reset",
     ].join("\n");
   }

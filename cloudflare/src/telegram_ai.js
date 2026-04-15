@@ -496,18 +496,6 @@ function buildModerationSystemInstruction() {
   ].join(" ");
 }
 
-function buildIssueDraftSystemInstruction() {
-  return [
-    buildSafetyInstruction(),
-    "Tryb: redakcja treści GitHub Issue.",
-    "Zwróć JSON z polami edited_description i additional_context.",
-    "edited_description ma lekko uporządkować i profesjonalizować wypowiedź, ale nie zmieniać jej sensu ani nie dopisywać nowych faktów.",
-    "additional_context ma być krótkie i opcjonalne; użyj pustego stringa, jeśli nic wartościowego nie trzeba dodać.",
-    "Nie zmieniaj zamiaru autora i nie przepisuj tytułu.",
-    "Nie dołączaj nic poza JSON.",
-  ].join(" ");
-}
-
 function extractTextFromGoogle(payload) {
   const text = payload?.candidates?.[0]?.content?.parts
     ?.map((part) => part?.text || "")
@@ -1225,6 +1213,19 @@ function buildIssueDraftFallback(classification) {
   };
 }
 
+function buildIssueDraftSystemInstruction() {
+  return [
+    buildSafetyInstruction(),
+    "Tryb: redakcja treści GitHub Issue.",
+    "Twoim zadaniem jest przekształcenie luźnej wypowiedzi użytkownika w profesjonalne, uporządkowane zgłoszenie techniczne.",
+    "W polu 'edited_description' zwróć poprawioną wersję tekstu: usuń zbędne wypełniacze, popraw czytelność, podziel treść na logiczne sekcje (jeśli pasują, np. 'Kontekst', 'Pomysł', 'Zadania') lub użyj list punktowanych.",
+    "Zachowaj oryginalny sens i fakty, ale nadaj im formę merytorycznego wkładu do repozytorium.",
+    "W polu 'additional_context' dodaj od siebie krótką uwagę, jak ten pomysł łączy się z innymi projektami Straży (jeśli to widzisz), lub zostaw puste.",
+    "Zwróć JSON z polami edited_description i additional_context.",
+    "Nie dołączaj nic poza JSON.",
+  ].join(" ");
+}
+
 export async function draftIssueBody(env, classification, history = [], options = {}) {
   if (!isTruthy(env.TELEGRAM_AI_ENABLED || "")) {
     return buildIssueDraftFallback(classification);
@@ -1247,7 +1248,7 @@ export async function draftIssueBody(env, classification, history = [], options 
         env,
         {
           maxTokens: 500,
-          temperature: 0.2,
+          temperature: 0.4,
         }
       ),
       options

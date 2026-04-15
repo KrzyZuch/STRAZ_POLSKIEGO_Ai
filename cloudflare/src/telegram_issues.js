@@ -18,6 +18,9 @@ import {
   routeTelegramIntent,
   saveTelegramConversation,
   sanitizeTelegramReply,
+  fetchTelegramFileAsBase64,
+  handleRecycledKnowledgeLookup,
+  recognizeDeviceAndListParts,
 } from "./telegram_ai.js";
 
 function jsonResponse(payload, status = 200) {
@@ -211,15 +214,34 @@ function collectInboundMessages(payload) {
   ];
 
   for (const item of candidates) {
-    const text = item?.text;
-    if (typeof text !== "string") {
+    if (!item) continue;
+
+    const text = item.text || item.caption; // Handle captions for photos
+    const photo = item.photo; // Array of PhotoSize
+    const document = item.document;
+
+    if (typeof text !== "string" && !photo && !document) {
       continue;
+    }
+
+    let fileId = null;
+    let mimeType = null;
+
+    if (photo && photo.length > 0) {
+      // Get the largest photo size
+      fileId = photo[photo.length - 1].file_id;
+      mimeType = "image/jpeg";
+    } else if (document) {
+      fileId = document.file_id;
+      mimeType = document.mime_type;
     }
 
     result.push({
       update_id: payload.update_id || null,
       message_id: item.message_id || null,
-      text,
+      text: text || null,
+      file_id: fileId,
+      mime_type: mimeType,
       date: item.date || null,
       chat_id: item.chat?.id !== undefined ? String(item.chat.id) : null,
       chat_type: item.chat?.type || null,
@@ -495,16 +517,36 @@ async function processConversationMessage(env, message, intent) {
   const history = await loadTelegramChatHistory(env, message);
 
   try {
-    const response =
-      intent === "onboarding"
-        ? await recommendOnboardingPath(env, message, history)
-        : await generateChatReply(env, message, history);
-    await saveTelegramConversation(env, message, intent, message.text, response.reply_text);
+    let response;
+    if (intent === "device_media") {
+      const base64 = await fetchTelegramFileAsBase64(env, message.file_id);
+      if (base64) {
+        response = await recognizeDeviceAndListParts(env, message, base64);
+      } else {
+        response = { reply_text: "Nie udało się pobrać zdjęcia do analizy." };
+      }
+    } else if (intent === "device_lookup") {
+      response = await handleRecycledKnowledgeLookup(env, message);
+    } else {
+      response =
+        intent === "onboarding"
+          ? await recommendOnboardingPath(env, message, history)
+          : await generateChatReply(env, message, history);
+    }
+
+    await saveTelegramConversation(env, message, intent, message.text || "[media]", response.reply_text);
     const notificationSent = await sendTelegramReply(env, message, response.reply_text);
     return {
       update_id: message.update_id,
       message_id: message.message_id,
-      status: intent === "onboarding" ? "onboarding_replied" : "chat_replied",
+      status:
+        intent === "onboarding"
+          ? "onboarding_replied"
+          : intent === "device_media"
+            ? "media_processed"
+            : intent === "device_lookup"
+              ? "lookup_replied"
+              : "chat_replied",
       notification_sent: notificationSent,
     };
   } catch (error) {
@@ -573,7 +615,7 @@ export async function handleTelegramWebhook(request, env) {
       continue;
     }
 
-    const routing = routeTelegramIntent(message.text);
+    const routing = routeTelegramIntent(message);
     if (routing.intent === "command") {
       results.push(await processCommandMessage(env, message, routing.command));
       continue;

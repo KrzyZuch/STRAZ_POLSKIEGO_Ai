@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Recycled Device",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "device_slug",
+    "brand",
+    "model",
+    "canonical_name",
+    "device_category",
+    "description",
+    "known_aliases",
+    "serial_markers",
+    "donor_rank",
+    "teardown_url",
+    "source_url",
+    "notes"
+  ],
+  "properties": {
+    "device_slug": {
+      "type": "string",
+      "minLength": 3
+    },
+    "brand": {
+      "type": "string",
+      "minLength": 1
+    },
+    "model": {
+      "type": "string",
+      "minLength": 1
+    },
+    "canonical_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "device_category": {
+      "type": "string",
+      "minLength": 1
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "known_aliases": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "serial_markers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "donor_rank": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "teardown_url": {
+      "type": "string"
+    },
+    "source_url": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  }
+}

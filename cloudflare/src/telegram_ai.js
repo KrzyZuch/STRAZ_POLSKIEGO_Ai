@@ -258,10 +258,78 @@ function isOnboardingQuery(text) {
   return onboardingSignals.some((phrase) => normalized.includes(phrase));
 }
 
-export function routeTelegramIntent(messageText) {
+function getMessageText(message) {
+  if (typeof message === "string") {
+    return message;
+  }
+  if (typeof message?.text === "string") {
+    return message.text;
+  }
+  return "";
+}
+
+function hasTelegramFile(message) {
+  return Boolean(message && typeof message === "object" && message.file_id);
+}
+
+function looksLikeStructuredCatalogToken(token) {
+  const trimmed = String(token || "").replace(/^[^\p{Letter}\p{Number}]+|[^\p{Letter}\p{Number}]+$/gu, "");
+  if (trimmed.length < 4 || trimmed.length > 40) {
+    return false;
+  }
+  const hasLetter = /\p{Letter}/u.test(trimmed);
+  const hasDigit = /\d/u.test(trimmed);
+  const hasSeparator = /[-_/]/.test(trimmed);
+  return hasLetter && (hasDigit || hasSeparator);
+}
+
+function isDeviceLookupQuery(text) {
+  const rawText = String(text || "").trim();
+  if (!rawText) {
+    return false;
+  }
+
+  const normalized = normalizeForSearch(rawText);
+  const lookupHints = [
+    "jakie czesci",
+    "jakie części",
+    "co jest w",
+    "co siedzi w",
+    "jaki uklad",
+    "jaki układ",
+    "jaki chip",
+    "numer seryjny",
+    "serial",
+    "part number",
+    "numer czesci",
+    "numer części",
+    "oznaczenie ukladu",
+    "oznaczenie układu",
+    "dawca",
+    "donor",
+    "model",
+  ];
+  if (lookupHints.some((phrase) => normalized.includes(normalizeForSearch(phrase)))) {
+    return true;
+  }
+
+  const tokens = rawText.split(/\s+/).filter(Boolean);
+  if (tokens.length <= 6 && tokens.some(looksLikeStructuredCatalogToken)) {
+    return true;
+  }
+
+  return false;
+}
+
+export function routeTelegramIntent(message) {
+  const messageText = getMessageText(message);
   const command = isCommand(messageText);
   if (command) {
     return { intent: "command", command };
+  }
+
+  if (hasTelegramFile(message)) {
+    return { intent: "device_media" };
   }
 
   const classification = stripIssuePrefix(messageText);
@@ -271,6 +339,10 @@ export function routeTelegramIntent(messageText) {
 
   if (isOnboardingQuery(messageText)) {
     return { intent: "onboarding" };
+  }
+
+  if (isDeviceLookupQuery(messageText)) {
+    return { intent: "device_lookup" };
   }
 
   return { intent: "chat" };
@@ -538,17 +610,36 @@ async function runFetchWithTimeout(fetchImpl, url, init, timeoutMs) {
 
 function buildGoogleGenerateContentBody(promptPayload, options = {}) {
   const inlineSystemInstruction = options.inlineSystemInstruction === true;
+  
+  const userParts = [];
+  
+  // Add system instruction if inlined
+  if (inlineSystemInstruction && promptPayload.systemInstruction) {
+    userParts.push({ text: promptPayload.systemInstruction + "\n\n" });
+  }
+  
+  // Add text prompt
+  if (promptPayload.userPrompt) {
+    userParts.push({ text: promptPayload.userPrompt });
+  }
+  
+  // Add media parts if present
+  if (promptPayload.media && promptPayload.media.length > 0) {
+    for (const mediaItem of promptPayload.media) {
+      userParts.push({
+        inline_data: {
+          mime_type: mediaItem.mime_type,
+          data: mediaItem.data, // base64
+        },
+      });
+    }
+  }
+
   const body = {
     contents: [
       {
         role: "user",
-        parts: [
-          {
-            text: inlineSystemInstruction
-              ? `${promptPayload.systemInstruction}\n\n${promptPayload.userPrompt}`
-              : promptPayload.userPrompt,
-          },
-        ],
+        parts: userParts,
       },
     ],
     generationConfig: {
@@ -559,7 +650,7 @@ function buildGoogleGenerateContentBody(promptPayload, options = {}) {
     },
   };
 
-  if (!inlineSystemInstruction) {
+  if (!inlineSystemInstruction && promptPayload.systemInstruction) {
     body.systemInstruction = {
       parts: [{ text: promptPayload.systemInstruction }],
     };
@@ -723,6 +814,19 @@ export async function callProviderWithFallback(env, promptPayload, options = {})
         return await callGoogleProvider(env, promptPayload, options);
       }
       if (provider === "nvidia") {
+        if (promptPayload.media?.length) {
+          if (!lastError) {
+            lastError = new AiProviderError(
+              "NVIDIA fallback w tym workerze nie obsluguje promptow z mediami.",
+              {
+                provider,
+                model: env.TELEGRAM_AI_NVIDIA_MODEL || "google/gemma-4-31b-it",
+                retriable: false,
+              }
+            );
+          }
+          continue;
+        }
         return await callNvidiaProvider(env, promptPayload, options);
       }
       throw new AiProviderError(`Nieobsługiwany provider AI: ${provider}.`, {
@@ -814,6 +918,7 @@ function buildPromptPayload(systemInstruction, userPrompt, env, options = {}) {
     ),
     temperature: parseNumber(options.temperature || env.TELEGRAM_AI_TEMPERATURE, 0.35),
     responseMimeType: options.responseMimeType || "text/plain",
+    media: Array.isArray(options.media) ? options.media : [],
   };
 }
 
@@ -1497,4 +1602,592 @@ export function buildChatThrottleReply(retryAfterSeconds) {
     return `Wysyłasz zbyt dużo wiadomości w krótkim czasie. Spróbuj ponownie za około ${retryAfterSeconds} ${pluralizeSeconds(retryAfterSeconds)}.`;
   }
   return "Wysyłasz zbyt dużo wiadomości w krótkim czasie. Spróbuj ponownie za chwilę.";
+}
+
+export async function fetchTelegramFileAsBase64(env, fileId) {
+  const botToken = env.TELEGRAM_BOT_TOKEN;
+  if (!botToken || !fileId) return null;
+
+  const fileInfoResp = await fetch(`https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`);
+  const fileInfo = await fileInfoResp.json();
+  if (!fileInfo.ok || !fileInfo.result.file_path) return null;
+
+  const filePath = fileInfo.result.file_path;
+  const fileContentResp = await fetch(`https://api.telegram.org/file/bot${botToken}/${filePath}`);
+  const buffer = await fileContentResp.arrayBuffer();
+  
+  const uint8Array = new Uint8Array(buffer);
+  let binary = "";
+  for (let i = 0; i < uint8Array.byteLength; i++) {
+    binary += String.fromCharCode(uint8Array[i]);
+  }
+  return btoa(binary);
+}
+
+async function getTableColumns(db, tableName) {
+  const result = await db.prepare(`PRAGMA table_info(${tableName})`).all();
+  return new Set((result?.results || []).map((row) => row.name));
+}
+
+async function ensureColumn(db, tableName, columnName, columnDefinition) {
+  const columns = await getTableColumns(db, tableName);
+  if (!columns.has(columnName)) {
+    await db.prepare(`ALTER TABLE ${tableName} ADD COLUMN ${columnDefinition}`).run();
+  }
+}
+
+async function ensureRecycledKnowledgeSchema(db) {
+  await db.prepare(
+    `
+    CREATE TABLE IF NOT EXISTS recycled_devices (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      model TEXT UNIQUE NOT NULL,
+      brand TEXT,
+      description TEXT,
+      teardown_url TEXT,
+      created_at TEXT NOT NULL,
+      device_category TEXT,
+      source_url TEXT,
+      donor_rank REAL
+    )
+    `
+  ).run();
+
+  await db.prepare(
+    `
+    CREATE TABLE IF NOT EXISTS recycled_parts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      device_id INTEGER NOT NULL,
+      part_name TEXT NOT NULL,
+      species TEXT,
+      value TEXT,
+      designator TEXT,
+      description TEXT,
+      created_at TEXT NOT NULL,
+      genus TEXT,
+      mounting TEXT,
+      keywords TEXT,
+      kicad_symbol TEXT,
+      kicad_footprint TEXT,
+      datasheet_url TEXT,
+      quantity INTEGER,
+      source_url TEXT,
+      confidence REAL,
+      FOREIGN KEY (device_id) REFERENCES recycled_devices(id) ON DELETE CASCADE
+    )
+    `
+  ).run();
+
+  await ensureColumn(db, "recycled_devices", "device_category", "device_category TEXT");
+  await ensureColumn(db, "recycled_devices", "source_url", "source_url TEXT");
+  await ensureColumn(db, "recycled_devices", "donor_rank", "donor_rank REAL");
+
+  await ensureColumn(db, "recycled_parts", "genus", "genus TEXT");
+  await ensureColumn(db, "recycled_parts", "mounting", "mounting TEXT");
+  await ensureColumn(db, "recycled_parts", "keywords", "keywords TEXT");
+  await ensureColumn(db, "recycled_parts", "kicad_symbol", "kicad_symbol TEXT");
+  await ensureColumn(db, "recycled_parts", "kicad_footprint", "kicad_footprint TEXT");
+  await ensureColumn(db, "recycled_parts", "datasheet_url", "datasheet_url TEXT");
+  await ensureColumn(db, "recycled_parts", "quantity", "quantity INTEGER");
+  await ensureColumn(db, "recycled_parts", "source_url", "source_url TEXT");
+  await ensureColumn(db, "recycled_parts", "confidence", "confidence REAL");
+
+  await db.prepare(
+    `
+    CREATE TABLE IF NOT EXISTS recycled_device_aliases (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      device_id INTEGER NOT NULL,
+      alias TEXT NOT NULL,
+      alias_type TEXT NOT NULL DEFAULT 'device_alias',
+      source TEXT,
+      created_at TEXT NOT NULL,
+      UNIQUE (device_id, alias, alias_type),
+      FOREIGN KEY (device_id) REFERENCES recycled_devices(id) ON DELETE CASCADE
+    )
+    `
+  ).run();
+
+  await db.prepare(
+    `
+    CREATE TABLE IF NOT EXISTS recycled_part_aliases (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      part_id INTEGER NOT NULL,
+      alias TEXT NOT NULL,
+      alias_type TEXT NOT NULL DEFAULT 'part_alias',
+      source TEXT,
+      created_at TEXT NOT NULL,
+      UNIQUE (part_id, alias, alias_type),
+      FOREIGN KEY (part_id) REFERENCES recycled_parts(id) ON DELETE CASCADE
+    )
+    `
+  ).run();
+
+  await db.prepare(
+    `
+    CREATE TABLE IF NOT EXISTS recycled_device_evidence (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      device_id INTEGER NOT NULL,
+      part_id INTEGER,
+      source_type TEXT NOT NULL,
+      source_url TEXT,
+      excerpt TEXT,
+      confidence REAL,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (device_id) REFERENCES recycled_devices(id) ON DELETE CASCADE,
+      FOREIGN KEY (part_id) REFERENCES recycled_parts(id) ON DELETE SET NULL
+    )
+    `
+  ).run();
+
+  await db.prepare(
+    `
+    CREATE TABLE IF NOT EXISTS recycled_device_submissions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      chat_id TEXT,
+      user_id TEXT,
+      message_id TEXT,
+      lookup_kind TEXT NOT NULL,
+      query_text TEXT,
+      recognized_brand TEXT,
+      recognized_model TEXT,
+      matched_device_id INTEGER,
+      matched_part_name TEXT,
+      attachment_file_id TEXT,
+      attachment_mime_type TEXT,
+      provider_name TEXT,
+      model_name TEXT,
+      status TEXT NOT NULL DEFAULT 'queued',
+      raw_payload_json TEXT,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (matched_device_id) REFERENCES recycled_devices(id) ON DELETE SET NULL
+    )
+    `
+  ).run();
+
+  await db.prepare(
+    `CREATE INDEX IF NOT EXISTS idx_recycled_parts_device_id ON recycled_parts(device_id)`
+  ).run();
+  await db.prepare(
+    `CREATE INDEX IF NOT EXISTS idx_recycled_devices_model ON recycled_devices(model)`
+  ).run();
+  await db.prepare(
+    `CREATE INDEX IF NOT EXISTS idx_recycled_device_aliases_alias ON recycled_device_aliases(alias)`
+  ).run();
+  await db.prepare(
+    `CREATE INDEX IF NOT EXISTS idx_recycled_part_aliases_alias ON recycled_part_aliases(alias)`
+  ).run();
+  await db.prepare(
+    `CREATE INDEX IF NOT EXISTS idx_recycled_parts_part_name ON recycled_parts(part_name)`
+  ).run();
+}
+
+function formatDeviceName(device) {
+  return [device?.brand, device?.model].filter(Boolean).join(" ").trim();
+}
+
+function formatCatalogPartLine(part) {
+  const detailBits = [part.species, part.value].filter(Boolean);
+  const quantityValue = Number(part.quantity);
+  const quantity = Number.isFinite(quantityValue) && quantityValue > 0 ? `, ${quantityValue} szt.` : "";
+  const designator = part.designator ? `, ${part.designator}` : "";
+  return `- ${part.part_name}${detailBits.length ? ` (${detailBits.join(", ")}${quantity}${designator})` : ""}`;
+}
+
+function buildDeviceCatalogReply(dbResult) {
+  const partsList = (dbResult.parts || []).slice(0, 12).map(formatCatalogPartLine).join("\n");
+  const extraCount = Math.max(0, (dbResult.parts || []).length - 12);
+  const lines = [
+    `Znalezione urzadzenie: ${formatDeviceName(dbResult.device)}`,
+  ];
+
+  if (dbResult.device.description) {
+    lines.push(`Opis: ${dbResult.device.description}`);
+  }
+
+  lines.push("");
+  lines.push("Czesci w katalogu:");
+  lines.push(partsList || "Brak szczegolowej listy czesci w katalogu.");
+  if (extraCount > 0) {
+    lines.push(`... oraz jeszcze ${extraCount} kolejnych rekordow.`);
+  }
+  if (dbResult.device.teardown_url) {
+    lines.push("");
+    lines.push(`Teardown: ${dbResult.device.teardown_url}`);
+  }
+  lines.push("Katalog GitHub: PROJEKTY/13_baza_czesci_recykling/data/");
+  return lines.join("\n");
+}
+
+function buildPartLookupReply(queryText, matches) {
+  const lines = [
+    `Znalezione dopasowania dla: ${queryText}`,
+    "",
+    "Dawcy i czesci:",
+  ];
+
+  for (const match of matches.slice(0, 8)) {
+    const detailBits = [match.species, match.value].filter(Boolean).join(", ");
+    const quantityValue = Number(match.quantity);
+    const quantity = Number.isFinite(quantityValue) && quantityValue > 0 ? `, ${quantityValue} szt.` : "";
+    const designator = match.designator ? `, ${match.designator}` : "";
+    lines.push(
+      `- ${match.part_name}${detailBits ? ` (${detailBits}${quantity}${designator})` : ""} -> ${formatDeviceName(match.device)}`
+    );
+  }
+
+  const teardown = matches.find((match) => match.device?.teardown_url)?.device?.teardown_url;
+  if (teardown) {
+    lines.push("");
+    lines.push(`Przykladowy teardown: ${teardown}`);
+  }
+  lines.push("Katalog GitHub: PROJEKTY/13_baza_czesci_recykling/data/");
+  return lines.join("\n");
+}
+
+async function recordRecycledSubmission(env, payload) {
+  const db = env.DB;
+  if (!db) {
+    return;
+  }
+  await ensureRecycledKnowledgeSchema(db);
+  await db.prepare(
+    `
+    INSERT INTO recycled_device_submissions (
+      chat_id,
+      user_id,
+      message_id,
+      lookup_kind,
+      query_text,
+      recognized_brand,
+      recognized_model,
+      matched_device_id,
+      matched_part_name,
+      attachment_file_id,
+      attachment_mime_type,
+      provider_name,
+      model_name,
+      status,
+      raw_payload_json,
+      created_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `
+  ).bind(
+    payload.chat_id || null,
+    payload.user_id || null,
+    payload.message_id || null,
+    payload.lookup_kind || "unknown",
+    payload.query_text || null,
+    payload.recognized_brand || null,
+    payload.recognized_model || null,
+    payload.matched_device_id || null,
+    payload.matched_part_name || null,
+    payload.attachment_file_id || null,
+    payload.attachment_mime_type || null,
+    payload.provider_name || null,
+    payload.model_name || null,
+    payload.status || "queued",
+    payload.raw_payload_json ? JSON.stringify(payload.raw_payload_json) : null,
+    toIsoNow()
+  ).run();
+}
+
+export async function getPartsForModel(env, modelName) {
+  const db = env.DB;
+  const queryText = normalizeWhitespace(modelName);
+  if (!db || !queryText) {
+    return null;
+  }
+
+  await ensureRecycledKnowledgeSchema(db);
+  const wildcard = `%${queryText}%`;
+  const device = await db.prepare(
+    `
+    SELECT DISTINCT
+      d.id,
+      d.model,
+      d.brand,
+      d.description,
+      d.teardown_url,
+      d.device_category,
+      d.source_url,
+      d.donor_rank
+    FROM recycled_devices d
+    LEFT JOIN recycled_device_aliases a ON a.device_id = d.id
+    WHERE
+      LOWER(d.model) = LOWER(?)
+      OR LOWER(COALESCE(d.brand, '') || ' ' || d.model) = LOWER(?)
+      OR LOWER(d.model) LIKE LOWER(?)
+      OR LOWER(COALESCE(d.brand, '') || ' ' || d.model) LIKE LOWER(?)
+      OR LOWER(COALESCE(a.alias, '')) = LOWER(?)
+      OR LOWER(COALESCE(a.alias, '')) LIKE LOWER(?)
+    ORDER BY
+      CASE
+        WHEN LOWER(d.model) = LOWER(?) THEN 0
+        WHEN LOWER(COALESCE(d.brand, '') || ' ' || d.model) = LOWER(?) THEN 1
+        WHEN LOWER(COALESCE(a.alias, '')) = LOWER(?) THEN 2
+        ELSE 3
+      END,
+      LENGTH(d.model)
+    LIMIT 1
+    `
+  ).bind(
+    queryText,
+    queryText,
+    wildcard,
+    wildcard,
+    queryText,
+    wildcard,
+    queryText,
+    queryText,
+    queryText
+  ).first();
+
+  if (!device) {
+    return null;
+  }
+
+  const parts = await db.prepare(
+    `
+    SELECT
+      part_name,
+      species,
+      value,
+      designator,
+      description,
+      quantity,
+      datasheet_url,
+      kicad_symbol,
+      kicad_footprint
+    FROM recycled_parts
+    WHERE device_id = ?
+    ORDER BY part_name ASC
+    `
+  ).bind(device.id).all();
+
+  return { device, parts: parts.results || [] };
+}
+
+async function searchPartDonors(env, queryText) {
+  const db = env.DB;
+  const normalizedQuery = normalizeWhitespace(queryText);
+  if (!db || !normalizedQuery) {
+    return [];
+  }
+
+  await ensureRecycledKnowledgeSchema(db);
+  const wildcard = `%${normalizedQuery}%`;
+  const result = await db.prepare(
+    `
+    SELECT DISTINCT
+      p.part_name,
+      p.species,
+      p.value,
+      p.designator,
+      p.description,
+      p.quantity,
+      p.datasheet_url,
+      p.kicad_symbol,
+      p.kicad_footprint,
+      d.id AS device_id,
+      d.model,
+      d.brand,
+      d.description AS device_description,
+      d.teardown_url
+    FROM recycled_parts p
+    JOIN recycled_devices d ON d.id = p.device_id
+    LEFT JOIN recycled_part_aliases a ON a.part_id = p.id
+    WHERE
+      LOWER(p.part_name) = LOWER(?)
+      OR LOWER(p.part_name) LIKE LOWER(?)
+      OR LOWER(COALESCE(a.alias, '')) = LOWER(?)
+      OR LOWER(COALESCE(a.alias, '')) LIKE LOWER(?)
+    ORDER BY
+      CASE
+        WHEN LOWER(p.part_name) = LOWER(?) THEN 0
+        WHEN LOWER(COALESCE(a.alias, '')) = LOWER(?) THEN 1
+        ELSE 2
+      END,
+      p.part_name,
+      d.brand,
+      d.model
+    LIMIT 8
+    `
+  ).bind(
+    normalizedQuery,
+    wildcard,
+    normalizedQuery,
+    wildcard,
+    normalizedQuery,
+    normalizedQuery
+  ).all();
+
+  return (result.results || []).map((row) => ({
+    ...row,
+    device: {
+      id: row.device_id,
+      model: row.model,
+      brand: row.brand,
+      description: row.device_description,
+      teardown_url: row.teardown_url,
+    },
+  }));
+}
+
+export async function handleRecycledKnowledgeLookup(env, message) {
+  const queryText = normalizeWhitespace(getMessageText(message));
+  if (!queryText) {
+    return {
+      reply_text: "Podejrzewam lookup czesci, ale nie widze tekstu do sprawdzenia.",
+      provider_name: "local",
+      model_name: "d1",
+    };
+  }
+
+  const deviceResult = await getPartsForModel(env, queryText);
+  if (deviceResult) {
+    await recordRecycledSubmission(env, {
+      chat_id: message?.chat_id,
+      user_id: message?.user_id,
+      message_id: message?.message_id,
+      lookup_kind: "device_lookup",
+      query_text: queryText,
+      matched_device_id: deviceResult.device.id,
+      status: "matched_device",
+      raw_payload_json: { query_text: queryText },
+    });
+    return {
+      reply_text: buildDeviceCatalogReply(deviceResult),
+      provider_name: "local",
+      model_name: "d1",
+    };
+  }
+
+  const partMatches = await searchPartDonors(env, queryText);
+  if (partMatches.length) {
+    await recordRecycledSubmission(env, {
+      chat_id: message?.chat_id,
+      user_id: message?.user_id,
+      message_id: message?.message_id,
+      lookup_kind: "part_lookup",
+      query_text: queryText,
+      matched_device_id: partMatches[0].device.id,
+      matched_part_name: partMatches[0].part_name,
+      status: "matched_part",
+      raw_payload_json: { query_text: queryText },
+    });
+    return {
+      reply_text: buildPartLookupReply(queryText, partMatches),
+      provider_name: "local",
+      model_name: "d1",
+    };
+  }
+
+  await recordRecycledSubmission(env, {
+    chat_id: message?.chat_id,
+    user_id: message?.user_id,
+    message_id: message?.message_id,
+    lookup_kind: "unknown_lookup",
+    query_text: queryText,
+    status: "queued",
+    raw_payload_json: { query_text: queryText },
+  });
+
+  return {
+    reply_text:
+      "Nie mam jeszcze pewnego dopasowania w katalogu reuse. Wyślij model, part number albo zdjęcie etykiety / PCB, a zgłoszenie trafi do kolejki kuracji.",
+    provider_name: "local",
+    model_name: "d1",
+  };
+}
+
+export async function recognizeDeviceAndListParts(env, message, mediaBase64) {
+  const mediaData = [{ data: mediaBase64, mime_type: message.mime_type || "image/jpeg" }];
+  
+  const visionSystem = [
+    "Jesteś ekspertem od recyklingu elektroniki.",
+    "Zidentyfikuj model urządzenia ze zdjęcia (etykieta, naklejka znamionowa, napisy na obudowie).",
+    "Zwróć TYLKO nazwę modelu i marki w formacie JSON: { \"brand\": \"...\", \"model\": \"...\", \"confidence\": 0.9 }",
+    "Jeżeli nie widzisz modelu, zwróć { \"error\": \"not_found\" }."
+  ].join(" ");
+  
+  const visionResp = await callProviderWithFallback(
+    env,
+    buildPromptPayload(visionSystem, "Zidentyfikuj to urządzenie.", env, {
+      media: mediaData,
+      responseMimeType: "application/json",
+      maxTokens: 300
+    })
+  );
+  
+  const identity = extractJsonObject(visionResp.text);
+  if (identity.model) {
+    const combinedQuery = [identity.brand, identity.model].filter(Boolean).join(" ");
+    const dbResult =
+      (combinedQuery ? await getPartsForModel(env, combinedQuery) : null) ||
+      await getPartsForModel(env, identity.model);
+    if (dbResult) {
+      await recordRecycledSubmission(env, {
+        chat_id: message?.chat_id,
+        user_id: message?.user_id,
+        message_id: message?.message_id,
+        lookup_kind: "device_media",
+        query_text: combinedQuery || identity.model,
+        recognized_brand: identity.brand || null,
+        recognized_model: identity.model || null,
+        matched_device_id: dbResult.device.id,
+        attachment_file_id: message?.file_id || null,
+        attachment_mime_type: message?.mime_type || null,
+        provider_name: visionResp.provider_name,
+        model_name: visionResp.model_name,
+        status: "matched_device",
+        raw_payload_json: identity,
+      });
+      return {
+        reply_text: buildDeviceCatalogReply(dbResult),
+        provider_name: visionResp.provider_name,
+        model_name: visionResp.model_name
+      };
+    }
+
+    await recordRecycledSubmission(env, {
+      chat_id: message?.chat_id,
+      user_id: message?.user_id,
+      message_id: message?.message_id,
+      lookup_kind: "device_media",
+      query_text: combinedQuery || identity.model,
+      recognized_brand: identity.brand || null,
+      recognized_model: identity.model || null,
+      attachment_file_id: message?.file_id || null,
+      attachment_mime_type: message?.mime_type || null,
+      provider_name: visionResp.provider_name,
+      model_name: visionResp.model_name,
+      status: "queued",
+      raw_payload_json: identity,
+    });
+
+    return {
+      reply_text: `Zidentyfikowano urządzenie: ${formatDeviceName(identity)}. Nie mam go jeszcze w katalogu reuse, ale zgłoszenie trafiło do kolejki kuracji GitHub-first.`,
+      provider_name: visionResp.provider_name,
+      model_name: visionResp.model_name
+    };
+  }
+
+  await recordRecycledSubmission(env, {
+    chat_id: message?.chat_id,
+    user_id: message?.user_id,
+    message_id: message?.message_id,
+    lookup_kind: "device_media",
+    attachment_file_id: message?.file_id || null,
+    attachment_mime_type: message?.mime_type || null,
+    provider_name: visionResp.provider_name,
+    model_name: visionResp.model_name,
+    status: "unrecognized",
+    raw_payload_json: identity,
+  });
+  
+  return {
+    reply_text: "Nie udało mi się jednoznacznie zidentyfikować modelu na zdjęciu. Spróbuj przesłać wyraźniejsze zdjęcie naklejki znamionowej.",
+    provider_name: visionResp.provider_name,
+    model_name: visionResp.model_name
+  };
 }

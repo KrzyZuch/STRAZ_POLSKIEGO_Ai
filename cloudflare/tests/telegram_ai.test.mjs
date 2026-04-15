@@ -6,7 +6,9 @@ import {
   buildIssueTitle,
   callProviderWithFallback,
   extractJsonObject,
+  handleRecycledKnowledgeLookup,
   moderateIssueCandidate,
+  recognizeDeviceAndListParts,
   recommendOnboardingRouteFromText,
   redactSensitiveContent,
   routeTelegramIntent,
@@ -33,10 +35,150 @@ function withMockedFetch(impl, callback) {
     });
 }
 
+function createRecycledCatalogDbMock() {
+  const recycledDevicesColumns = [
+    "id",
+    "model",
+    "brand",
+    "description",
+    "teardown_url",
+    "created_at",
+    "device_category",
+    "source_url",
+    "donor_rank",
+  ].map((name) => ({ name }));
+  const recycledPartsColumns = [
+    "id",
+    "device_id",
+    "part_name",
+    "species",
+    "value",
+    "designator",
+    "description",
+    "created_at",
+    "genus",
+    "mounting",
+    "keywords",
+    "kicad_symbol",
+    "kicad_footprint",
+    "datasheet_url",
+    "quantity",
+    "source_url",
+    "confidence",
+  ].map((name) => ({ name }));
+
+  return {
+    prepare(sql) {
+      const normalizedSql = String(sql).replace(/\s+/g, " ").trim();
+      const statement = {
+        async run() {
+          return { success: true };
+        },
+        async first() {
+          return null;
+        },
+        async all() {
+          return { results: [] };
+        },
+      };
+      return {
+        ...statement,
+        bind(...args) {
+          return {
+            ...statement,
+            async first() {
+              if (normalizedSql.includes("FROM recycled_devices d")) {
+                const query = String(args[0] || "");
+                if (/sonoff basic/i.test(query) || /^basic$/i.test(query)) {
+                  return {
+                    id: 3,
+                    model: "Basic",
+                    brand: "Sonoff",
+                    description: "Popular Wi-Fi relay board and reliable seed donor for ESP8266-based reuse workflows.",
+                    teardown_url: "https://tasmota.github.io/docs/devices/Sonoff-Basic/",
+                    device_category: "smart_switch",
+                    source_url: "https://tasmota.github.io/docs/devices/Sonoff-Basic/",
+                    donor_rank: 0.88,
+                  };
+                }
+              }
+              return null;
+            },
+            async all() {
+              if (normalizedSql.includes("PRAGMA table_info(recycled_devices)")) {
+                return { results: recycledDevicesColumns };
+              }
+              if (normalizedSql.includes("PRAGMA table_info(recycled_parts)")) {
+                return { results: recycledPartsColumns };
+              }
+              if (
+                normalizedSql.includes("FROM recycled_parts") &&
+                normalizedSql.includes("WHERE device_id = ?")
+              ) {
+                return {
+                  results: [
+                    {
+                      part_name: "ESP8266EX",
+                      species: "IC",
+                      value: "",
+                      designator: "U1",
+                      description: "Highly integrated Wi-Fi SoC commonly reused in automation and telemetry prototypes.",
+                      quantity: 1,
+                      datasheet_url:
+                        "https://www.espressif.com/sites/default/files/documentation/0a-esp8266ex_datasheet_en.pdf",
+                      kicad_symbol: "MCU_Espressif:ESP8266EX",
+                      kicad_footprint:
+                        "Package_DFN_QFN:QFN-32-1EP_5x5mm_P0.5mm_EP3.3x3.3mm",
+                    },
+                  ],
+                };
+              }
+              if (normalizedSql.includes("FROM recycled_parts p")) {
+                const query = String(args[0] || "");
+                if (/atmega328p/i.test(query)) {
+                  return {
+                    results: [
+                      {
+                        part_name: "ATmega328P",
+                        species: "IC",
+                        value: "",
+                        designator: "U1",
+                        description:
+                          "8-bit AVR microcontroller frequently reused from Arduino-compatible boards.",
+                        quantity: 1,
+                        datasheet_url:
+                          "https://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-7810-Automotive-Microcontrollers-ATmega328P_Datasheet.pdf",
+                        kicad_symbol: "MCU_Microchip_ATmega:ATmega328P-PU",
+                        kicad_footprint: "Package_DIP:DIP-28_W7.62mm",
+                        device_id: 4,
+                        model: "Uno Clone",
+                        brand: "Arduino Compatible",
+                        device_description:
+                          "Seed donor entry for DIP AVR microcontrollers and prototyping support parts.",
+                        teardown_url: "",
+                      },
+                    ],
+                  };
+                }
+              }
+              return { results: [] };
+            },
+          };
+        },
+      };
+    },
+  };
+}
+
 test("routeTelegramIntent keeps onboarding separate from issues", () => {
   assert.deepEqual(routeTelegramIntent("Pomysl: zróbmy panel porównań").intent, "issue");
   assert.deepEqual(routeTelegramIntent("Gdzie mogę pomóc jako backendowiec?").intent, "onboarding");
   assert.deepEqual(routeTelegramIntent("Opowiedz mi więcej o inicjatywie").intent, "chat");
+});
+
+test("routeTelegramIntent detects recycled-parts lookup from text", () => {
+  assert.equal(routeTelegramIntent("ATmega328P").intent, "device_lookup");
+  assert.equal(routeTelegramIntent({ text: "Jakie części są w Sonoff Basic?" }).intent, "device_lookup");
 });
 
 test("recommendOnboardingRouteFromText finds data path without hardware", () => {
@@ -254,8 +396,9 @@ test("callProviderWithFallback retries Google without developer instruction when
   assert.equal(requestBodies.length, 2);
   assert.ok(requestBodies[0].systemInstruction);
   assert.equal(requestBodies[1].systemInstruction, undefined);
-  assert.match(requestBodies[1].contents[0].parts[0].text, /system guidance/);
-  assert.match(requestBodies[1].contents[0].parts[0].text, /user question/);
+  const retriedPromptText = requestBodies[1].contents[0].parts.map((part) => part.text || "").join(" ");
+  assert.match(retriedPromptText, /system guidance/);
+  assert.match(retriedPromptText, /user question/);
 });
 
 test("callProviderWithFallback falls back to NVIDIA when Google still rejects developer instruction mode", async () => {
@@ -315,6 +458,86 @@ test("callProviderWithFallback falls back to NVIDIA when Google still rejects de
   assert.ok(calls[2].url.includes("integrate.api.nvidia.com"));
 });
 
+test("handleRecycledKnowledgeLookup returns device catalog entry from local DB", async () => {
+  const response = await handleRecycledKnowledgeLookup(
+    {
+      DB: createRecycledCatalogDbMock(),
+    },
+    {
+      chat_id: "4",
+      user_id: "3",
+      message_id: "2",
+      text: "Jakie części są w Sonoff Basic?",
+    }
+  );
+
+  assert.equal(response.provider_name, "local");
+  assert.match(response.reply_text, /Sonoff Basic/);
+  assert.match(response.reply_text, /ESP8266EX/);
+});
+
+test("handleRecycledKnowledgeLookup returns donor devices for part query", async () => {
+  const response = await handleRecycledKnowledgeLookup(
+    {
+      DB: createRecycledCatalogDbMock(),
+    },
+    {
+      chat_id: "7",
+      user_id: "8",
+      message_id: "9",
+      text: "ATmega328P",
+    }
+  );
+
+  assert.equal(response.provider_name, "local");
+  assert.match(response.reply_text, /ATmega328P/);
+  assert.match(response.reply_text, /Arduino Compatible Uno Clone/);
+});
+
+test("recognizeDeviceAndListParts sends inline media to Google provider", async () => {
+  const env = {
+    DB: null,
+    GEMINI_API_KEY: "google-key",
+    TELEGRAM_AI_PRIMARY_PROVIDER: "google",
+    TELEGRAM_AI_FALLBACK_PROVIDER: "nvidia",
+    TELEGRAM_AI_GOOGLE_MODEL: "gemma-3-27b-it",
+  };
+
+  let requestBody = null;
+  await withMockedFetch(async (url, init = {}) => {
+    if (url.includes("generativelanguage.googleapis.com")) {
+      requestBody = JSON.parse(init.body);
+      return jsonResponse({
+        candidates: [
+          {
+            content: {
+              parts: [
+                {
+                  text: '{"brand":"Sonoff","model":"Basic","confidence":0.95}',
+                },
+              ],
+            },
+          },
+        ],
+      });
+    }
+    throw new Error(`Unexpected URL: ${url}`);
+  }, async () => {
+    const response = await recognizeDeviceAndListParts(
+      env,
+      { mime_type: "image/jpeg" },
+      "AQID"
+    );
+
+    assert.ok(
+      requestBody.contents[0].parts.some(
+        (part) => part.inline_data?.mime_type === "image/jpeg" && part.inline_data?.data === "AQID"
+      )
+    );
+    assert.match(response.reply_text, /Sonoff Basic/);
+  });
+});
+
 test("handleTelegramWebhook routes onboarding without creating GitHub issue", async () => {
   const env = {
     DB: null,
@@ -370,6 +593,49 @@ test("handleTelegramWebhook routes onboarding without creating GitHub issue", as
 
     assert.equal(payload.results[0].status, "onboarding_replied");
     assert.equal(calls.some((url) => String(url).includes("/repos/")), false);
+  });
+});
+
+test("handleTelegramWebhook routes recycled-parts lookup without AI provider call", async () => {
+  const env = {
+    DB: null,
+    TELEGRAM_AI_ENABLED: "true",
+    TELEGRAM_ISSUES_ENABLED: "true",
+    TELEGRAM_ALLOWED_CHAT_IDS: "*",
+    TELEGRAM_BOT_TOKEN: "telegram-token",
+  };
+  const calls = [];
+
+  await withMockedFetch(async (url) => {
+    calls.push(url);
+    if (url.includes("api.telegram.org")) {
+      return jsonResponse({ ok: true });
+    }
+    throw new Error(`Unexpected URL: ${url}`);
+  }, async () => {
+    const request = new Request("https://example.workers.dev/integrations/telegram/webhook", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        update_id: 1,
+        message: {
+          message_id: 2,
+          from: { id: 3, username: "tester" },
+          chat: { id: 4, type: "private" },
+          text: "ATmega328P",
+        },
+      }),
+    });
+    const response = await handleTelegramWebhook(request, env);
+    const payload = await response.json();
+
+    assert.equal(payload.results[0].status, "lookup_replied");
+    assert.equal(
+      calls.some((url) => String(url).includes("generativelanguage.googleapis.com")),
+      false
+    );
   });
 });
 

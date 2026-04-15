@@ -1,0 +1,199 @@
+{
+  "catalog_version": 1,
+  "source_of_truth": "github",
+  "generated_from": [
+    "PROJEKTY/13_baza_czesci_recykling/data/devices.jsonl",
+    "PROJEKTY/13_baza_czesci_recykling/data/device_parts.jsonl"
+  ],
+  "device_count": 4,
+  "part_count": 4,
+  "devices": [
+    {
+      "device_slug": "generic-old-satellite-receiver",
+      "brand": "Generic",
+      "model": "Old Satellite Receiver",
+      "canonical_name": "Generic Old Satellite Receiver",
+      "device_category": "set_top_box",
+      "description": "Legacy satellite receiver used as a seed donor entry for regulators and common passives.",
+      "known_aliases": [
+        "satellite decoder",
+        "old stb",
+        "sat receiver"
+      ],
+      "serial_markers": [],
+      "donor_rank": 0.45,
+      "teardown_url": "",
+      "source_url": "",
+      "notes": "Seed sample for catalog flow. Replace with verified teardown evidence over time."
+    },
+    {
+      "device_slug": "tp-link-tl-wr740n",
+      "brand": "TP-Link",
+      "model": "TL-WR740N",
+      "canonical_name": "TP-Link TL-WR740N",
+      "device_category": "router",
+      "description": "Low-cost Wi-Fi router with reusable passives and common networking support parts.",
+      "known_aliases": [
+        "WR740N",
+        "TL WR740N",
+        "TP Link WR740N"
+      ],
+      "serial_markers": [],
+      "donor_rank": 0.72,
+      "teardown_url": "https://openwrt.org/toh/tp-link/tl-wr740n",
+      "source_url": "https://openwrt.org/toh/tp-link/tl-wr740n",
+      "notes": "Useful as a donor hint in low-cost networking and power reuse scenarios."
+    },
+    {
+      "device_slug": "sonoff-basic",
+      "brand": "Sonoff",
+      "model": "Basic",
+      "canonical_name": "Sonoff Basic",
+      "device_category": "smart_switch",
+      "description": "Popular Wi-Fi relay board and reliable seed donor for ESP8266-based reuse workflows.",
+      "known_aliases": [
+        "Sonoff Basic R1",
+        "Sonoff Basic switch",
+        "ITEAD Sonoff Basic"
+      ],
+      "serial_markers": [],
+      "donor_rank": 0.88,
+      "teardown_url": "https://tasmota.github.io/docs/devices/Sonoff-Basic/",
+      "source_url": "https://tasmota.github.io/docs/devices/Sonoff-Basic/",
+      "notes": "Strong donor candidate for Wi-Fi-enabled salvage projects."
+    },
+    {
+      "device_slug": "arduino-uno-clone",
+      "brand": "Arduino Compatible",
+      "model": "Uno Clone",
+      "canonical_name": "Arduino Uno Clone",
+      "device_category": "development_board",
+      "description": "Seed donor entry for DIP AVR microcontrollers and prototyping support parts.",
+      "known_aliases": [
+        "Arduino Uno",
+        "Uno R3 clone",
+        "ATmega328P dev board"
+      ],
+      "serial_markers": [],
+      "donor_rank": 0.79,
+      "teardown_url": "",
+      "source_url": "",
+      "notes": "Useful donor for through-hole AVR experiments and educational rebuilds."
+    }
+  ],
+  "part_index": [
+    {
+      "lookup_key": "100k resistor",
+      "display_name": "100K Resistor",
+      "species": "Resistor",
+      "genus": "Passive",
+      "mounting": "SMD",
+      "value": "100k",
+      "aliases": [
+        "0805 100K",
+        "100k resistor",
+        "R 100K"
+      ],
+      "kicad_symbol": "Device:R",
+      "kicad_footprint": "Resistor_SMD:R_0805_2012Metric",
+      "datasheet_url": "",
+      "donor_devices": [
+        {
+          "device_slug": "tp-link-tl-wr740n",
+          "canonical_name": "TP-Link TL-WR740N",
+          "quantity": 10,
+          "designators": [
+            "R12"
+          ],
+          "teardown_url": "https://openwrt.org/toh/tp-link/tl-wr740n",
+          "source_url": "https://openwrt.org/toh/tp-link/tl-wr740n",
+          "confidence": 0.52
+        }
+      ]
+    },
+    {
+      "lookup_key": "7805",
+      "display_name": "7805",
+      "species": "IC",
+      "genus": "Power",
+      "mounting": "THT",
+      "value": "5V",
+      "aliases": [
+        "7805",
+        "LM7805"
+      ],
+      "kicad_symbol": "Reference:7805",
+      "kicad_footprint": "Package_TO_SOT_THT:TO-220-3_Vertical",
+      "datasheet_url": "https://www.sparkfun.com/datasheets/Components/LM7805.pdf",
+      "donor_devices": [
+        {
+          "device_slug": "generic-old-satellite-receiver",
+          "canonical_name": "Generic Old Satellite Receiver",
+          "quantity": 1,
+          "designators": [
+            "U1"
+          ],
+          "teardown_url": "",
+          "source_url": "",
+          "confidence": 0.61
+        }
+      ]
+    },
+    {
+      "lookup_key": "atmega328p",
+      "display_name": "ATmega328P",
+      "species": "IC",
+      "genus": "MCU",
+      "mounting": "THT",
+      "value": "",
+      "aliases": [
+        "ATMEGA328P-PU",
+        "ATmega328P-PU"
+      ],
+      "kicad_symbol": "MCU_Microchip_ATmega:ATmega328P-PU",
+      "kicad_footprint": "Package_DIP:DIP-28_W7.62mm",
+      "datasheet_url": "https://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-7810-Automotive-Microcontrollers-ATmega328P_Datasheet.pdf",
+      "donor_devices": [
+        {
+          "device_slug": "arduino-uno-clone",
+          "canonical_name": "Arduino Uno Clone",
+          "quantity": 1,
+          "designators": [
+            "U1"
+          ],
+          "teardown_url": "",
+          "source_url": "",
+          "confidence": 0.93
+        }
+      ]
+    },
+    {
+      "lookup_key": "esp8266ex",
+      "display_name": "ESP8266EX",
+      "species": "IC",
+      "genus": "MCU",
+      "mounting": "SMD",
+      "value": "",
+      "aliases": [
+        "ESP-8266EX",
+        "ESP8266"
+      ],
+      "kicad_symbol": "MCU_Espressif:ESP8266EX",
+      "kicad_footprint": "Package_DFN_QFN:QFN-32-1EP_5x5mm_P0.5mm_EP3.3x3.3mm",
+      "datasheet_url": "https://www.espressif.com/sites/default/files/documentation/0a-esp8266ex_datasheet_en.pdf",
+      "donor_devices": [
+        {
+          "device_slug": "sonoff-basic",
+          "canonical_name": "Sonoff Basic",
+          "quantity": 1,
+          "designators": [
+            "U1"
+          ],
+          "teardown_url": "https://tasmota.github.io/docs/devices/Sonoff-Basic/",
+          "source_url": "https://tasmota.github.io/docs/devices/Sonoff-Basic/",
+          "confidence": 0.95
+        }
+      ]
+    }
+  ]
+}

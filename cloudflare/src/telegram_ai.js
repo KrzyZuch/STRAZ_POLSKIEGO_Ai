@@ -1556,6 +1556,8 @@ export function buildCommandReply(command) {
       "🧭 Onboarding: Opisz swoje kompetencje, a wskażę Ci ścieżkę.",
       "🚀 Zgłoszenia: Wyślij wiadomość z prefiksem \"Pomysl:\" lub \"Uwaga:\", aby utworzyć Issue na GitHubie.",
       "",
+      "♻️ Recykling / katalog części: Wyślij model urządzenia, part number albo zdjęcie etykiety/PCB, a spróbuję dopasować rekord z katalogu reuse i podać listę części.",
+      "",
       "Komendy: /help, /reset",
     ].join("\n");
   }
@@ -1566,6 +1568,17 @@ export function buildCommandReply(command) {
       "- opisz, czym się zajmujesz, a dopasuję Ci ścieżkę i zadania",
       "- zadaj zwykłe pytanie o inicjatywę, repo albo dokumenty",
       '- wyślij "Pomysl: ..." albo "Uwaga: ...", jeśli chcesz utworzyć zgłoszenie do GitHub Issues',
+      "",
+      "Jak zgłaszać modele i części (recykling / e-waste):",
+      "- najprościej: wyślij sam model, np. \"Sonoff Basic R2\" albo \"HP LaserJet P1102\"",
+      "- part number / oznaczenie układu: wyślij sam token, np. \"ATmega328P\", \"ESP8266EX\", \"TPS62160\"",
+      "- możesz dopisać kontekst w 1 linijce, np. \"Model: <...> / PCB: <...>\" albo \"Part: <...>\"",
+      "- zdjęcia: wyślij zdjęcie etykiety znamionowej (model/PN/SN) albo zbliżenie PCB z nadrukami; w opisie zdjęcia dopisz jeśli możesz model i/lub oznaczenia układów",
+      "",
+      "Przykłady:",
+      '- "ATmega328P"',
+      '- "Jakie części są w Sonoff Basic?"',
+      '- "Model: Sonoff Basic R2, na PCB: ESP8266EX"',
       "- /reset czyści krótką pamięć rozmowy",
     ].join("\n");
   }

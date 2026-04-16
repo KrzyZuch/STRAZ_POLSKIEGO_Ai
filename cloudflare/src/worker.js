@@ -386,7 +386,7 @@ async function readJson(request) {
 }
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     if (request.method === "OPTIONS") {
       return jsonResponse({ ok: true }, 200);
     }

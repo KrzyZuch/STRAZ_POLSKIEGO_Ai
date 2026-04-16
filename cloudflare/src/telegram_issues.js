@@ -527,8 +527,21 @@ async function processConversationMessage(env, message, intent, ctx = null) {
 
   try {
     let response;
-    if (intent === "device_media") {
-      // Sprawdź czy mamy aktywną sesję
+
+    // --- SESJA EDYCJI CZEŚCI ---
+    const editSession = await getUserSession(env, message.chat_id, message.user_id, "recycled_parts_edit");
+    if (editSession && message.text) {
+      const parts = (message.text || "").split("|").map(s => s.trim());
+      const name = parts[0] || "Nieznana część";
+      const number = parts.length > 1 ? parts[1] : "";
+      
+      await env.DB.prepare("UPDATE recycled_device_submissions SET matched_part_name = ?, matched_part_number = ?, status = 'approved' WHERE id = ?")
+        .bind(name, number, editSession.active_device_id).run();
+      
+      await closeUserSession(env, message.chat_id, message.user_id, "recycled_parts_edit");
+      response = { reply_text: `✅ Ręcznie zaktualizowano część: *${name}*. Status: Zatwierdzono.` };
+    } else if (intent === "device_media") {
+      // Sprawdź czy mamy aktywną sesję dodawania części
       const session = await getUserSession(env, message.chat_id, message.user_id, "recycled_parts");
       if (session) {
         // Mamy aktywną sesję dodawania części dla konkretnego urządzenia!
@@ -673,8 +686,11 @@ async function handleTelegramCallback(env, callback, ctx = null) {
       await answerCallbackQuery(env, id, "Zatwierdzono!");
       await sendTelegramReply(env, { chat_id: chat_id, message_id: message?.message_id }, "✅ Część została zatwierdzona i dodana do bazy!");
     } else if (data.startsWith("recycled_part_edit:")) {
-      await answerCallbackQuery(env, id, "Edycja wkrótce.");
-      await sendTelegramReply(env, { chat_id: chat_id, message_id: message?.message_id }, "Funkcja edycji danych części będzie dostępna wkrótce.");
+      const submissionId = data.split(":")[1];
+      // Uruchamiamy sesję edycji
+      await upsertUserSession(env, chat_id, user_id, "recycled_parts_edit", submissionId, "Editing");
+      await answerCallbackQuery(env, id, "Tryb edycji aktywny.");
+      await sendTelegramReply(env, { chat_id: chat_id, message_id: message?.message_id }, "Proszę, podaj poprawną nazwę i numer części w formacie: `Nazwa | Numer` (np. `Karta WiFi | 631954-001`).");
     } else {
       await sendTelegramReply(env, { chat_id, message_id: message?.message_id }, "Nieznana komenda.");
     }

@@ -1827,7 +1827,7 @@ function formatCatalogPartLine(part) {
   return `- ${part.part_name}${detailBits.length ? ` (${detailBits.join(", ")}${quantity}${designator})` : ""}`;
 }
 
-function buildDeviceCatalogReply(dbResult) {
+export function buildDeviceCatalogReply(dbResult) {
   const partsList = (dbResult.parts || []).slice(0, 12).map(formatCatalogPartLine).join("\n");
   const extraCount = Math.max(0, (dbResult.parts || []).length - 12);
   const lines = [
@@ -1896,6 +1896,7 @@ export async function recordRecycledSubmission(env, payload) {
       recognized_model,
       matched_device_id,
       matched_part_name,
+      matched_part_number,
       attachment_file_id,
       attachment_mime_type,
       provider_name,
@@ -1903,7 +1904,7 @@ export async function recordRecycledSubmission(env, payload) {
       status,
       raw_payload_json,
       created_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `
   ).bind(
     payload.chat_id || null,
@@ -1915,6 +1916,7 @@ export async function recordRecycledSubmission(env, payload) {
     payload.recognized_model || null,
     payload.matched_device_id || null,
     payload.matched_part_name || null,
+    payload.matched_part_number || null,
     payload.attachment_file_id || null,
     payload.attachment_mime_type || null,
     payload.provider_name || null,
@@ -2274,6 +2276,59 @@ export async function recognizeDeviceAndListParts(env, message, mediaBase64) {
   
   return {
     reply_text: "Nie udało mi się jednoznacznie zidentyfikować modelu na zdjęciu. Spróbuj przesłać wyraźniejsze zdjęcie naklejki znamionowej.",
+    provider_name: visionResp.provider_name,
+    model_name: visionResp.model_name
+  };
+}
+
+export async function recognizePartAndRecord(env, message, mediaBase64, session) {
+  const mediaData = [{ data: mediaBase64, mime_type: message.mime_type || "image/jpeg" }];
+  
+  const visionSystem = [
+    "Jesteś ekspertem od elektroniki i części zamiennych.",
+    "Zidentyfikuj część ze zdjęcia (odczytaj numery z etykiety, układów scalonych, chipu PCB itp.).",
+    "Zwróć wynik TYLKO w formacie JSON podając typ i numery, bez Markdownu z kodem. Oczekiwany format: { \"part_name\": \"krótka nazwa np. Płyta główna, Pamięć RAM, Bateria\", \"part_number\": \"zidentyfikowane oznaczenia\", \"confidence\": 0.9 }",
+    "Jeśli część całkowicie nie nadaje się do identyfikacji, zwróć { \"error\": \"not_recognized\" }."
+  ].join(" ");
+  
+  const visionResp = await callProviderWithFallback(
+    env,
+    buildPromptPayload(visionSystem, "Zidentyfikuj tę część i odczytaj wszystkie przydatne numery serwisowe/part numbers z widocznych naklejek.", env, {
+      media: mediaData,
+      responseMimeType: "application/json",
+      maxTokens: 400
+    })
+  );
+  
+  const identity = extractJsonObject(visionResp.text);
+  const partName = identity.part_name || (identity.error ? "Nierozpoznana część" : "Część urządzenia");
+  const partNumber = identity.part_number || "Brak wyraźnych oznaczeń";
+
+  await recordRecycledSubmission(env, {
+    chat_id: message?.chat_id,
+    user_id: message?.user_id,
+    message_id: message?.message_id,
+    lookup_kind: "part_media",
+    matched_device_id: session.active_device_id,
+    query_text: session.active_device_name || null,
+    matched_part_name: identity.part_name || null,
+    matched_part_number: identity.part_number || null,
+    attachment_file_id: message?.file_id || null,
+    attachment_mime_type: message?.mime_type || null,
+    provider_name: visionResp.provider_name,
+    model_name: visionResp.model_name,
+    status: "queued",
+    raw_payload_json: identity,
+  });
+  
+  let replyText = `✅ Zapisano część: *${partName}*`;
+  if (partNumber && partNumber !== "Brak wyraźnych oznaczeń") {
+    replyText += `\n🔢 Oznaczenia odczytane przez AI: \`${partNumber}\``;
+  }
+  replyText += `\n\nMożesz wysłać kolejną część lub wpisz /stop aby zakończyć sesję dla tego urządzenia.`;
+
+  return {
+    reply_text: replyText,
     provider_name: visionResp.provider_name,
     model_name: visionResp.model_name
   };

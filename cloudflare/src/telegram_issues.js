@@ -21,6 +21,7 @@ import {
   fetchTelegramFileAsBase64,
   handleRecycledKnowledgeLookup,
   recognizeDeviceAndListParts,
+  recognizePartAndRecord,
   recordRecycledSubmission,
   getUserSession,
   upsertUserSession,
@@ -531,24 +532,15 @@ async function processConversationMessage(env, message, intent) {
         // Mamy aktywną sesję dodawania części dla konkretnego urządzenia!
         // Rejestrujemy jako część, bez ponownej identyfikacji vizyjnej całego urządzenia 
         // (AI może być użyte do identyfikacji konkretnej CZĘŚCI, ale kontekst urządzenia mamy z sesji).
-        await sendTelegramReply(env, message, "Otrzymałem zdjęcie części. Przypisuję je do aktywnego urządzenia...");
-
-
-        await recordRecycledSubmission(env, {
-          chat_id: message?.chat_id,
-          user_id: message?.user_id,
-          message_id: message?.message_id,
-          lookup_kind: "part_media",
-          matched_device_id: session.active_device_id,
-          query_text: session.active_device_name || null,
-          attachment_file_id: message?.file_id,
-          attachment_mime_type: message?.mime_type,
-          status: "queued"
-        });
-
-        response = {
-          reply_text: "✅ Zdjęcie części dodane do kolejki. Możesz wysłać kolejne lub wpisz /stop aby zakończyć."
-        };
+        await sendTelegramReply(env, message, "Otrzymałem zdjęcie części. Analizuje oznaczenia i układy...");
+        
+        const base64 = await fetchTelegramFileAsBase64(env, message.file_id);
+        if (base64) {
+          // Import the function dynamically if needed, or rely on it being imported at top
+          response = await recognizePartAndRecord(env, message, base64, session);
+        } else {
+          response = { reply_text: "Nie udało się pobrać zdjęcia części do analizy." };
+        }
       } else {
         await sendTelegramReply(env, message, "Otrzymałem zdjęcie. Proszę o chwilę, analizuję model urządzenia...");
         const base64 = await fetchTelegramFileAsBase64(env, message.file_id);
@@ -603,8 +595,20 @@ async function processCommandMessage(env, message, command) {
   if (command === "reset") {
     await clearTelegramChatHistory(env, message);
   } else if (command === "stop") {
+    const session = await getUserSession(env, message.chat_id, message.user_id, "recycled_parts");
     await closeUserSession(env, message.chat_id, message.user_id, "recycled_parts");
-    await sendTelegramReply(env, message, "Zakończyłem sesję dodawania części.");
+    
+    let stopMsg = "Zakończyłem sesję dodawania części.";
+    if (session && session.active_device_id) {
+      const device = await getDeviceById(env, session.active_device_id);
+      if (device) {
+        const partsInfo = await getPartsForModel(env, device.model);
+        if (partsInfo) {
+          stopMsg += "\n\nOto aktualna zawartość katalogu dla tego modelu:\n" + buildDeviceCatalogReply(partsInfo);
+        }
+      }
+    }
+    await sendTelegramReply(env, message, stopMsg);
     return { status: "session_closed" };
   }
   const notificationSent = await sendTelegramReply(env, message, buildCommandReply(command));
@@ -650,8 +654,14 @@ async function handleTelegramCallback(env, callback) {
       await closeUserSession(env, chat_id, user_id, "recycled_parts");
 
       const device = await getDeviceById(env, deviceId);
-      await answerCallbackQuery(env, id, "Wyświetlam katalog.");
-      await sendTelegramReply(env, { chat_id, message_id: message.message_id }, `Katalog dla ${device.brand} ${device.model} jest dostępny w repozytorium.`);
+      if (device) {
+        const partsInfo = await getPartsForModel(env, device.model);
+        await answerCallbackQuery(env, id, "Wyświetlam katalog.");
+        await sendTelegramReply(env, { chat_id, message_id: message.message_id }, buildDeviceCatalogReply(partsInfo));
+      } else {
+        await answerCallbackQuery(env, id, "Błąd.");
+        await sendTelegramReply(env, { chat_id, message_id: message.message_id }, "Nie znaleziono urządzenia.");
+      }
     } else {
       await sendTelegramReply(env, { chat_id, message_id: message?.message_id }, "Nieznana komenda.");
     }

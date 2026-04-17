@@ -1935,7 +1935,32 @@ export async function recordRecycledSubmission(env, payload) {
     toIsoNow()
   ).run();
 
-  return res.meta.last_row_id;
+  const newId = res.meta.last_row_id;
+
+  // Co 10 zatwierdzeń wyzwól backup przez GitHub Actions
+  if (newId && newId % 10 === 0) {
+    const owner = env.GITHUB_REPO_OWNER;
+    const repo = env.GITHUB_REPO_NAME;
+    const token = env.GITHUB_TOKEN;
+    if (owner && repo && token) {
+      await fetch(`https://api.github.com/repos/${owner}/${repo}/dispatches`, {
+        method: "POST",
+        headers: {
+          accept: "application/vnd.github+json",
+          authorization: `Bearer ${token}`,
+          "content-type": "application/json",
+          "user-agent": "straz-przyszlosci-telegram-bridge",
+          "x-github-api-version": "2022-11-28",
+        },
+        body: JSON.stringify({
+          event_type: "trigger-backup",
+          client_payload: { submission_id: newId },
+        }),
+      }).catch(() => {}); // Ignoruj błąd - backup jest opcjonalny
+    }
+  }
+
+  return newId;
 }
 
 export async function upsertUserSession(env, chat_id, user_id, session_type, device_id, device_name = null) {

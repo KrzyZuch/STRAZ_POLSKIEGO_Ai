@@ -21,14 +21,19 @@ Wniosek: najczystsza architektura to osobny katalog donorow i czesci w tym repo,
 Przeplyw danych:
 
 1. `Telegram / OCR / scraping forow / PDF / teardowny` dostarczaja surowe sygnaly.
-2. Sygnaly trafiaja do kolejki kuracji i sa porzadkowane do katalogu w `data/devices.jsonl` oraz `data/device_parts.jsonl`.
-3. Skrypt budujacy generuje artefakty:
+2. **AI Enrichment Agent** (uruchamiany periodycznie):
+   - skanuje internet w poszukiwaniu brakujacych danych dla modeli w bazie,
+   - analizuje schematy ideowe (PDF), datasheety, fora techniczne (np. BadCaps, Elektroda),
+   - przetwarza transkrypcje i obraz z filmów YouTube (kanały naprawcze jak Louis Rossmann, NorthridgeFix itp.) w celu ekstrakcji list komponentów,
+   - weryfikuje i poprawia bledne wpisy w bazie na podstawie krzyzowej analizy zrodel.
+3. Sygnaly trafiaja do kolejki kuracji i sa porzadkowane do katalogu w `data/devices.jsonl` oraz `data/device_parts.jsonl`.
+4. Skrypt budujacy generuje artefakty:
    - `data/inventory.csv` dla `ecoEDA`
    - `data/recycled_parts_seed.sql` do zasilenia `Cloudflare D1`
    - `data/mcp_reuse_catalog.json` jako zasob do lookupow reuse po stronie MCP
-4. `Cloudflare Worker` korzysta z D1 do szybkich odpowiedzi bota i logowania zgloszen.
-5. `Ki-nTree` pobiera z katalogu dane o czesciach i mapuje je do KiCad/InvenTree.
-6. `KiCAD-MCP-Server` moze czytac `mcp_reuse_catalog.json` albo przyszle narzedzie `query_recycled_parts`.
+5. `Cloudflare Worker` korzysta z D1 do szybkich odpowiedzi bota i logowania zgloszen.
+6. `Ki-nTree` podbiera z katalogu dane o czesciach i mapuje je do KiCad/InvenTree.
+7. `KiCAD-MCP-Server` moze czytac `mcp_reuse_catalog.json` albo przyszle narzedzie `query_recycled_parts`.
 
 ## Dlaczego GitHub jako source of truth
 
@@ -101,13 +106,15 @@ python3 pipelines/sync_recycled_queue.py --remote --apply --git-mode pr --push -
 - `ecoEDA` powinna dostawac wygenerowany `inventory.csv`, a nie recznie edytowany plik.
 - `Ki-nTree` najlepiej traktowac jako warstwe publikacji danych o czesciach do `KiCad` i `InvenTree`, a nie jako miejsce kuracji wiedzy o donorach.
 - `KiCAD-MCP-Server` powinien dostac lekki, deterministyczny zasob reuse, zamiast bezposrednio czytac rozproszone fora, PDF-y i marketplace'y.
+- **Automatyczne Wzbogacanie (AI Agent):** Baza nie powinna polegać wyłącznie na zgłoszeniach użytkowników. Agent AI musi periodycznie "odpytywać" internet o każdy model w bazie, wyciągając listy części ze schematów i filmów naprawczych, co drastycznie zwiększy gęstość danych bez angażowania ludzi.
 
 ## Kolejny etap
 
-Po dopieciu katalogu GitHub-first nastepny logiczny krok to automatyczna kuracja:
+Po dopieciu katalogu GitHub-first nastepny logiczny krok to automatyczna kuracja i wzbogacanie:
 
 1. zdjecie / model / numer czesci w Telegramie,
 2. zapis do kolejki w D1,
-3. review,
-4. commit lub PR do katalogu w GitHub,
-5. regeneracja `ecoEDA`, D1 i zasobu MCP z jednego polecenia.
+3. **AI Periodic Enrichment:** agent skanuje schematy, fora i filmy YT dla danego modelu,
+4. review i scalanie danych,
+5. commit lub PR do katalogu w GitHub,
+6. regeneracja `ecoEDA`, D1 i zasobu MCP z jednego polecenia.

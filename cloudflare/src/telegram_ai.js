@@ -2423,8 +2423,9 @@ export async function recognizePartAndRecord(env, message, mediaBase64, session,
   }
   replyText += `\n\nCzy zgadza się to z rzeczywistością? Uruchomiłem tryb edycji. Możesz teraz podać poprawną nazwę i numer części w formacie: \`Nazwa | Numer\` (np. \`Karta WiFi | 631954-001\`), albo po prostu zatwierdzić przyciskiem poniżej.`;
 
-  // Automatyczne uruchomienie sesji edycji zgodnie z życzeniem użytkownika
-  await upsertUserSession(env, message?.chat_id, message?.user_id, "recycled_parts_edit", submissionId, "Editing");
+  // Automatyczne uruchomienie sesji edycji — device_id to poprawny FK do recycled_devices,
+  // submissionId kodujemy w polu nazwy sesji, by handler edycji mógł go odczytać
+  await upsertUserSession(env, message?.chat_id, message?.user_id, "recycled_parts_edit", session.active_device_id || null, `submission:${submissionId}`);
 
   const replyMarkup = {
     inline_keyboard: [

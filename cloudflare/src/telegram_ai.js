@@ -2614,21 +2614,29 @@ export async function handleFinalDatasheetRag(env, message, session, deviceModel
     ];
 
     if (pdfUrl) {
-        replyLines.push(`🟢 Znalazłem dokumentację PDF: [Otwórz PDF](${pdfUrl})`);
+        replyLines.push(
+            `🟢 *Znalazłem dokumentację PDF!*`,
+            ``,
+            `📲 Kliknij *Otwórz PDF* poniżej, pobierz plik na telefon, a następnie wyślij mi go tutaj.`,
+            `Po przesłaniu pliku wpisz swoje pytanie — przeanalizuję dokładnie ten dokument!`
+        );
     } else if (!fileId) {
-        replyLines.push(`🟡 Nie znalazłem bezpośredniego linku PDF w sieci. Analizuję na podstawie wiedzy o modelu.`);
+        replyLines.push(
+            `🟡 Nie znalazłem PDF od producenta.`,
+            ``,
+            `Możesz poszukać datasheetu ręcznie i przesłać mi plik — lub po prostu zadaj pytanie, a odpowiem z pamięci.`
+        );
     } else {
-        replyLines.push(`🟢 Mam PDF przesłany przez Ciebie. Gotowy do analizy.`);
+        replyLines.push(`🟢 Mam Twój PDF. Wpisz pytanie!`);
     }
 
-    replyLines.push("", `O co chciałbyś zapytać?`, "", `_Przykłady:_`,
-        `- "Jaki jest pinout tego układu?"`,
-        `- "Jakie jest maksymalne napięcie zasilania (VCC)?"`,
-        `- "Podaj parametry i zaproponuj popularny zamiennik."`,
-        `- "Jak to podłączyć do Arduino?"`,
-        "",
-        `💡 _Możesz też pobrać PDF z linku powyżej i przesłać mi go jako plik — wtedy przeanalizuję go dokładniej!_`
-    );
+    if (!pdfUrl && !fileId) {
+        replyLines.push("", `_Przykłady pytań:_`,
+            `• "Jaki jest pinout?"`,
+            `• "Maksymalne napięcie zasilania?"`,
+            `• "Zaproponuj zamiennik."`
+        );
+    }
 
     const replyMarkup = pdfUrl ? {
         inline_keyboard: [[{ text: "📄 Otwórz PDF", url: pdfUrl }]]
@@ -2793,50 +2801,45 @@ export async function handleResistorAnalysis(env, message, preFetchedBase64 = nu
 }
 
 /**
- * Główny koordynator poszukiwania dokumentacji (Multi-Source Hunter)
+ * Szuka bezpośredniego linku PDF u producentów (TI, ST, onsemi, NXP, Infineon).
+ * Producenci udostępniają PDF bez blokad anti-bot.
  */
 async function findDatasheetPdfLink(part) {
-    // 1. Próbujemy AllDataSheet
-    let link = await searchAllDatasheet(part);
-    if (link) return link;
+    const p = part.trim().toUpperCase();
+    const pLow = p.toLowerCase();
 
-    // 2. Fallback: DatasheetCatalog (często ma inne PDFy)
-    link = await searchDatasheetCatalog(part);
-    if (link) return link;
+    // Kandydaci URL – kolejność według częstości użycia
+    const candidates = [
+        // Texas Instruments (symlink format)
+        `https://www.ti.com/lit/ds/symlink/${pLow}.pdf`,
+        // STMicroelectronics
+        `https://www.st.com/resource/en/datasheet/${pLow}.pdf`,
+        `https://www.st.com/resource/en/datasheet/${p}.pdf`,
+        // ON Semiconductor
+        `https://www.onsemi.com/pub/Collateral/${p}-D.PDF`,
+        `https://www.onsemi.com/pub/Collateral/${pLow}-d.pdf`,
+        // NXP
+        `https://www.nxp.com/docs/en/data-sheet/${p}.pdf`,
+        // Infineon
+        `https://www.infineon.com/dgdl/${p}-DataSheet.pdf`,
+        // Vishay (rezystory, diody)
+        `https://www.vishay.com/docs/eng/${pLow}.pdf`,
+    ];
 
+    for (const url of candidates) {
+        try {
+            const resp = await fetch(url, {
+                method: 'HEAD',
+                redirect: 'follow',
+                headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1)' }
+            });
+            const ct = (resp.headers.get('content-type') || '').toLowerCase();
+            if (resp.ok && (ct.includes('application/pdf') || ct.includes('octet-stream'))) {
+                return url;
+            }
+        } catch (_) { /* spróbuj następny */ }
+    }
     return null;
-}
-
-/**
- * Szuka linku do datasheetu na AllDataSheet
- */
-async function searchAllDatasheet(part) {
-    try {
-        const searchUrl = `https://www.alldatasheet.com/view.jsp?Searchword=${encodeURIComponent(part)}`;
-        const response = await fetch(searchUrl, {
-            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36' }
-        });
-        const html = await response.text();
-        const pdfLinkRegex = /\/datasheet-pdf\/pdf\/[^\s'"]+/;
-        const match = html.match(pdfLinkRegex);
-        return match ? `https://www.alldatasheet.com${match[0]}` : null;
-    } catch (e) { return null; }
-}
-
-/**
- * Szuka linku do datasheetu na DatasheetCatalog
- */
-async function searchDatasheetCatalog(part) {
-    try {
-        const searchUrl = `https://www.datasheetcatalog.com/catalog/search/?query=${encodeURIComponent(part)}`;
-        const response = await fetch(searchUrl, {
-            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36' }
-        });
-        const html = await response.text();
-        const pdfLinkRegex = /https:\/\/pdf[0-9]*\.datasheetcatalog\.com\/[^\s'"]+\.pdf/i;
-        const match = html.match(pdfLinkRegex);
-        return match ? match[0] : null;
-    } catch (e) { return null; }
 }
 
 /**

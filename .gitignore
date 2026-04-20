@@ -6,8 +6,13 @@ dist/
 build/
 .DS_Store
 *.log
-autonomous_test/results/
-autonomous_test/logs/
+# Pozwól na bazę danych i historię
+!PROJEKTY/13_baza_czesci_recykling/autonomous_test/results/test_db.jsonl
+!PROJEKTY/13_baza_czesci_recykling/autonomous_test/processed_videos.json
+
+# Ignoruj logi i śmieci
+PROJEKTY/13_baza_czesci_recykling/autonomous_test/logs/
+PROJEKTY/13_baza_czesci_recykling/autonomous_test/results/*.tmp
 *.mp4
 *.part
 temp_frame_*.jpg

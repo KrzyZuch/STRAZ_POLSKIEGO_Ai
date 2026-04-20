@@ -561,8 +561,20 @@ async function handleActiveSessions(env, message, ctx) {
   // --- SESJA DATASHEET (PYTANIE) ---
   const questionSession = await getUserSession(env, message.chat_id, message.user_id, "datasheet_wait_question");
   if (questionSession) {
+    if (message.file_id && message.mime_type === "application/pdf") {
+      // Użytkownik przesłał PDF ręcznie — podmieniamy plik w sesji i pytamy o pytanie
+      const sessionParts = (questionSession.active_device_name || "NO_FILE|||").split('|');
+      const partQuery = sessionParts[1] || "";
+      const deviceModel = sessionParts.slice(2, sessionParts.length - 1).join('|');
+      const pdfUrl = sessionParts[sessionParts.length - 1] || "";
+      const newSessionData = `${message.file_id}|${partQuery}|${deviceModel}|${pdfUrl}`;
+      await upsertUserSession(env, message.chat_id, message.user_id, "datasheet_wait_question", null, newSessionData);
+      return {
+        reply_text: "📄 Przyjąłem Twój PDF! Teraz wpisz pytanie, na które mam odpowiedzieć na podstawie tego dokumentu.",
+      };
+    }
     if (!message.text) {
-      return { reply_text: "✍️ Proszę wpisz swoje pytanie tekstem (np. \"Jaki jest pinout?\")." };
+      return { reply_text: "✍️ Wpisz pytanie tekstem (np. \"Jaki jest pinout?\") lub prześlij plik PDF z dokumentacją." };
     }
     await closeUserSession(env, message.chat_id, message.user_id, "datasheet_wait_question");
     return await handleFinalDatasheetRagFinal(env, message, questionSession, message.text, ctx);

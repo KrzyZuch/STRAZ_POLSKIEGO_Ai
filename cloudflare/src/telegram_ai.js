@@ -2625,7 +2625,9 @@ export async function handleFinalDatasheetRag(env, message, session, deviceModel
         `- "Jaki jest pinout tego układu?"`,
         `- "Jakie jest maksymalne napięcie zasilania (VCC)?"`,
         `- "Podaj parametry i zaproponuj popularny zamiennik."`,
-        `- "Jak to podłączyć do Arduino?"`
+        `- "Jak to podłączyć do Arduino?"`,
+        "",
+        `💡 _Możesz też pobrać PDF z linku powyżej i przesłać mi go jako plik — wtedy przeanalizuję go dokładniej!_`
     );
 
     const replyMarkup = pdfUrl ? {
@@ -2646,25 +2648,24 @@ export async function handleFinalDatasheetRagFinal(env, message, session, userQu
     // pdfUrl jest zawsze ostatnim segmentem; deviceModel może zawierać '|'
     const cachedPdfUrl = sessionParts[sessionParts.length - 1] || "";
     const deviceModel = sessionParts.slice(2, sessionParts.length - 1).join('|');
-    
+
     await sendTelegramReply(env, message, `🔎 Analizuję datasheet pod kątem Twojego pytania: _"${userQuestion}"_...`);
 
     let aiContext = "";
-    let resolvedPdfUrl = cachedPdfUrl; // Używamy URL z sesji – bez ponownego szukania
+    const resolvedPdfUrl = cachedPdfUrl;
+
+    const ragSystemForDevice = [
+        "Jesteś inżynierem elektronikiem. Odpowiadasz precyzyjnie na pytania techniczne.",
+        `Analizujesz część: ${partQuery} z urządzenia: ${deviceModel}.`,
+        "Odpowiedz zwięźle i technicznie. Jeśli nie znasz odpowiedzi, powiedz to szczerze."
+    ].join(" ");
 
     if (fileId) {
         // SCENARIUSZ A: PDF przesłany przez użytkownika
         const base64 = await fetchTelegramFileAsBase64(env, fileId);
         if (base64) {
-            const ragSystem = [
-                "Jesteś inżynierem elektronikiem. Analizujesz datasheet PDF.",
-                `KONTEKST: Część z urządzenia ${deviceModel}.`,
-                "Twoim zadaniem jest odpowiedzieć PRECYZYJNIE na pytanie użytkownika na podstawie dostarczonego dokumentu.",
-                "Jeśli w dokumencie nie ma odpowiedzi, powiedz to szczerze."
-            ].join(" ");
-            
             const visionResp = await callGoogleProvider(env, {
-                systemInstruction: ragSystem,
+                systemInstruction: ragSystemForDevice,
                 userPrompt: `Pytanie użytkownika: ${userQuestion}\n\nNazwa części: ${partQuery}`,
                 temperature: 0.1,
                 maxTokens: 1500,
@@ -2673,37 +2674,38 @@ export async function handleFinalDatasheetRagFinal(env, message, session, userQu
             aiContext = visionResp.text;
         }
     } else if (resolvedPdfUrl) {
-        // SCENARIUSZ B: Mamy URL z sesji – pobieramy i analizujemy
+        // SCENARIUSZ B: Mamy URL z sesji – próbujemy pobrać i przeanalizować
         await sendTelegramReply(env, message, "📥 Pobieram dokumentację do analizy...");
         const fetchedBase64 = await fetchExternalPdfAsBase64(resolvedPdfUrl);
 
         if (fetchedBase64) {
-            const ragSystem = [
-                "Jesteś inżynierem elektronikiem. Analizujesz POBRANY datasheet PDF.",
-                `KONTEKST: Część z urządzenia ${deviceModel}.`,
-                "Twoim zadaniem jest odpowiedzieć PRECYZYJNIE na pytanie użytkownika na podstawie dostarczonego dokumentu.",
-                "Jeśli w dokumencie nie ma odpowiedzi, powiedz to szczerze."
-            ].join(" ");
-            
             const visionResp = await callGoogleProvider(env, {
-                systemInstruction: ragSystem,
+                systemInstruction: ragSystemForDevice,
                 userPrompt: `Pytanie użytkownika: ${userQuestion}\n\nNazwa części: ${partQuery}`,
                 temperature: 0.1,
                 maxTokens: 1500,
                 media: [{ data: fetchedBase64, mime_type: "application/pdf" }]
             });
             aiContext = visionResp.text;
-        } else {
-            // PDF niedostępny mimo URL – fallback do wiedzy AI
-            const searchPrompt = `Odpowiedz na pytanie o część elektroniczną: ${partQuery} z urządzenia ${deviceModel}. Pytanie: ${userQuestion}. Link do dokumentacji (niedostępny do pobrania): ${resolvedPdfUrl}.`;
-            const searchResp = await generateChatReply(env, { text: searchPrompt }, []);
-            aiContext = searchResp.reply_text;
         }
-    } else {
-        // SCENARIUSZ C: Brak PDF, brak URL – czysty fallback AI
-        const searchPrompt = `Odpowiedz na pytanie o część elektroniczną: ${partQuery} z urządzenia ${deviceModel}. Pytanie: ${userQuestion}. Nie znaleziono datasheetu PDF online.`;
-        const searchResp = await generateChatReply(env, { text: searchPrompt }, []);
-        aiContext = searchResp.reply_text;
+        // Niezależnie czy udało się pobrać PDF, robimy fallback AI (jeśli aiContext puste)
+    }
+
+    // FALLBACK AI – gdy nie ma treści z PDF (PDF niedostępny, brak pliku, błąd)
+    if (!aiContext) {
+        const fallbackPrompt = `Odpowiedz na pytanie techniczne o komponent elektroniczny.
+Część: ${partQuery}
+Urządzenie: ${deviceModel || "nieznane"}
+${resolvedPdfUrl ? `Link do datasheetu (informacyjnie): ${resolvedPdfUrl}` : ""}
+Pytanie: ${userQuestion}
+
+Odpowiedz precyzyjnie i technicznie. Podaj kluczowe parametry jeśli znasz.`;
+
+        const fallbackResp = await callProviderWithFallback(
+            env,
+            buildPromptPayload(ragSystemForDevice, fallbackPrompt, env, { maxTokens: 1200, temperature: 0.2 })
+        );
+        aiContext = fallbackResp.text;
     }
 
     // ZAPIS DO BAZY
@@ -2721,7 +2723,7 @@ export async function handleFinalDatasheetRagFinal(env, message, session, userQu
 
     await closeUserSession(env, message.chat_id, message.user_id, "datasheet_wait_question");
 
-    // Przycisk PDF - zawsze pokazujemy jeśli mamy URL, plus Google jako fallback
+    // Przyciski: PDF (jeśli mamy URL) + Google
     const pdfButtons = [];
     if (resolvedPdfUrl) {
         pdfButtons.push({ text: "📄 Otwórz PDF", url: resolvedPdfUrl });
@@ -2730,11 +2732,13 @@ export async function handleFinalDatasheetRagFinal(env, message, session, userQu
 
     const sourceLabel = fileId ? "Przesłany PDF" : (resolvedPdfUrl ? resolvedPdfUrl : "Baza wiedzy AI");
 
-    return { 
+    return {
         reply_text: `✅ *Analiza zakończona!*\n\n${aiContext}\n\n🔗 *Źródło:* ${sourceLabel}`,
         reply_markup: { inline_keyboard: [pdfButtons] }
     };
 }
+
+
 
 /**
  * Funkcja Czytnika Rezystorów (6. funkcjonalność)
@@ -2836,16 +2840,51 @@ async function searchDatasheetCatalog(part) {
 }
 
 /**
- * Pobiera zewnętrzny PDF i konwertuje do base64 (dla analizy Vision)
+ * Pobiera zewnętrzny PDF i konwertuje do base64 (dla analizy Vision).
+ * Używa realistycznych nagłówków przeglądarki aby ominąć ochronę anti-bot.
+ * Max 10MB ze względu na limity pamięci CF Workers.
  */
 async function fetchExternalPdfAsBase64(url) {
+    const MAX_PDF_SIZE = 10 * 1024 * 1024; // 10MB
     try {
         const response = await fetch(url, {
-            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36' }
+            redirect: 'follow',
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+                'Accept': 'application/pdf,application/octet-stream,*/*',
+                'Accept-Language': 'en-US,en;q=0.9,pl;q=0.8',
+                'Accept-Encoding': 'identity',
+                'Referer': new URL(url).origin + '/',
+                'Connection': 'keep-alive',
+                'Sec-Fetch-Dest': 'document',
+                'Sec-Fetch-Mode': 'navigate',
+                'Sec-Fetch-Site': 'same-origin',
+                'Sec-Fetch-User': '?1',
+                'Upgrade-Insecure-Requests': '1',
+            }
         });
-        if (!response.ok) return null;
-        
+        if (!response.ok) {
+            console.error(`PDF fetch failed: ${response.status} ${response.statusText} for ${url}`);
+            return null;
+        }
+
+        // Weryfikacja że odpowiedź to rzeczywiście PDF (a nie HTML z błędem/captchą)
+        const contentType = (response.headers.get('content-type') || '').toLowerCase();
+        if (contentType.includes('text/html')) {
+            console.error(`PDF fetch returned HTML instead of PDF for ${url}`);
+            return null;
+        }
+
         const buffer = await response.arrayBuffer();
+        if (buffer.byteLength > MAX_PDF_SIZE) {
+            console.error(`PDF too large (${(buffer.byteLength / 1024 / 1024).toFixed(1)}MB) for ${url}`);
+            return null;
+        }
+        if (buffer.byteLength < 100) {
+            console.error(`PDF suspiciously small (${buffer.byteLength}B) for ${url}`);
+            return null;
+        }
+
         const uint8Array = new Uint8Array(buffer);
         let binary = "";
         for (let i = 0; i < uint8Array.byteLength; i++) {

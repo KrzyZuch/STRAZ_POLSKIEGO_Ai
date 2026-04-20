@@ -2563,10 +2563,11 @@ export async function curateSubmissions(env) {
  */
 export async function initDatasheetWorkflow(env, message, intent) {
     const query = message.text || message.caption || "Analiza dokumentu PDF";
-    const fileId = message.file_id || null;
+    const fileId = message.file_id || "NO_FILE";
     
-    // Tworzymy sesję oczekiwania na model
-    await upsertUserSession(env, message.chat_id, message.user_id, "datasheet_wait_model", fileId, query);
+    const sessionData = `${fileId}|${query}`;
+    // Tworzymy sesję oczekiwania na model, przekazujemy null jako device_id aby nie psuć klucza obcego
+    await upsertUserSession(env, message.chat_id, message.user_id, "datasheet_wait_model", null, sessionData);
     
     const replyText = [
         `📄 *Asystent Dokumentacji Aktywny!*`,
@@ -2587,13 +2588,15 @@ export async function initDatasheetWorkflow(env, message, intent) {
  * Finalna analiza RAG po podaniu modelu urządzenia.
  */
 export async function handleFinalDatasheetRag(env, message, session, deviceModel, ctx = null) {
-    const partQuery = session.active_device_name; // Nazwa części lub PDF caption
-    const fileId = session.active_device_id; // Telegram File ID dla PDF
+    const sessionParts = (session.active_device_name || "NO_FILE|").split('|');
+    const fileId = sessionParts[0] === "NO_FILE" ? null : sessionParts[0];
+    const partQuery = sessionParts.slice(1).join('|');
     
     await sendTelegramReply(env, message, `⏳ Przyjąłem model: *${deviceModel}*.`);
 
     // Przechodzimy do kroku 2: Pytanie techniczne
-    await upsertUserSession(env, message.chat_id, message.user_id, "datasheet_wait_question", session.active_device_id, `${session.active_device_name}|${deviceModel}`);
+    const newSessionData = `${fileId || "NO_FILE"}|${partQuery}|${deviceModel}`;
+    await upsertUserSession(env, message.chat_id, message.user_id, "datasheet_wait_question", null, newSessionData);
     
     const replyText = [
         `💡 *Świetnie!* Mamy model: \`${deviceModel}\`.`,
@@ -2614,17 +2617,17 @@ export async function handleFinalDatasheetRag(env, message, session, deviceModel
  * KROK 2: Finalna analiza RAG z pytaniem użytkownika.
  */
 export async function handleFinalDatasheetRagFinal(env, message, session, userQuestion, ctx = null) {
-    const sessionData = session.active_device_name.split('|');
-    const partQuery = sessionData[0];
-    const deviceModel = sessionData[1];
-    const fileId = session.active_device_id;
+    const sessionParts = (session.active_device_name || "NO_FILE||").split('|');
+    const fileId = sessionParts[0] === "NO_FILE" ? null : sessionParts[0];
+    const partQuery = sessionParts[1] || "";
+    const deviceModel = sessionParts.slice(2).join('|');
     
     await sendTelegramReply(env, message, `🔎 Analizuję datasheet pod kątem Twojego pytania: _"${userQuestion}"_...`);
 
     let aiContext = "";
     let datasheetUrl = "";
 
-    if (fileId && session.active_device_name.toLowerCase().includes("pdf")) {
+    if (fileId) {
         const base64 = await fetchTelegramFileAsBase64(env, fileId);
         if (base64) {
             const ragSystem = [

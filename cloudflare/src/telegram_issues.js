@@ -33,6 +33,7 @@ import {
   handleFinalDatasheetRag,
   handleFinalDatasheetRagFinal,
   handleResistorAnalysis,
+  validateManualEntry,
 } from "./telegram_ai.js";
 import { sanitizeTelegramReply, sendTelegramReply, getMainMenuKeyboard } from "./telegram_utils.js";
 
@@ -504,6 +505,13 @@ async function handleActiveSessions(env, message, ctx) {
   // --- SESJA EDYCJI CZEŚCI ---
   const editSession = await getUserSession(env, message.chat_id, message.user_id, "recycled_parts_edit");
   if (editSession && message.text) {
+    if (message.text.startsWith("/")) return null; // komendy anulują
+
+    const isValid = await validateManualEntry(env, message.text);
+    if (!isValid) {
+      return { reply_text: "🚫 Wprowadzony tekst wydaje się być niepoprawny lub nie na temat. Spróbuj ponownie lub kliknij *Anuluj edycję*." };
+    }
+
     const parts = (message.text || "").split("|").map(s => s.trim());
     const name = parts[0] || "Nieznana część";
     const number = parts.length > 1 ? parts[1] : "";
@@ -532,6 +540,10 @@ async function handleActiveSessions(env, message, ctx) {
   // --- SESJA DATASHEET (MODEL) ---
   const datasheetSession = await getUserSession(env, message.chat_id, message.user_id, "datasheet_wait_model");
   if (datasheetSession) {
+    if (message.text && message.text.startsWith("/") && message.text !== "/niemammodelu") {
+      return null; // Zwykłe komendy niech anulują sesję
+    }
+    
     let deviceModel = message.text || "Zidentyfikowany ze zdjęcia";
     if (message.file_id) {
       await sendTelegramReply(env, message, "Otrzymałem zdjęcie urządzenia. Identyfikuję model...");
@@ -539,6 +551,8 @@ async function handleActiveSessions(env, message, ctx) {
       const vision = await recognizeDeviceAndListParts(env, message, base64);
       deviceModel = vision.recognized_model || "Nieznany model ze zdjęcia";
     }
+    
+    await closeUserSession(env, message.chat_id, message.user_id, "datasheet_wait_model");
     return await handleFinalDatasheetRag(env, message, datasheetSession, deviceModel, ctx);
   }
 

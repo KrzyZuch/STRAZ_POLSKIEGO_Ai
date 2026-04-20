@@ -2832,3 +2832,24 @@ async function fetchExternalPdfAsBase64(url) {
         return null;
     }
 }
+
+/**
+ * Waliduje ręcznie wprowadzone dane (np. edycja części lub modelu) pod kątem oczywistych bzdur.
+ */
+export async function validateManualEntry(env, entryText) {
+    try {
+        const prompt = `Użytkownik wprowadza ręcznie nazwę części elektronicznej lub model urządzenia: "${entryText}". 
+Czy to wygląda na sensowną, techniczną treść (np. "Kondensator | 10uF", "HP LaserJet", "nie mam modelu", "NE555"), czy na oczywiste bzdury/spam (np. "asdasd", "kocham placki", "123123123")?
+Odpowiedz TYLKO i wyłącznie słowem: SENSOWNE lub BZDURY.`;
+
+        const resp = await callProviderWithFallback(
+            env,
+            buildPromptPayload("Jesteś technicznym weryfikatorem (moderator). Odpowiadaj tylko jednym słowem.", prompt, env, { maxTokens: 10, temperature: 0.1 })
+        );
+        
+        return !resp.text.toLowerCase().includes("bzdury");
+    } catch (e) {
+        // W razie błędu AI, przepuszczamy by nie blokować aplikacji
+        return true; 
+    }
+}

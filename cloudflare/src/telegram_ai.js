@@ -2645,13 +2645,38 @@ export async function handleFinalDatasheetRagFinal(env, message, session, userQu
             datasheetUrl = "Przesłany przez użytkownika";
         }
     } else {
-        // SCENARIUSZ B: Szukamy datasheetu w sieci (Wielostopniowy PDF Hunter)
+        // SCENARIUSZ B: Szukamy datasheetu w sieci
         const foundUrl = await findDatasheetPdfLink(partQuery);
         datasheetUrl = foundUrl || "Nie znaleziono bezpośredniego linku PDF";
         
-        const searchPrompt = `Przeanalizuj informacje o części: ${partQuery}. Pochodzi z: ${deviceModel}. Link do dokumentacji: ${datasheetUrl}. Odpowiedz na pytanie użytkownika: ${userQuestion}.`;
-        const searchResp = await generateChatReply(env, { text: searchPrompt }, []);
-        aiContext = searchResp.reply_text;
+        let fetchedBase64 = null;
+        if (datasheetUrl.toLowerCase().endsWith(".pdf") || datasheetUrl.includes("alldatasheet.com/datasheet-pdf/")) {
+            await sendTelegramReply(env, message, "📥 Próbuję pobrać dokumentację do analizy...");
+            fetchedBase64 = await fetchExternalPdfAsBase64(datasheetUrl);
+        }
+
+        if (fetchedBase64) {
+            // Mamy pobrany PDF! Analizujemy go jak plik od użytkownika
+            const ragSystem = [
+                "Jesteś inżynierem elektronikiem. Analizujesz POBRANY datasheet PDF.",
+                `KONTEKST: Część z urządzenia ${deviceModel}.`,
+                "Twoim zadaniem jest odpowiedzieć PRECYZYJNIE na pytanie użytkownika na podstawie dostarczonego dokumentu."
+            ].join(" ");
+            
+            const visionResp = await callGoogleProvider(env, {
+                systemInstruction: ragSystem,
+                userPrompt: `Pytanie użytkownika: ${userQuestion}\n\nNazwa części: ${partQuery}`,
+                temperature: 0.1,
+                maxTokens: 1500,
+                media: [{ data: fetchedBase64, mime_type: "application/pdf" }]
+            });
+            aiContext = visionResp.text;
+        } else {
+            // Nie udało się pobrać PDF (np. zabezpieczenia strony) - analizujemy po samej nazwie
+            const searchPrompt = `Przeanalizuj informacje o części: ${partQuery}. Pochodzi z: ${deviceModel}. Link do dokumentacji (może być nieosiągalny bezpośrednio): ${datasheetUrl}. Odpowiedz na pytanie użytkownika: ${userQuestion}.`;
+            const searchResp = await generateChatReply(env, { text: searchPrompt }, []);
+            aiContext = searchResp.reply_text;
+        }
     }
 
     // ZAPIS DO BAZY
@@ -2764,4 +2789,27 @@ async function searchDatasheetCatalog(part) {
         const match = html.match(pdfLinkRegex);
         return match ? match[0] : null;
     } catch (e) { return null; }
+}
+
+/**
+ * Pobiera zewnętrzny PDF i konwertuje do base64 (dla analizy Vision)
+ */
+async function fetchExternalPdfAsBase64(url) {
+    try {
+        const response = await fetch(url, {
+            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36' }
+        });
+        if (!response.ok) return null;
+        
+        const buffer = await response.arrayBuffer();
+        const uint8Array = new Uint8Array(buffer);
+        let binary = "";
+        for (let i = 0; i < uint8Array.byteLength; i++) {
+            binary += String.fromCharCode(uint8Array[i]);
+        }
+        return btoa(binary);
+    } catch (e) {
+        console.error("Błąd pobierania PDF:", e);
+        return null;
+    }
 }

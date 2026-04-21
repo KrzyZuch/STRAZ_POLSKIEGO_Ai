@@ -32,7 +32,9 @@ import {
 handleResistorAnalysis,
 validateManualEntry,
 getResistorLegendText,
+runResistorVerification,
 } from "./telegram_ai.js";
+import { buildVerificationResultReply } from "./vision.js";
 import {
   initDatasheetWorkflow,
   handleFinalDatasheetRag,
@@ -486,8 +488,10 @@ async function handleActiveSessions(env, message, ctx) {
       await closeUserSession(env, message.chat_id, message.user_id, "resistor_wait_photo");
       const result = await handleResistorAnalysis(env, message);
       if (result && result._resistor_edit_data) {
-        await upsertUserSession(env, message.chat_id, message.user_id, "resistor_edit_bands", null, result._resistor_edit_data);
+        const aiInfoStr = result._ai_resistor ? JSON.stringify(result._ai_resistor) : null;
+        await upsertUserSession(env, message.chat_id, message.user_id, "resistor_edit_bands", aiInfoStr, result._resistor_edit_data);
         delete result._resistor_edit_data;
+        delete result._ai_resistor;
       }
       return result;
     } else if (message.text && message.text.startsWith("/")) {
@@ -502,24 +506,39 @@ async function handleActiveSessions(env, message, ctx) {
     }
   }
 
-  // --- SESJA EDYCJI PASKÓW REZYSTORA ---
+  // --- SESJA WERYFIKACJI REZYSTORA ---
   const editBandSession = await getUserSession(env, message.chat_id, message.user_id, "resistor_edit_bands");
   if (editBandSession) {
     if (message.text && !message.text.startsWith("/")) {
+      const prevData = editBandSession.active_device_name || "";
+      const aiInfoRaw = editBandSession.active_device_id || "";
+      let aiInfo = null;
+      try { aiInfo = aiInfoRaw ? JSON.parse(aiInfoRaw) : null; } catch(_) {}
+      const aiValue = aiInfo ? aiInfo.value : null;
+      const aiTolerance = aiInfo ? aiInfo.tolerance : null;
+      const aiFormat = aiInfo ? aiInfo.code_format : null;
+      const aiOhms = aiInfo ? aiInfo.value_ohm : null;
+      const verText = runResistorVerification(aiValue, aiTolerance, aiFormat, prevData, message.text);
       await closeUserSession(env, message.chat_id, message.user_id, "resistor_edit_bands");
-      const result = await handleResistorAnalysis(env, message);
-      if (result && result._resistor_edit_data) {
-        await upsertUserSession(env, message.chat_id, message.user_id, "resistor_edit_bands", null, result._resistor_edit_data);
-        delete result._resistor_edit_data;
-      }
-      return result;
+      const newEditData = prevData;
+      await upsertUserSession(env, message.chat_id, message.user_id, "resistor_edit_bands", aiInfoRaw || null, newEditData);
+      return {
+        reply_text: verText,
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: "✏️ Edytuj kolory", callback_data: "resistor_edit_bands" }],
+            [{ text: "📖 Legenda kolorów", callback_data: "resistor_legend" }],
+            [{ text: "🏠 Menu główne", callback_data: "command_start" }]
+          ]
+        }
+      };
     } else if (message.text && message.text.startsWith("/")) {
       return null;
     } else {
       const prevData = editBandSession.active_device_name || "";
       const prevDisplay = prevData.replace(/^(THT|SMD):/, "").replace(/,/g, " → ");
       return {
-        reply_text: `✏️ Oczekuję na poprawione kolory pasków lub kod SMD.\n\n📌 Poprzednio rozpoznano: ${prevDisplay || "brak danych"}\n\nWpisz poprawione wartości (np. \`brązowy, czarny, czerwony, złoty\` lub \`103\`):`,
+        reply_text: `🔍 Weryfikacja rezystora\n\n📌 Rozpoznane kolory/kod: ${prevDisplay || "brak danych"}\n\nWpisz poprawione wartości (np. \`brązowy, czarny, czerwony, złoty\` lub \`103\`), a przeliczę algorytmem:`,
         reply_markup: {
           inline_keyboard: [[{ text: "📖 Legenda kolorów", callback_data: "resistor_legend" }], [{ text: "❌ Anuluj", callback_data: "cancel_session:resistor_edit_bands" }]]
         }
@@ -591,8 +610,10 @@ async function handleActiveSessions(env, message, ctx) {
       if (vision && vision.type === "resistor") {
         await closeUserSession(env, message.chat_id, message.user_id, "datasheet_wait_model");
         if (vision._resistor_edit_data) {
-          await upsertUserSession(env, message.chat_id, message.user_id, "resistor_edit_bands", null, vision._resistor_edit_data);
+          const aiInfoStr = vision._ai_resistor ? JSON.stringify(vision._ai_resistor) : null;
+          await upsertUserSession(env, message.chat_id, message.user_id, "resistor_edit_bands", aiInfoStr, vision._resistor_edit_data);
           delete vision._resistor_edit_data;
+          delete vision._ai_resistor;
         }
         return vision;
       }
@@ -708,10 +729,12 @@ async function processConversationMessage(env, message, intent, ctx = null) {
         response = await generateChatReply(env, message, history);
     }
 
-    if (response && response._resistor_edit_data) {
-      await upsertUserSession(env, message.chat_id, message.user_id, "resistor_edit_bands", null, response._resistor_edit_data);
-      delete response._resistor_edit_data;
-    }
+  if (response && response._resistor_edit_data) {
+  const aiInfoStr = response._ai_resistor ? JSON.stringify(response._ai_resistor) : null;
+  await upsertUserSession(env, message.chat_id, message.user_id, "resistor_edit_bands", aiInfoStr, response._resistor_edit_data);
+  delete response._resistor_edit_data;
+  delete response._ai_resistor;
+}
 
     // Jeśli jesteśmy w zwykłej konwersacji (generateChatReply), dołączamy menu główne
       if (intent === "unknown" && response && !response.reply_markup) {
@@ -939,12 +962,13 @@ const CALLBACK_HANDLERS = {
   "resistor_edit_bands": async (env, id, chat_id, user_id, message, data) => {
   const existingSession = await getUserSession(env, chat_id, user_id, "resistor_edit_bands");
   const prevData = existingSession ? existingSession.active_device_name : null;
+  const aiInfoStr = existingSession ? existingSession.active_device_id : null;
   const prevDisplay = prevData ? prevData.replace(/^(THT|SMD):/, "").replace(/,/g, " → ") : "";
-  await upsertUserSession(env, chat_id, user_id, "resistor_edit_bands", null, prevData || "");
-  await answerCallbackQuery(env, id, "Edycja kolorów.");
+  await upsertUserSession(env, chat_id, user_id, "resistor_edit_bands", aiInfoStr || null, prevData || "");
+  await answerCallbackQuery(env, id, "Weryfikacja algorytmiczna.");
   const editMsg = prevDisplay
-    ? `🎨 Wpisz poprawione kolory pasków lub kod SMD, a przeliczę wartość ponownie.\n\n📌 Poprzednio rozpoznano: ${prevDisplay}`
-    : "🎨 Wpisz poprawione kolory pasków (np. `brązowy, czarny, czerwony, złoty`) lub kod SMD (np. `103`), a przeliczę wartość ponownie.";
+    ? `🔍 *Weryfikacja algorytmiczna*\n\n📌 Rozpoznane kolory/kod: ${prevDisplay}\n\nWpisz poprawione wartości (np. \`brązowy, czarny, czerwony, złoty\` lub \`103\`), a przeliczę algorytmem i porównam z AI:`
+    : "🔍 Wpisz kolory pasków (np. `brązowy, czarny, czerwony, złoty`) lub kod SMD (np. `103`), a przeliczę algorytmem:";
   await sendTelegramReply(env, { chat_id, message_id: message?.message_id }, editMsg, {
     inline_keyboard: [[{ text: "📖 Legenda kolorów", callback_data: "resistor_legend" }], [{ text: "❌ Anuluj", callback_data: "cancel_session:resistor_edit_bands" }]]
   });

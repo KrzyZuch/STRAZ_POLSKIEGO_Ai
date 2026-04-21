@@ -43,11 +43,12 @@ export async function recognizeDeviceAndListParts(env, message, mediaBase64) {
     ? `SMD:${identity.smd_code}`
     : null;
   const kb = [];
-  if (editData) kb.push([{ text: "✏️ Edytuj kolory/kod", callback_data: "resistor_edit_bands" }]);
+  if (editData) kb.push([{ text: "🔍 Weryfikuj", callback_data: "resistor_edit_bands" }]);
   kb.push([{ text: "📖 Legenda kolorów", callback_data: "resistor_legend" }]);
   kb.push([{ text: "🏠 Menu główne", callback_data: "command_start" }]);
   return {
     reply_text: verText, reply_markup: { inline_keyboard: kb }, _resistor_edit_data: editData,
+    _ai_resistor: { value: identity.value, tolerance: identity.tolerance, code_format: identity.code_format, value_ohm: aiOhms },
     provider_name: visionResp.provider_name, model_name: visionResp.model_name
   };
 }
@@ -323,50 +324,43 @@ function buildVerificationReply(aiResult, calcResult, aiOhms) {
   if (codeFormat !== "—") lines.push(`🔧 Format: ${codeFormat}`);
   if (aiBands !== "—") lines.push(`🎨 Paski AI: ${aiBands}`);
   if (aiConfidence !== null) lines.push(`🤖 Pewność AI: ${aiConfidence}%`);
+  lines.push("");
+  lines.push("_Kliknij 🔍 Weryfikuj poniżej, aby przeliczyć rozpoznane kolory/kod niezależnym algorytmem i porównać z wynikiem AI._");
 
-  if (calcResult) {
-    const calcFormatted = formatOhms(calcResult.ohms);
-    const calcTolerance = calcResult.tolerance || "—";
-    const verification = compareValues(aiOhms, calcResult.ohms);
+  return lines.join("\n");
+}
 
-    lines.push("");
-    lines.push("━━━━━━━━━━━━━━━━━━━━━━");
-    lines.push("🛡 *Weryfikacja algorytmiczna:*");
-    lines.push("");
-
-    if (calcResult.bands) {
-      lines.push(`📐 Obliczono z pasków (${calcResult.bandCount}-paskowy): *${calcFormatted}*`);
-      lines.push(`🎨 Paski rozpoznane: ${calcResult.bands.join(" → ")}`);
-    } else if (calcResult.smdCode) {
-      lines.push(`📐 Obliczono z kodu SMD \`${calcResult.smdCode}\`: *${calcFormatted}*`);
-    }
-
-    if (calcTolerance !== "—") lines.push(`📏 Tolerancja z paska: ${calcTolerance}`);
-
-    lines.push("");
-    if (verification === "match") {
-      lines.push("✅ *Wynik zweryfikowany* — obliczenia algorytmiczne potwierdzają odpowiedź modelu AI. Odczyt jest spójny i wiarygodny.");
-    } else if (verification === "mismatch_minor") {
-      lines.push("⚠️ *Niewielka rozbieżność* — wartość AI i obliczona różnią się, ale w granicach jednego rzędu wielkości. Możliwy błąd w rozpoznaniu paska mnożnika. Zalecam ostrożność — sprawdź ręcznie.");
-      lines.push(`🔍 AI: ${aiFormatted} | Obliczono: ${calcFormatted}`);
-    } else if (verification === "mismatch_major") {
-      lines.push("🚨 *Istotna rozbieżność* — odpowiedź AI znacząco odstaje od obliczeń algorytmicznych. Prawdopodobne halucynacje modelu. Zdecydowanie polecam weryfikację ręczną.");
-      lines.push(`🔍 AI: ${aiFormatted} | Obliczono: *${calcFormatted}*`);
-    } else {
-      lines.push("❓ *Weryfikacja niejednoznaczna* — nie udało się porównać wyników. Skonsultuj się z tabelą kodów.");
-    }
-
-    lines.push("");
-    lines.push("_Warstwa zabezpieczająca: oznaczenia z obrazu zostały przeliczone niezależnym algorytmem i skonfrontowane z odpowiedzią AI, aby chronić przed halucynacjami modelu._");
-  } else {
-    lines.push("");
-    lines.push("━━━━━━━━━━━━━━━━━━━━━━");
-    lines.push("🛡 *Weryfikacja algorytmiczna:*");
-    lines.push("");
-    lines.push("⚠️ Nie udało się przeprowadzić niezależnej weryfikacji — model nie podał wystarczających oznaczeń (pasków/kodu SMD) do przeliczenia algorytmicznego.");
-    lines.push("_Brak danych wejściowych do weryfikacji przeciwhalucynacyjnej. Traktuj wynik z ostrożnością._");
+export function buildVerificationResultReply(aiResult, calcResult, aiOhms) {
+  if (!calcResult) return "❌ Nie udało się przeliczyć podanych danych algorytmem. Sprawdź poprawność kolorów/kodu.";
+  const aiFormatted = aiResult.value || "—";
+  const calcFormatted = formatOhms(calcResult.ohms);
+  const calcTolerance = calcResult.tolerance || "—";
+  const verification = compareValues(aiOhms, calcResult.ohms);
+  let lines = [];
+  lines.push("🔍 *Weryfikacja algorytmiczna:*");
+  lines.push("");
+  lines.push(`📊 Wartość AI: *${aiFormatted}*`);
+  if (calcResult.bands) {
+    lines.push(`📐 Obliczono z pasków (${calcResult.bandCount}-paskowy): *${calcFormatted}*`);
+    lines.push(`🎨 Paski: ${calcResult.bands.join(" → ")}`);
+  } else if (calcResult.smdCode) {
+    lines.push(`📐 Obliczono z kodu SMD \`${calcResult.smdCode}\`: *${calcFormatted}*`);
   }
-
+  if (calcTolerance !== "—") lines.push(`📏 Tolerancja: ${calcTolerance}`);
+  lines.push("");
+  if (verification === "match") {
+    lines.push("✅ *Wynik zweryfikowany* — obliczenia algorytmiczne potwierdzają odpowiedź modelu AI. Odczyt jest spójny i wiarygodny.");
+  } else if (verification === "mismatch_minor") {
+    lines.push("⚠️ *Niewielka rozbieżność* — wartość AI i obliczona różnią się, ale w granicach jednego rzędu wielkości. Możliwy błąd w rozpoznaniu paska mnożnika. Zalecam ostrożność.");
+    lines.push(`🔍 AI: ${aiFormatted} | Obliczono: ${calcFormatted}`);
+  } else if (verification === "mismatch_major") {
+    lines.push("🚨 *Istotna rozbieżność* — odpowiedź AI znacząco odstaje od obliczeń algorytmicznych. Prawdopodobne halucynacje modelu. Zdecydowanie polecam weryfikację ręczną.");
+    lines.push(`🔍 AI: ${aiFormatted} | Obliczono: *${calcFormatted}*`);
+  } else {
+    lines.push("❓ *Weryfikacja niejednoznaczna* — nie udało się porównać wyników.");
+  }
+  lines.push("");
+  lines.push("_Warstwa zabezpieczająca: oznaczenia przeliczono niezależnym algorytmem i skonfrontowano z odpowiedzią AI._");
   return lines.join("\n");
 }
 
@@ -442,11 +436,11 @@ export async function handleResistorAnalysis(env, message) {
     ? `SMD:${identity.smd_code}`
     : null;
   const kb = [];
-  if (editData) kb.push([{ text: "✏️ Edytuj kolory/kod", callback_data: "resistor_edit_bands" }]);
+  if (editData) kb.push([{ text: "🔍 Weryfikuj", callback_data: "resistor_edit_bands" }]);
   kb.push([{ text: "📖 Legenda kolorów", callback_data: "resistor_legend" }]);
   kb.push([{ text: "🏠 Menu główne", callback_data: "command_start" }]);
 
-  return { reply_text: replyText, reply_markup: { inline_keyboard: kb }, _resistor_edit_data: editData, provider_name: visionResp.provider_name, model_name: visionResp.model_name };
+  return { reply_text: replyText, reply_markup: { inline_keyboard: kb }, _resistor_edit_data: editData, _ai_resistor: { value: identity.value, tolerance: identity.tolerance, code_format: identity.code_format, value_ohm: aiOhms }, provider_name: visionResp.provider_name, model_name: visionResp.model_name };
 } catch (error) {
   const errorMsg = error instanceof Error ? error.message : String(error);
   console.error("[handleResistorAnalysis] AI error:", errorMsg);

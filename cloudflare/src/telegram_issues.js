@@ -29,12 +29,15 @@ import {
   getDeviceById,
   buildDeviceCatalogReply,
   getPartsForModel,
+handleResistorAnalysis,
+validateManualEntry,
+getResistorLegendText,
+} from "./telegram_ai.js";
+import {
   initDatasheetWorkflow,
   handleFinalDatasheetRag,
   handleFinalDatasheetRagFinal,
-  handleResistorAnalysis,
-  validateManualEntry,
-} from "./telegram_ai.js";
+} from "./datasheet.js";
 import { sanitizeTelegramReply, sendTelegramReply, getMainMenuKeyboard } from "./telegram_utils.js";
 
 function jsonResponse(payload, status = 200) {
@@ -481,14 +484,44 @@ async function handleActiveSessions(env, message, ctx) {
   if (resistorSession) {
     if (message.file_id || (message.text && !message.text.startsWith("/"))) {
       await closeUserSession(env, message.chat_id, message.user_id, "resistor_wait_photo");
-      return await handleResistorAnalysis(env, message);
+      const result = await handleResistorAnalysis(env, message);
+      if (result && result._resistor_edit_data) {
+        await upsertUserSession(env, message.chat_id, message.user_id, "resistor_edit_bands", null, result._resistor_edit_data);
+        delete result._resistor_edit_data;
+      }
+      return result;
     } else if (message.text && message.text.startsWith("/")) {
-      return null; // Komendy (np. /stop, /cancel) niech wpadną do routera
+      return null;
     } else {
       return {
         reply_text: "Oczekuję na zdjęcie rezystora lub wpisane kolory pasków. Czy chcesz przerwać?",
         reply_markup: {
           inline_keyboard: [[{ text: "❌ Anuluj", callback_data: "cancel_session:resistor_wait_photo" }]]
+        }
+      };
+    }
+  }
+
+  // --- SESJA EDYCJI PASKÓW REZYSTORA ---
+  const editBandSession = await getUserSession(env, message.chat_id, message.user_id, "resistor_edit_bands");
+  if (editBandSession) {
+    if (message.text && !message.text.startsWith("/")) {
+      await closeUserSession(env, message.chat_id, message.user_id, "resistor_edit_bands");
+      const result = await handleResistorAnalysis(env, message);
+      if (result && result._resistor_edit_data) {
+        await upsertUserSession(env, message.chat_id, message.user_id, "resistor_edit_bands", null, result._resistor_edit_data);
+        delete result._resistor_edit_data;
+      }
+      return result;
+    } else if (message.text && message.text.startsWith("/")) {
+      return null;
+    } else {
+      const prevData = editBandSession.active_device_name || "";
+      const prevDisplay = prevData.replace(/^(THT|SMD):/, "").replace(/,/g, " → ");
+      return {
+        reply_text: `✏️ Oczekuję na poprawione kolory pasków lub kod SMD.\n\n📌 Poprzednio rozpoznano: ${prevDisplay || "brak danych"}\n\nWpisz poprawione wartości (np. \`brązowy, czarny, czerwony, złoty\` lub \`103\`):`,
+        reply_markup: {
+          inline_keyboard: [[{ text: "📖 Legenda kolorów", callback_data: "resistor_legend" }], [{ text: "❌ Anuluj", callback_data: "cancel_session:resistor_edit_bands" }]]
         }
       };
     }
@@ -527,8 +560,8 @@ async function handleActiveSessions(env, message, ctx) {
     await env.DB.prepare("UPDATE recycled_device_submissions SET matched_part_name = ?, matched_part_number = ?, status = 'approved' WHERE id = ?")
       .bind(name, number, submissionIdFromSession).run();
     
-    await closeUserSession(env, message.chat_id, message.user_id, "recycled_parts_edit");
-    return { reply_text: `✅ Ręcznie zaktualizowano część: *${name}*. Status: Zatwierdzono.` };
+        await closeUserSession(env, message.chat_id, message.user_id, "recycled_parts_edit");
+        return { reply_text: `✅ Ręcznie zaktualizowano część: *${name}*. Status: Zatwierdzono.\n\nCo chcesz zrobić dalej?`, reply_markup: getMainMenuKeyboard() };
   } else if (editSession && message.file_id) {
     return { reply_text: "✏️ Oczekuję na tekst w formacie: `Nazwa | Numer`. Zdjęcia nie są obsługiwane w trybie edycji części." };
   }
@@ -556,8 +589,12 @@ async function handleActiveSessions(env, message, ctx) {
       const vision = await recognizeDeviceAndListParts(env, message, base64);
       
       if (vision && vision.type === "resistor") {
-          await closeUserSession(env, message.chat_id, message.user_id, "datasheet_wait_model");
-          return vision; // Zwracamy wynik analizy rezystora, który już został wysłany
+        await closeUserSession(env, message.chat_id, message.user_id, "datasheet_wait_model");
+        if (vision._resistor_edit_data) {
+          await upsertUserSession(env, message.chat_id, message.user_id, "resistor_edit_bands", null, vision._resistor_edit_data);
+          delete vision._resistor_edit_data;
+        }
+        return vision;
       }
       
       deviceModel = vision.recognized_model || "Nieznany model ze zdjęcia";
@@ -667,11 +704,16 @@ async function processConversationMessage(env, message, intent, ctx = null) {
         case "onboarding":
           response = await recommendOnboardingPath(env, message, history);
           break;
-        default:
-          response = await generateChatReply(env, message, history);
-      }
-      
-      // Jeśli jesteśmy w zwykłej konwersacji (generateChatReply), dołączamy menu główne
+      default:
+        response = await generateChatReply(env, message, history);
+    }
+
+    if (response && response._resistor_edit_data) {
+      await upsertUserSession(env, message.chat_id, message.user_id, "resistor_edit_bands", null, response._resistor_edit_data);
+      delete response._resistor_edit_data;
+    }
+
+    // Jeśli jesteśmy w zwykłej konwersacji (generateChatReply), dołączamy menu główne
       if (intent === "unknown" && response && !response.reply_markup) {
         // Menu jest już przypinane wewnątrz buildCommandReply / generateChatReply w telegram_ai.js
       }
@@ -788,7 +830,7 @@ const CALLBACK_HANDLERS = {
   "recycled_cancel": async (env, id, chat_id, user_id, message) => {
     await closeUserSession(env, chat_id, user_id, "recycled_parts");
     await answerCallbackQuery(env, id, "Anulowano.");
-    await sendTelegramReply(env, { chat_id, message_id: message.message_id }, "Przerwałem proces dodawania części.");
+    await sendTelegramReply(env, { chat_id, message_id: message.message_id }, "Przerwałem proces dodawania części. Wybierz, co chcesz zrobić dalej:", getMainMenuKeyboard());
   },
   "recycled_show_info": async (env, id, chat_id, user_id, message, data) => {
     const parts = data.split(":");
@@ -849,12 +891,12 @@ const CALLBACK_HANDLERS = {
     await sendTelegramReply(env, { chat_id, message_id: message?.message_id }, "Napisz mi kilka słów o sobie, czym się zajmujesz lub co potrafisz, a ja zasugeruję Ci pasujące zadania i miejsce w projekcie Straż Przyszłości.");
   },
   "menu_resistor": async (env, id, chat_id, user_id, message, data) => {
-    await upsertUserSession(env, chat_id, user_id, "resistor_wait_photo");
-    await answerCallbackQuery(env, id, "Odczyt rezystora.");
-    await sendTelegramReply(env, { chat_id, message_id: message?.message_id }, "Prześlij mi proszę zdjęcie rezystora (THT lub SMD) *ALBO* wpisz jego kolory (np. `brązowy, czarny, czerwony, złoty`), a ja odczytam jego wartość.", {
-      inline_keyboard: [[{ text: "❌ Anuluj", callback_data: "cancel_session:resistor_wait_photo" }]]
-    });
-  },
+  await upsertUserSession(env, chat_id, user_id, "resistor_wait_photo");
+  await answerCallbackQuery(env, id, "Odczyt rezystora.");
+  await sendTelegramReply(env, { chat_id, message_id: message?.message_id }, "Prześlij mi proszę zdjęcie rezystora (THT lub SMD) *ALBO* wpisz jego kolory (np. `brązowy, czarny, czerwony, złoty`), a ja odczytam jego wartość.", {
+    inline_keyboard: [[{ text: "📖 Legenda kolorów", callback_data: "resistor_legend" }], [{ text: "❌ Anuluj", callback_data: "cancel_session:resistor_wait_photo" }]]
+  });
+},
   "datasheet_start_search": async (env, id, chat_id, user_id, message, data) => {
     const partQuery = data.substring("datasheet_start_search:".length);
     const mockMessage = { chat_id, user_id, text: partQuery };
@@ -866,8 +908,20 @@ const CALLBACK_HANDLERS = {
     const sessionType = data.split(":")[1] || "recycled_parts";
     await closeUserSession(env, chat_id, user_id, sessionType);
     await answerCallbackQuery(env, id, "Sesja została anulowana.");
-    await sendTelegramReply(env, { chat_id, message_id: message?.message_id }, "Przerwałem proces. Możesz powrócić do normalnego korzystania z bota.");
+    await sendTelegramReply(env, { chat_id, message_id: message?.message_id }, "Przerwałem proces. Wybierz, co chcesz zrobić dalej:", getMainMenuKeyboard());
   },
+  "command_start": async (env, id, chat_id, user_id, message, data) => {
+    await closeAllUserSessions(env, chat_id, user_id);
+    await answerCallbackQuery(env, id, "Menu główne.");
+    const startReply = buildCommandReply("start");
+    await sendTelegramReply(env, { chat_id, message_id: message?.message_id }, startReply.text, startReply.reply_markup);
+  },
+  "resistor_legend": async (env, id, chat_id, user_id, message, data) => {
+  await answerCallbackQuery(env, id, "Legenda kolorów.");
+  await sendTelegramReply(env, { chat_id, message_id: message?.message_id }, getResistorLegendText(), {
+    inline_keyboard: [[{ text: "🏠 Menu główne", callback_data: "command_start" }]]
+  });
+},
   "datasheet_no_model": async (env, id, chat_id, user_id, message, data) => {
     const session = await getUserSession(env, chat_id, user_id, "datasheet_wait_model");
     if (!session) {
@@ -879,8 +933,33 @@ const CALLBACK_HANDLERS = {
     const res = await handleFinalDatasheetRag(env, mockMessage, session, "Nieznany (użytkownik nie posiada)");
     await answerCallbackQuery(env, id, "Kontynuuję bez modelu.");
     if (res && res.reply_text) {
-      await sendTelegramReply(env, { chat_id, message_id: message?.message_id }, res.reply_text);
+      await sendTelegramReply(env, { chat_id, message_id: message?.message_id }, res.reply_text, res.reply_markup);
     }
+  },
+  "resistor_edit_bands": async (env, id, chat_id, user_id, message, data) => {
+  const existingSession = await getUserSession(env, chat_id, user_id, "resistor_edit_bands");
+  const prevData = existingSession ? existingSession.active_device_name : null;
+  const prevDisplay = prevData ? prevData.replace(/^(THT|SMD):/, "").replace(/,/g, " → ") : "";
+  await upsertUserSession(env, chat_id, user_id, "resistor_edit_bands", null, prevData || "");
+  await answerCallbackQuery(env, id, "Edycja kolorów.");
+  const editMsg = prevDisplay
+    ? `🎨 Wpisz poprawione kolory pasków lub kod SMD, a przeliczę wartość ponownie.\n\n📌 Poprzednio rozpoznano: ${prevDisplay}`
+    : "🎨 Wpisz poprawione kolory pasków (np. `brązowy, czarny, czerwony, złoty`) lub kod SMD (np. `103`), a przeliczę wartość ponownie.";
+  await sendTelegramReply(env, { chat_id, message_id: message?.message_id }, editMsg, {
+    inline_keyboard: [[{ text: "📖 Legenda kolorów", callback_data: "resistor_legend" }], [{ text: "❌ Anuluj", callback_data: "cancel_session:resistor_edit_bands" }]]
+  });
+},
+  "datasheet_ask": async (env, id, chat_id, user_id, message, data) => {
+    const partQuery = data.substring("datasheet_ask:".length);
+    await upsertUserSession(env, chat_id, user_id, "datasheet_wait_question", null, `NO_FILE|${partQuery}|${partQuery}|`);
+    await answerCallbackQuery(env, id, "Zadaj pytanie.");
+    await sendTelegramReply(env, { chat_id, message_id: message?.message_id }, `💡 Analiza datasheet dla *${partQuery}*. Wpisz pytanie (np. "Jaki jest pinout?", "Podaj napięcie zasilania"):`);
+  },
+  "datasheet_continue": async (env, id, chat_id, user_id, message, data) => {
+    const partQuery = data.substring("datasheet_continue:".length);
+    await upsertUserSession(env, chat_id, user_id, "datasheet_wait_question", null, `NO_FILE|${partQuery}|${partQuery}|`);
+    await answerCallbackQuery(env, id, "Kontynuacja analizy.");
+    await sendTelegramReply(env, { chat_id, message_id: message?.message_id }, `💡 Kontynuuję analizę dla *${partQuery}*. O co chcesz zapytać?`);
   }
 };
 

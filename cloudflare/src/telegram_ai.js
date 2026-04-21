@@ -2338,20 +2338,21 @@ export async function recognizeDeviceAndListParts(env, message, mediaBase64) {
         raw_payload_json: identity,
       });
 
-      return {
-        recognized_model: combinedQuery || identity.model,
-        reply_text: `Zidentyfikowano: ${formatDeviceName(dbResult.device)}. Czy chcesz teraz dodać zdjęcia konkretnych części z tego egzemplarza?`,
-        reply_markup: {
-          inline_keyboard: [
-            [
-              { text: "✅ Tak, dodaję części", callback_data: `recycled_add_parts:${dbResult.device.id}` },
-              { text: "❌ Nie, tylko info", callback_data: `recycled_show_info:${dbResult.device.id}` }
-            ]
-          ]
-        },
-        provider_name: visionResp.provider_name,
-        model_name: visionResp.model_name
-      };
+	return {
+		type: "device",
+		recognized_model: combinedQuery || identity.model,
+		reply_text: `Zidentyfikowano: ${formatDeviceName(dbResult.device)}. Czy chcesz teraz dodać zdjęcia konkretnych części z tego egzemplarza?`,
+		reply_markup: {
+			inline_keyboard: [
+				[
+					{ text: "✅ Tak, dodaję części", callback_data: `recycled_add_parts:${dbResult.device.id}` },
+					{ text: "❌ Nie, tylko info", callback_data: `recycled_show_info:${dbResult.device.id}` }
+				]
+			]
+		},
+		provider_name: visionResp.provider_name,
+		model_name: visionResp.model_name
+	};
     }
 
     await recordRecycledSubmission(env, {
@@ -2370,20 +2371,21 @@ export async function recognizeDeviceAndListParts(env, message, mediaBase64) {
       raw_payload_json: identity,
     });
 
-    return {
-      recognized_model: combinedQuery || identity.model,
-      reply_text: `Zidentyfikowano urządzenie: ${formatDeviceName(identity)}. Nie mam go jeszcze w katalogu reuse, ale zgłoszenie trafiło do kolejki kuracji. Czy mimo to chcesz przesłać zdjęcia jego części dla dokumentacji?`,
-      reply_markup: {
-        inline_keyboard: [
-          [
-            { text: "✅ Tak, prześlij części", callback_data: `recycled_add_parts_unknown:${formatDeviceName(identity).substring(0, 30)}` },
-            { text: "❌ Nie", callback_data: "recycled_cancel" }
-          ]
-        ]
-      },
-      provider_name: visionResp.provider_name,
-      model_name: visionResp.model_name
-    };
+	return {
+		type: "device",
+		recognized_model: combinedQuery || identity.model,
+		reply_text: `Zidentyfikowano urządzenie: ${formatDeviceName(identity)}. Nie mam go jeszcze w katalogu reuse, ale zgłoszenie trafiło do kolejki kuracji. Czy mimo to chcesz przesłać zdjęcia jego części dla dokumentacji?`,
+		reply_markup: {
+			inline_keyboard: [
+				[
+					{ text: "✅ Tak, prześlij części", callback_data: `recycled_add_parts_unknown:${formatDeviceName(identity).substring(0, 30)}` },
+					{ text: "❌ Nie", callback_data: "recycled_cancel" }
+				]
+			]
+		},
+		provider_name: visionResp.provider_name,
+		model_name: visionResp.model_name
+	};
   }
 
   await recordRecycledSubmission(env, {
@@ -2399,11 +2401,12 @@ export async function recognizeDeviceAndListParts(env, message, mediaBase64) {
     raw_payload_json: identity,
   });
   
-  return {
-    reply_text: "Nie udało mi się jednoznacznie zidentyfikować modelu na zdjęciu. Spróbuj przesłać wyraźniejsze zdjęcie naklejki znamionowej.",
-    provider_name: visionResp.provider_name,
-    model_name: visionResp.model_name
-  };
+	return {
+		type: "unrecognized",
+		reply_text: "Nie udało mi się jednoznacznie zidentyfikować modelu na zdjęciu. Spróbuj przesłać wyraźniejsze zdjęcie naklejki znamionowej.",
+		provider_name: visionResp.provider_name,
+		model_name: visionResp.model_name
+	};
 }
 
 export async function recognizePartAndRecord(env, message, mediaBase64, session, ctx = null) {
@@ -2478,6 +2481,9 @@ export async function recognizePartAndRecord(env, message, mediaBase64, session,
       ],
       [
         { text: "📄 Datasheet & AI", callback_data: `datasheet_start_search:${partNumber || partName}` }
+      ],
+      [
+        { text: "🏠 Menu główne", callback_data: "command_start" }
       ]
     ]
   };
@@ -2583,157 +2589,173 @@ export async function curateSubmissions(env) {
 }
 
 /**
- * Inicjuje proces datasheetu - prosi o model urządzenia przed analizą.
+ * PRZENIESIONO DO datasheet.js — ta kopia pozostaje dla wstecznej kompatybilności.
+ * Nowe importy powinny pochodzić z "./datasheet.js".
  */
 export async function initDatasheetWorkflow(env, message, intent) {
-    let query = message.file_name || message.text || message.caption || "Analiza dokumentu PDF";
-    if (query.toLowerCase().endsWith(".pdf")) {
-        query = query.slice(0, -4);
-    }
-    const fileId = message.file_id || "NO_FILE";
-    
-    const sessionData = `${fileId}|${query}`;
-    // Tworzymy sesję oczekiwania na model, przekazujemy null jako device_id aby nie psuć klucza obcego
-    await upsertUserSession(env, message.chat_id, message.user_id, "datasheet_wait_model", null, sessionData);
-    
-    const replyText = [
-        `📄 *Asystent Dokumentacji Aktywny!*`,
-        "",
-        `Aby kontynuować i zasilić Narodową Bazę Wiedzy, muszę wiedzieć, skąd pochodzi ta część.`,
-        "",
-        `👉 *Wyślij zdjęcie etykiety/modelu urządzenia* lub *wpisz jego nazwę* (np. HP LaserJet P1102).`,
-        "",
-        `_Twoja informacja pomoże innym w naprawach i recyklingu!_`
-    ].join("\n");
-    
-    // Szukamy PDF już teraz, żeby dać przycisk jak najwcześniej
-    const pdfUrl = await findDatasheetPdfLink(query);
-    const replyMarkup = {
-        inline_keyboard: [
-            [{ text: "🤷‍♂️ Nie mam modelu", callback_data: "datasheet_no_model" }]
-        ]
-    };
-    if (pdfUrl) {
-        replyMarkup.inline_keyboard.unshift([{ text: "📄 Otwórz PDF", url: pdfUrl }]);
-    }
-    
-    return {
-        reply_text: replyText,
-        reply_markup: replyMarkup
-    };
+  let query = message.file_name || message.text || message.caption || "Analiza dokumentu PDF";
+  if (query.toLowerCase().endsWith(".pdf")) {
+    query = query.slice(0, -4);
+  }
+  const fileId = message.file_id || "NO_FILE";
+
+  // Zamknij WSZYSTKIE poprzednie sesje datasheet, aby uniknąć konfliktu URL-i
+  await closeUserSession(env, message.chat_id, message.user_id, "datasheet_wait_model");
+  await closeUserSession(env, message.chat_id, message.user_id, "datasheet_wait_question");
+  await closeUserSession(env, message.chat_id, message.user_id, "datasheet_wait_target");
+
+  const sessionData = `${fileId}|${query}`;
+  await upsertUserSession(env, message.chat_id, message.user_id, "datasheet_wait_model", null, sessionData);
+
+  const replyText = [
+    `📄 *Asystent Dokumentacji Aktywny!*`,
+    "",
+    `Szukam: *${query}*`,
+    "",
+    `👉 *Wyślij zdjęcie etykiety/modelu urządzenia* lub *wpisz jego nazwę* (np. HP LaserJet P1102).`,
+    "",
+    `_Twoja informacja pomoże innym w naprawach i recyklingu!_`
+  ].join("\n");
+
+  // Szukamy PDF już teraz, żeby dać przycisk jak najwcześniej
+  const pdfUrl = await findDatasheetPdfLink(query);
+  const replyMarkup = {
+    inline_keyboard: [
+      [{ text: "🤷‍♂️ Nie mam modelu", callback_data: "datasheet_no_model" }]
+    ]
+  };
+  if (pdfUrl) {
+    replyMarkup.inline_keyboard.unshift([{ text: "📄 Otwórz PDF", url: pdfUrl }]);
+  }
+
+  return {
+    reply_text: replyText,
+    reply_markup: replyMarkup
+  };
 }
 
 /**
- * Finalna analiza RAG po podaniu modelu urządzenia.
+ * PRZENIESIONO DO datasheet.js — ta kopia pozostaje dla wstecznej kompatybilności.
+ * Nowe importy powinny pochodzić z "./datasheet.js".
  */
 export async function handleFinalDatasheetRag(env, message, session, deviceModel, ctx = null) {
-    const sessionParts = (session.active_device_name || "NO_FILE|").split('|');
-    const fileId = sessionParts[0] === "NO_FILE" ? null : sessionParts[0];
-    const partQuery = sessionParts.slice(1).join('|');
-    
-    await sendTelegramReply(env, message, `⏳ Przyjąłem model: *${deviceModel}*. Szukam dokumentacji...`);
+  const sessionParts = (session.active_device_name || "NO_FILE|").split('|');
+  const fileId = sessionParts[0] === "NO_FILE" ? null : sessionParts[0];
+  const partQuery = sessionParts.slice(1).join('|');
 
-    // Zawsze szukamy linku PDF, nawet jeśli mamy plik od użytkownika
-    const pdfUrl = await findDatasheetPdfLink(partQuery) || "";
+  await sendTelegramReply(env, message, `⏳ Przyjąłem model: *${deviceModel}*. Szukam dokumentacji dla *${partQuery}*...`);
 
-    // Przechowujemy: fileId|partQuery|deviceModel|pdfUrl
-    const newSessionData = `${fileId || "NO_FILE"}|${partQuery}|${deviceModel}|${pdfUrl}`;
-    await upsertUserSession(env, message.chat_id, message.user_id, "datasheet_wait_question", null, newSessionData);
-    
-    const replyLines = [
-        `💡 *Świetnie!* Mamy model: \`${deviceModel}\`.`,
-        ""
-    ];
+  // Zawsze szukamy ODŚWIEŻONEGO linku PDF dla aktualnej części
+  const pdfUrl = await findDatasheetPdfLink(partQuery) || "";
 
-    if (pdfUrl) {
-        replyLines.push(
-            `🟢 *Znalazłem dokumentację PDF!*`,
-            ``,
-            `📲 Kliknij *Otwórz PDF* poniżej, pobierz plik na telefon, a następnie wyślij mi go tutaj.`,
-            `Po przesłaniu pliku wpisz swoje pytanie — przeanalizuję dokładnie ten dokument!`
-        );
-    } else if (!fileId) {
-        replyLines.push(
-            `🟡 Nie znalazłem PDF od producenta.`,
-            ``,
-            `Możesz poszukać datasheetu ręcznie i przesłać mi plik — lub po prostu zadaj pytanie, a odpowiem z pamięci.`
-        );
-    } else {
-        replyLines.push(`🟢 Mam Twój PDF. Wpisz pytanie!`);
-    }
+  // Przechowujemy: fileId|partQuery|deviceModel|pdfUrl
+  const newSessionData = `${fileId || "NO_FILE"}|${partQuery}|${deviceModel}|${pdfUrl}`;
+  await upsertUserSession(env, message.chat_id, message.user_id, "datasheet_wait_question", null, newSessionData);
 
-    if (!pdfUrl && !fileId) {
-        replyLines.push("", `_Przykłady pytań:_`,
-            `• "Jaki jest pinout?"`,
-            `• "Maksymalne napięcie zasilania?"`,
-            `• "Zaproponuj zamiennik."`
-        );
-    }
+  const replyLines = [
+    `💡 *Świetnie!* Mamy model: \`${deviceModel}\`.`,
+    ""
+  ];
 
-    const replyMarkup = pdfUrl ? {
-        inline_keyboard: [[{ text: "📄 Otwórz PDF", url: pdfUrl }]]
-    } : undefined;
+  if (pdfUrl) {
+    replyLines.push(
+      `🟢 *Znalazłem dokumentację PDF!*`,
+      ``,
+      `📲 Kliknij *Otwórz PDF* poniżej, pobierz plik na telefon, a następnie wyślij mi go tutaj.`,
+      `Po przesłaniu pliku wpisz swoje pytanie — przeanalizuję dokładnie ten dokument!`
+    );
+  } else if (!fileId) {
+    replyLines.push(
+      `🟡 Nie znalazłem PDF od producenta.`,
+      ``,
+      `Możesz poszukać datasheetu ręcznie i przesłać mi plik — lub po prostu zadaj pytanie, a odpowiem z pamięci.`
+    );
+  } else {
+    replyLines.push(`🟢 Mam Twój PDF. Wpisz pytanie!`);
+  }
 
-    return { reply_text: replyLines.join("\n"), reply_markup: replyMarkup };
+  if (!pdfUrl && !fileId) {
+    replyLines.push("", `_Przykłady pytań:_`, `• "Jaki jest pinout?"`, `• "Maksymalne napięcie zasilania?"`, `• "Zaproponuj zamiennik."`);
+  }
+
+  const replyMarkup = pdfUrl ? {
+    inline_keyboard: [
+      [{ text: "📄 Otwórz PDF", url: pdfUrl }],
+      [{ text: "🏠 Menu główne", callback_data: "command_start" }]
+    ]
+  } : { inline_keyboard: [[{ text: "🏠 Menu główne", callback_data: "command_start" }]] };
+
+  return { reply_text: replyLines.join("\n"), reply_markup: replyMarkup };
 }
 
 /**
- * KROK 2: Finalna analiza RAG z pytaniem użytkownika.
+ * PRZENIESIONO DO datasheet.js — ta kopia pozostaje dla wstecznej kompatybilności.
+ * Nowe importy powinny pochodzić z "./datasheet.js".
  */
 export async function handleFinalDatasheetRagFinal(env, message, session, userQuestion, ctx = null) {
-    // Format sesji: fileId|partQuery|deviceModel|pdfUrl
-    const sessionParts = (session.active_device_name || "NO_FILE|||").split('|');
-    const fileId = sessionParts[0] === "NO_FILE" ? null : sessionParts[0];
-    const partQuery = sessionParts[1] || "";
-    // pdfUrl jest zawsze ostatnim segmentem; deviceModel może zawierać '|'
-    const cachedPdfUrl = sessionParts[sessionParts.length - 1] || "";
-    const deviceModel = sessionParts.slice(2, sessionParts.length - 1).join('|');
+  // Format sesji: fileId|partQuery|deviceModel|pdfUrl
+  const sessionParts = (session.active_device_name || "NO_FILE|||").split('|');
+  const fileId = sessionParts[0] === "NO_FILE" ? null : sessionParts[0];
+  const partQuery = sessionParts[1] || "";
+  // pdfUrl jest zawsze ostatnim segmentem; deviceModel może zawierać '|'
+  const cachedPdfUrl = sessionParts[sessionParts.length - 1] || "";
+  const deviceModel = sessionParts.slice(2, sessionParts.length - 1).join('|');
 
-    await sendTelegramReply(env, message, `🔎 Analizuję datasheet pod kątem Twojego pytania: _"${userQuestion}"_...`);
+  await sendTelegramReply(env, message, `🔎 Analizuję datasheet pod kątem Twojego pytania: _"${userQuestion}"_...`);
 
-    let aiContext = "";
-    const resolvedPdfUrl = cachedPdfUrl;
+  let aiContext = "";
 
-    const ragSystemForDevice = [
-        "Jesteś inżynierem elektronikiem. Odpowiadasz precyzyjnie na pytania techniczne.",
-        `Analizujesz część: ${partQuery} z urządzenia: ${deviceModel}.`,
-        "Odpowiedz zwięźle i technicznie. Jeśli nie znasz odpowiedzi, powiedz to szczerze."
-    ].join(" ");
+  // Odśwież URL PDF dla aktualnej części — nie ufaj cache z sesji
+  const freshPdfUrl = await findDatasheetPdfLink(partQuery) || cachedPdfUrl;
+  const resolvedPdfUrl = freshPdfUrl;
 
-    if (fileId) {
-        // SCENARIUSZ A: PDF przesłany przez użytkownika
-        const base64 = await fetchTelegramFileAsBase64(env, fileId);
-        if (base64) {
-            const visionResp = await callGoogleProvider(env, {
-                systemInstruction: ragSystemForDevice,
-                userPrompt: `Pytanie użytkownika: ${userQuestion}\n\nNazwa części: ${partQuery}`,
-                temperature: 0.1,
-                maxTokens: 1500,
-                media: [{ data: base64, mime_type: "application/pdf" }]
-            });
-            aiContext = visionResp.text;
-        }
-    } else if (resolvedPdfUrl) {
-        // SCENARIUSZ B: Mamy URL z sesji – próbujemy pobrać i przeanalizować
-        await sendTelegramReply(env, message, "📥 Pobieram dokumentację do analizy...");
-        const fetchedBase64 = await fetchExternalPdfAsBase64(resolvedPdfUrl);
+  const ragSystemForDevice = [
+    "Jesteś inżynierem elektronikiem. Odpowiadasz precyzyjnie na pytania techniczne.",
+    `Analizujesz część: ${partQuery} z urządzenia: ${deviceModel}.`,
+    "Odpowiedz zwięźle i technicznie. Jeśli nie znasz odpowiedzi, powiedz to szczerze."
+  ].join(" ");
 
-        if (fetchedBase64) {
-            const visionResp = await callGoogleProvider(env, {
-                systemInstruction: ragSystemForDevice,
-                userPrompt: `Pytanie użytkownika: ${userQuestion}\n\nNazwa części: ${partQuery}`,
-                temperature: 0.1,
-                maxTokens: 1500,
-                media: [{ data: fetchedBase64, mime_type: "application/pdf" }]
-            });
-            aiContext = visionResp.text;
-        }
-        // Niezależnie czy udało się pobrać PDF, robimy fallback AI (jeśli aiContext puste)
+  if (fileId) {
+    // SCENARIUSZ A: PDF przesłany przez użytkownika
+    const base64 = await fetchTelegramFileAsBase64(env, fileId);
+    if (base64) {
+      try {
+        const visionResp = await callGoogleProvider(env, {
+          systemInstruction: ragSystemForDevice,
+          userPrompt: `Pytanie użytkownika: ${userQuestion}\n\nNazwa części: ${partQuery}`,
+          temperature: 0.1,
+          maxTokens: 1500,
+          media: [{ data: base64, mime_type: "application/pdf" }]
+        });
+        aiContext = visionResp.text;
+      } catch (error) {
+        console.error("[handleFinalDatasheetRagFinal] PDF vision error:", error instanceof Error ? error.message : String(error));
+      }
     }
+  } else if (resolvedPdfUrl) {
+    // SCENARIUSZ B: Mamy URL – próbujemy pobrać i przeanalizować
+    await sendTelegramReply(env, message, "📥 Pobieram dokumentację do analizy...");
+    const fetchedBase64 = await fetchExternalPdfAsBase64(resolvedPdfUrl);
 
-    // FALLBACK AI – gdy nie ma treści z PDF (PDF niedostępny, brak pliku, błąd)
-    if (!aiContext) {
-        const fallbackPrompt = `Odpowiedz na pytanie techniczne o komponent elektroniczny.
+    if (fetchedBase64) {
+      try {
+        const visionResp = await callGoogleProvider(env, {
+          systemInstruction: ragSystemForDevice,
+          userPrompt: `Pytanie użytkownika: ${userQuestion}\n\nNazwa części: ${partQuery}`,
+          temperature: 0.1,
+          maxTokens: 1500,
+          media: [{ data: fetchedBase64, mime_type: "application/pdf" }]
+        });
+        aiContext = visionResp.text;
+      } catch (error) {
+        console.error("[handleFinalDatasheetRagFinal] PDF download+vision error:", error instanceof Error ? error.message : String(error));
+      }
+    }
+  }
+
+  // FALLBACK AI – gdy nie ma treści z PDF (PDF niedostępny, brak pliku, błąd)
+  if (!aiContext) {
+    const fallbackPrompt = `Odpowiedz na pytanie techniczne o komponent elektroniczny.
 Część: ${partQuery}
 Urządzenie: ${deviceModel || "nieznane"}
 ${resolvedPdfUrl ? `Link do datasheetu (informacyjnie): ${resolvedPdfUrl}` : ""}
@@ -2741,103 +2763,273 @@ Pytanie: ${userQuestion}
 
 Odpowiedz precyzyjnie i technicznie. Podaj kluczowe parametry jeśli znasz.`;
 
-        const fallbackResp = await callProviderWithFallback(
-            env,
-            buildPromptPayload(ragSystemForDevice, fallbackPrompt, env, { maxTokens: 1200, temperature: 0.2 })
-        );
-        aiContext = fallbackResp.text;
-    }
+    const fallbackResp = await callProviderWithFallback(
+      env,
+      buildPromptPayload(ragSystemForDevice, fallbackPrompt, env, { maxTokens: 1200, temperature: 0.2 })
+    );
+    aiContext = fallbackResp.text;
+  }
 
-    // ZAPIS DO BAZY
-    await recordRecycledSubmission(env, {
-        chat_id: message?.chat_id,
-        user_id: message?.user_id,
-        message_id: message?.message_id,
-        lookup_kind: "datasheet_rag_complete",
-        query_text: deviceModel,
-        matched_part_name: partQuery,
-        matched_part_number: partQuery,
-        status: "approved",
-        raw_payload_json: { question: userQuestion, answer: aiContext, device: deviceModel, pdf_url: resolvedPdfUrl }
-    });
+  // ZAPIS DO BAZY
+  await recordRecycledSubmission(env, {
+    chat_id: message?.chat_id,
+    user_id: message?.user_id,
+    message_id: message?.message_id,
+    lookup_kind: "datasheet_rag_complete",
+    query_text: deviceModel,
+    matched_part_name: partQuery,
+    matched_part_number: partQuery,
+    status: "approved",
+    raw_payload_json: { question: userQuestion, answer: aiContext, device: deviceModel, pdf_url: resolvedPdfUrl }
+  });
 
-    await closeUserSession(env, message.chat_id, message.user_id, "datasheet_wait_question");
+  await closeUserSession(env, message.chat_id, message.user_id, "datasheet_wait_question");
 
-    // Przyciski: PDF (jeśli mamy URL) + Google
-    const pdfButtons = [];
-    if (resolvedPdfUrl) {
-        pdfButtons.push({ text: "📄 Otwórz PDF", url: resolvedPdfUrl });
-    }
-    pdfButtons.push({ text: "🔍 Szukaj w Google", url: `https://www.google.com/search?q=${encodeURIComponent(partQuery)}+datasheet+filetype:pdf` });
+  // Przyciski: PDF (jeśli mamy URL) + Google + /start
+  const inlineKeyboard = [];
+  if (resolvedPdfUrl) {
+    inlineKeyboard.push([{ text: "📄 Otwórz PDF", url: resolvedPdfUrl }]);
+  }
+  inlineKeyboard.push([{ text: "🔍 Szukaj w Google", url: `https://www.google.com/search?q=${encodeURIComponent(partQuery)}+datasheet+filetype:pdf` }]);
+  inlineKeyboard.push([{ text: "🏠 Menu główne", callback_data: "command_start" }]);
 
-    const sourceLabel = fileId ? "Przesłany PDF" : (resolvedPdfUrl ? resolvedPdfUrl : "Baza wiedzy AI");
+  const sourceLabel = fileId ? "Przesłany PDF" : (resolvedPdfUrl ? resolvedPdfUrl : "Baza wiedzy AI");
 
-    return {
-        reply_text: `✅ *Analiza zakończona!*\n\n${aiContext}\n\n🔗 *Źródło:* ${sourceLabel}`,
-        reply_markup: { inline_keyboard: [pdfButtons] }
-    };
+  return {
+    reply_text: `✅ *Analiza zakończona!*\n\n${aiContext}\n\n🔗 *Źródło:* ${sourceLabel}`,
+    reply_markup: { inline_keyboard: inlineKeyboard }
+  };
 }
 
 
 
-/**
- * Funkcja Czytnika Rezystorów (6. funkcjonalność)
- */
+const _R_COLOR_MAP = {
+  czarny: { digit: 0, multiplier: 1, tolerance: null },
+  "brązowy": { digit: 1, multiplier: 10, tolerance: "1%" },
+  czerwony: { digit: 2, multiplier: 100, tolerance: "2%" },
+  pomarańczowy: { digit: 3, multiplier: 1e3, tolerance: null },
+  "żółty": { digit: 4, multiplier: 1e4, tolerance: null },
+  zielony: { digit: 5, multiplier: 1e5, tolerance: "0.5%" },
+  niebieski: { digit: 6, multiplier: 1e6, tolerance: "0.25%" },
+  fioletowy: { digit: 7, multiplier: 1e7, tolerance: "0.1%" },
+  szary: { digit: 8, multiplier: 1e8, tolerance: "0.05%" },
+  biały: { digit: 9, multiplier: 1e9, tolerance: null },
+  "złoty": { digit: null, multiplier: 0.1, tolerance: "5%" },
+  srebrny: { digit: null, multiplier: 0.01, tolerance: "10%" },
+};
+const _R_COLOR_ALIAS = {
+  black:"czarny",brown:"brązowy",red:"czerwony",orange:"pomarańczowy",yellow:"żółty",green:"zielony",blue:"niebieski",violet:"fioletowy",purple:"fioletowy",grey:"szary",gray:"szary",white:"biały",gold:"złoty",silver:"srebrny",
+  brąz:"brązowy",czer:"czerwony",pom:"pomarańczowy",żółt:"żółty",ziel:"zielony",nieb:"niebieski",fio:"fioletowy",srebr:"srebrny",
+};
+function _normC(r){const k=String(r||"").trim().toLowerCase().replace(/[ąа]/g,"a").replace(/[ćс]/g,"c").replace(/[ęe]/g,"e").replace(/[łl]/g,"l").replace(/[ńn]/g,"n").replace(/[óo]/g,"o").replace(/[śs]/g,"s").replace(/[źz]/g,"z").replace(/[żz]/g,"z");if(_R_COLOR_ALIAS[k])return _R_COLOR_ALIAS[k];for(const[a,c]of Object.entries(_R_COLOR_ALIAS)){if(k.startsWith(a)||a.startsWith(k))return c}for(const c of Object.keys(_R_COLOR_MAP)){const n=c.toLowerCase().replace(/[ąа]/g,"a").replace(/[ćс]/g,"c").replace(/[ęe]/g,"e").replace(/[łl]/g,"l").replace(/[ńn]/g,"n").replace(/[óo]/g,"o").replace(/[śs]/g,"s").replace(/[źz]/g,"z").replace(/[żz]/g,"z");if(n===k||k.startsWith(n)||n.startsWith(k))return c}return r}
+function _calcTHT(bands){if(!Array.isArray(bands)||bands.length<3)return null;const r=bands.map(b=>_normC(b));for(const c of r){if(!_R_COLOR_MAP[c])return null}const n=r.length;let ohms,tol;if(n===4){const d1=_R_COLOR_MAP[r[0]].digit,d2=_R_COLOR_MAP[r[1]].digit,m=_R_COLOR_MAP[r[2]].multiplier;tol=_R_COLOR_MAP[r[3]].tolerance;if(d1===null||d2===null||m===null)return null;ohms=(d1*10+d2)*m}else if(n===5){const d1=_R_COLOR_MAP[r[0]].digit,d2=_R_COLOR_MAP[r[1]].digit,d3=_R_COLOR_MAP[r[2]].digit,m=_R_COLOR_MAP[r[3]].multiplier;tol=_R_COLOR_MAP[r[4]].tolerance;if(d1===null||d2===null||d3===null||m===null)return null;ohms=(d1*100+d2*10+d3)*m}else if(n===6){const d1=_R_COLOR_MAP[r[0]].digit,d2=_R_COLOR_MAP[r[1]].digit,d3=_R_COLOR_MAP[r[2]].digit,m=_R_COLOR_MAP[r[3]].multiplier;tol=_R_COLOR_MAP[r[4]].tolerance;if(d1===null||d2===null||d3===null||m===null)return null;ohms=(d1*100+d2*10+d3)*m}else return null;return{ohms,tolerance:tol||null,bands:r,bandCount:n}}
+function _calcSMD(code){const c=String(code||"").trim();if(!/^\d{3,4}[A-Z]?$/.test(c)&&!/^\d+R\d*$/i.test(c)&&!/^\d+\.\d+R$/i.test(c))return null;if(/^\d+R\d*$/i.test(c)||/^\d+\.\d+R$/i.test(c))return{ohms:parseFloat(c.replace(/R/i,".")),tolerance:null,smdCode:c};const m=c.match(/^(\d{3,4})([A-Z])?$/);if(!m)return null;const d=m[1],s=m[2]||null;if(s==="R")return{ohms:parseFloat(d.slice(0,-1)+"."+d.slice(-1)),tolerance:null,smdCode:c};const l=d.length,sig=parseInt(d.slice(0,l-1),10),exp=parseInt(d.slice(l-1),10);return{ohms:sig*Math.pow(10,exp),tolerance:null,smdCode:c}}
+function _fmtOhm(o){if(o===null||o===undefined)return null;if(o>=1e6&&o%1e6===0)return`${o/1e6} MΩ`;if(o>=1e3&&o%1e3===0)return`${o/1e3} kΩ`;if(o>=1e3)return`${(o/1e3).toFixed(2)} kΩ`;if(o<1&&o>0)return`${o} Ω`;return`${o} Ω`}
+function _parseOhmAI(s){if(!s)return null;const v=String(s).replace(/[ΩOhm\s]/gi,"").replace(",",".").trim();const m=v.match(/^([\d.]+)\s*([kKMmGg])?$/);if(!m)return null;let val=parseFloat(m[1]);if(isNaN(val))return null;const p=(m[2]||"").toLowerCase();if(p==="k")val*=1e3;else if(p==="m")val*=1e6;else if(p==="g")val*=1e9;return val}
+function _cmpV(ai,calc){if(ai===null||calc===null)return"inconclusive";if(ai===calc)return"match";const r=Math.max(ai,calc)/Math.min(ai,calc);if(r<=1.001)return"match";if(r<=10)return"mismatch_minor";return"mismatch_major"}
+function _verReply(ai,calc,aiO){const af=ai.value||"—",at=ai.tolerance||"—",cf=ai.code_format||"—",ab=ai.bands&&ai.bands.length>0?ai.bands.join(" → "):"—",ac=ai.confidence?Math.round(ai.confidence*100):null;let l=[];l.push("🎨 *Wynik odczytu rezystora:*");l.push("");l.push(`📊 Wartość AI: *${af}*`);if(at!=="—")l.push(`📏 Tolerancja AI: ${at}`);if(cf!=="—")l.push(`🔧 Format: ${cf}`);if(ab!=="—")l.push(`🎨 Paski AI: ${ab}`);if(ac!==null)l.push(`🤖 Pewność AI: ${ac}%`);if(calc){const cF=_fmtOhm(calc.ohms),cT=calc.tolerance||"—",v=_cmpV(aiO,calc.ohms);l.push("");l.push("━━━━━━━━━━━━━━━━━━━━━━");l.push("🛡 *Weryfikacja algorytmiczna:*");l.push("");if(calc.bands){l.push(`📐 Obliczono z pasków (${calc.bandCount}-paskowy): *${cF}*`);l.push(`🎨 Paski rozpoznane: ${calc.bands.join(" → ")}`)}else if(calc.smdCode){l.push(`📐 Obliczono z kodu SMD \`${calc.smdCode}\`: *${cF}*`)}if(cT!=="—")l.push(`📏 Tolerancja z paska: ${cT}`);l.push("");if(v==="match")l.push("✅ *Wynik zweryfikowany* — obliczenia algorytmiczne potwierdzają odpowiedź modelu AI. Odczyt jest spójny i wiarygodny.");else if(v==="mismatch_minor"){l.push("⚠️ *Niewielka rozbieżność* — wartość AI i obliczona różnią się, ale w granicach jednego rzędu wielkości. Możliwy błąd w rozpoznaniu paska mnożnika. Zalecam ostrożność — sprawdź ręcznie.");l.push(`🔍 AI: ${af} | Obliczono: ${cF}`)}else if(v==="mismatch_major"){l.push("🚨 *Istotna rozbieżność* — odpowiedź AI znacząco odstaje od obliczeń algorytmicznych. Prawdopodobne halucynacje modelu. Zdecydowanie polecam weryfikację ręczną.");l.push(`🔍 AI: ${af} | Obliczono: *${cF}*`)}else l.push("❓ *Weryfikacja niejednoznaczna* — nie udało się porównać wyników. Skonsultuj się z tabelą kodów.");l.push("");l.push("_Warstwa zabezpieczająca: oznaczenia z obrazu zostały przeliczone niezależnym algorytmem i skonfrontowane z odpowiedzią AI, aby chronić przed halucynacjami modelu._")}else{l.push("");l.push("━━━━━━━━━━━━━━━━━━━━━━");l.push("🛡 *Weryfikacja algorytmiczna:*");l.push("");l.push("⚠️ Nie udało się przeprowadzić niezależnej weryfikacji — model nie podał wystarczających oznaczeń (pasków/kodu SMD) do przeliczenia algorytmicznego.");l.push("_Brak danych wejściowych do weryfikacji przeciwhalucynacyjnej. Traktuj wynik z ostrożnością._")}return l.join("\n")}
+
+function _tryParseBands(text){
+  if(!text||typeof text!=="string")return null;
+  const t=text.replace(/[.,;|\/\n]+/g,",").trim();
+  const parts=t.split(",").map(s=>s.trim()).filter(Boolean);
+  if(parts.length<3||parts.length>6)return null;
+  const valid=new Set(Object.keys(_R_COLOR_MAP));
+  for(const p of parts){
+    const n=_normC(p);
+    if(!valid.has(n))return null;
+  }
+  return parts;
+}
+
+function _tryParseSMD(text){
+  if(!text||typeof text!=="string")return null;
+  const t=text.trim().toUpperCase();
+  if(/^\d{3,4}[A-Z]?$/.test(t)||/^\d+R\d*$/i.test(text.trim())||/^\d+\.\d+R$/i.test(text.trim()))return t;
+  return null;
+}
+
+function _algOnlyReply(calc,input){
+  let l=[];
+  l.push("🎨 *Wynik obliczenia rezystora:*");
+  l.push("");
+  if(calc.bands){
+    l.push(`📐 Format: THT (${calc.bandCount}-paskowy)`);
+    l.push(`🎨 Kolory: ${calc.bands.join(" → ")}`);
+    l.push(`📊 Wartość: *${_fmtOhm(calc.ohms)}*`);
+    if(calc.tolerance)l.push(`📏 Tolerancja: ${calc.tolerance}`);
+  }else if(calc.smdCode){
+    l.push(`📐 Format: SMD`);
+    l.push(`🔢 Kod SMD: \`${calc.smdCode}\``);
+    l.push(`📊 Wartość: *${_fmtOhm(calc.ohms)}*`);
+  }
+  l.push("");
+  l.push("✅ *Wynik czysto algorytmiczny* — obliczono bez udziału AI na podstawie podanych danych.");
+  l.push("");
+  l.push(`_Dane wejściowe: "${input}"_`);
+  return l.join("\n");
+}
+
+export function getResistorLegendText(){
+  return [
+    "📖 *Legenda kodów rezystorów:*",
+    "",
+    "*THT — paski kolorów:*",
+    "⬛ czarny = 0 | 🟫 brązowy = 1 | 🟥 czerwony = 2",
+    "🟧 pomarańczowy = 3 | 🟨 żółty = 4 | 🟩 zielony = 5",
+    "🟦 niebieski = 6 | 🟪 fioletowy = 7 | ⬜ szary = 8 | ⬜ biały = 9",
+    "",
+    "Mnożnik: czarny×1, brązowy×10, czerwony×100, pomarańczowy×1k, żółty×10k, zielony×100k, niebieski×1M",
+    "Tolerancja: złoty=5%, srebrny=10%, brązowy=1%, czerwony=2%, zielony=0.5%",
+    "",
+    "*SMD — kody 3/4 cyfrowe:*",
+    "103 = 10kΩ | 4702 = 47kΩ | 2200 = 220Ω",
+    "R = przecinek: 4R7 = 4.7Ω | 47R = 47Ω"
+  ].join("\n");
+}
+
 export async function handleResistorAnalysis(env, message, preFetchedBase64 = null) {
-    if (!message.file_id && !message.text) {
-        return { reply_text: "Aby odczytać rezystor, wyślij jego zdjęcie lub wpisz kolory pasków / kod SMD." };
-    }
-    
-    await sendTelegramReply(env, message, "🎨 Analizuję dane rezystora...");
-    
-    let systemPrompt = "";
-    let userPrompt = "";
-    let mediaPayload = null;
-
-    if (message.file_id) {
-        const base64 = preFetchedBase64 || await fetchTelegramFileAsBase64(env, message.file_id);
-        if (!base64) return { reply_text: "Nie udało się pobrać zdjęcia." };
-        
-        systemPrompt = [
-            "Jesteś ekspertem od komponentów elektronicznych.",
-            "Zidentyfikuj wartość rezystora ze zdjęcia.",
-            "Jeśli to rezystor THT, zidentyfikuj kolory pasków i oblicz rezystancję oraz tolerancję.",
-            "Jeśli to rezystor SMD, odczytaj kod (np. 103, 1002, 47R) i podaj wartość.",
-            "Zwróć wynik w formacie: 'Wartość: [X] Ohm, Tolerancja: [Y]%' oraz krótkie wyjaśnienie."
-        ].join(" ");
-        userPrompt = "Podaj wartość tego rezystora ze zdjęcia.";
-        mediaPayload = [{ data: base64, mime_type: message.mime_type || "image/jpeg" }];
-    } else {
-        systemPrompt = [
-            "Jesteś ekspertem od komponentów elektronicznych.",
-            "Oblicz wartość rezystora na podstawie kolorów pasków lub kodu SMD podanego przez użytkownika.",
-            "Użytkownik może podać kolory (np. brązowy czarny czerwony złoty) lub kod SMD (np. 103, 47R).",
-            "Zwróć wynik w formacie: 'Wartość: [X] Ohm, Tolerancja: [Y]%' oraz krótkie wyjaśnienie."
-        ].join(" ");
-        userPrompt = `Użytkownik napisał: "${message.text}". Oblicz wartość.`;
-    }
-
-    const payloadOptions = { maxTokens: 500 };
-    if (mediaPayload) payloadOptions.media = mediaPayload;
-
-    try {
-        const visionResp = await callProviderWithFallback(
-            env,
-            buildPromptPayload(systemPrompt, userPrompt, env, payloadOptions)
-        );
-
-        return { 
-            reply_text: `🎨 *Wynik odczytu rezystora:*\n\n${visionResp.text}`,
-            provider_name: visionResp.provider_name,
-            model_name: visionResp.model_name
-        };
-    } catch (e) {
-        console.error("Błąd handleResistorAnalysis:", e);
-        return {
-            reply_text: `❌ *Błąd odczytu rezystora:* ${e instanceof Error ? e.message : "Nieznany błąd AI"}. Spróbuj ponownie za chwilę lub wpisz kolory ręcznie.`
-        };
-    }
+if (!message.file_id && !message.text) {
+return { reply_text: "Aby odczytać rezystor, wyślij jego zdjęcie lub wpisz kolory pasków / kod SMD." };
 }
+
+  if (!message.file_id && message.text) {
+  const bands = _tryParseBands(message.text);
+  if (bands) {
+    const calcResult = _calcTHT(bands);
+    if (calcResult) {
+      const replyText = _algOnlyReply(calcResult, message.text);
+      return {
+        reply_text: replyText,
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: "✏️ Edytuj kolory", callback_data: "resistor_edit_bands" }],
+            [{ text: "📖 Legenda kolorów", callback_data: "resistor_legend" }],
+            [{ text: "🏠 Menu główne", callback_data: "command_start" }]
+          ]
+        },
+        _resistor_edit_data: `THT:${bands.join(",")}`
+      };
+    }
+  }
+  const smdCode = _tryParseSMD(message.text);
+  if (smdCode) {
+    const calcResult = _calcSMD(smdCode);
+    if (calcResult) {
+      const replyText = _algOnlyReply(calcResult, message.text);
+      return {
+        reply_text: replyText,
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: "✏️ Edytuj kod SMD", callback_data: "resistor_edit_bands" }],
+            [{ text: "📖 Legenda kolorów", callback_data: "resistor_legend" }],
+            [{ text: "🏠 Menu główne", callback_data: "command_start" }]
+          ]
+        },
+        _resistor_edit_data: `SMD:${smdCode}`
+      };
+    }
+  }
+}
+
+await sendTelegramReply(env, message, "🎨 Analizuję dane rezystora...");
+
+let systemPrompt = "";
+let userPrompt = "";
+let mediaPayload = null;
+
+if (message.file_id) {
+const base64 = preFetchedBase64 || await fetchTelegramFileAsBase64(env, message.file_id);
+if (!base64) return { reply_text: "Nie udało się pobrać zdjęcia." };
+
+systemPrompt = [
+"Jesteś ekspertem elektroniki specjalizującym się w odczycie rezystorów.",
+"Na zdjęciu znajduje się rezystor. Odczytaj jego wartość na podstawie pasków kolorów (THT) lub kodu alfanumerycznego (SMD).",
+"",
+"Zwróć TYLKO JSON w formacie:",
+'{ "type": "resistor", "value": "wartość (np. 4.7 kΩ, 220 Ω)", "value_ohm": liczba_w_ohmach, "tolerance": "np. 5%", "bands": ["kolor1","kolor2",...], "smd_code": "kod SMD jeśli applicable", "code_format": "THT" lub "SMD", "confidence": 0.9 }',
+"",
+"Dla THT: wypisz kolory WSZYSTKICH pasków po kolei, używając polskich nazw:",
+"czarny, brązowy, czerwony, pomarańczowy, żółty, zielony, niebieski, fioletowy, szary, biały, złoty, srebrny.",
+"Dla SMD: wypisz dokładny kod w polu smd_code.",
+"Pole value_ohm musi być liczbą (np. 4700, nie \"4.7k\").",
+"Zwróć TYLKO JSON bez Markdown."
+].join("\n");
+userPrompt = "Odczytaj wartość tego rezystora ze zdjęcia. Wypisz dokładne kolory pasków lub kod SMD.";
+mediaPayload = [{ data: base64, mime_type: message.mime_type || "image/jpeg" }];
+} else {
+systemPrompt = [
+"Jesteś ekspertem elektroniki specjalizującym się w odczycie rezystorów.",
+"Oblicz wartość rezystora na podstawie kolorów pasków lub kodu SMD podanego przez użytkownika.",
+"Użytkownik może podać kolory (np. brązowy czarny czerwony złoty) lub kod SMD (np. 103, 47R).",
+"",
+"Zwróć TYLKO JSON w formacie:",
+'{ "type": "resistor", "value": "wartość (np. 4.7 kΩ, 220 Ω)", "value_ohm": liczba_w_ohmach, "tolerance": "np. 5%", "bands": ["kolor1","kolor2",...], "smd_code": "kod SMD jeśli applicable", "code_format": "THT" lub "SMD", "confidence": 0.9 }',
+"",
+"Pole value_ohm musi być liczbą (np. 4700, nie \"4.7k\").",
+"Zwróć TYLKO JSON bez Markdown."
+].join("\n");
+userPrompt = `Użytkownik napisał: "${message.text}". Oblicz wartość.`;
+}
+
+const payloadOptions = { maxTokens: 600, responseMimeType: "application/json" };
+if (mediaPayload) payloadOptions.media = mediaPayload;
+
+try {
+const visionResp = await callProviderWithFallback(
+env,
+buildPromptPayload(systemPrompt, userPrompt, env, payloadOptions)
+);
+
+const identity = extractJsonObject(visionResp.text);
+
+let calcResult = null;
+let aiOhms = null;
+
+if (identity.value_ohm && typeof identity.value_ohm === "number") {
+aiOhms = identity.value_ohm;
+} else if (identity.value) {
+aiOhms = _parseOhmAI(identity.value);
+}
+
+if (identity.code_format === "THT" && identity.bands && identity.bands.length >= 3) {
+calcResult = _calcTHT(identity.bands);
+} else if (identity.code_format === "SMD" && identity.smd_code) {
+calcResult = _calcSMD(identity.smd_code);
+} else if (identity.bands && identity.bands.length >= 3) {
+calcResult = _calcTHT(identity.bands);
+} else if (identity.smd_code) {
+calcResult = _calcSMD(identity.smd_code);
+}
+
+  if (calcResult || aiOhms !== null) {
+  const replyText = _verReply(identity, calcResult, aiOhms);
+  const editData = identity.bands && identity.bands.length >= 3
+    ? `THT:${identity.bands.join(",")}`
+    : identity.smd_code
+    ? `SMD:${identity.smd_code}`
+    : null;
+  const kb = [];
+  if (editData) kb.push([{ text: "✏️ Edytuj kolory/kod", callback_data: "resistor_edit_bands" }]);
+  kb.push([{ text: "📖 Legenda kolorów", callback_data: "resistor_legend" }]);
+  kb.push([{ text: "🏠 Menu główne", callback_data: "command_start" }]);
+  return { reply_text: replyText, reply_markup: { inline_keyboard: kb }, _resistor_edit_data: editData, provider_name: visionResp.provider_name, model_name: visionResp.model_name };
+}
+
+      return {
+        reply_text: `🎨 *Wynik odczytu rezystora:*\n\n${visionResp.text}`,
+        reply_markup: { inline_keyboard: [[{ text: "📖 Legenda kolorów", callback_data: "resistor_legend" }], [{ text: "🏠 Menu główne", callback_data: "command_start" }]] },
+        provider_name: visionResp.provider_name,
+        model_name: visionResp.model_name
+      };
+    } catch (e) {
+      console.error("Błąd handleResistorAnalysis:", e);
+      return {
+        reply_text: `❌ *Błąd odczytu rezystora:* ${e instanceof Error ? e.message : "Nieznany błąd AI"}. Spróbuj ponownie za chwilę lub wpisz kolory ręcznie.`,
+        reply_markup: { inline_keyboard: [[{ text: "🏠 Menu główne", callback_data: "command_start" }]] }
+      };
+    }
+  }
 
 /**
  * Szuka bezpośredniego linku PDF u producentów (TI, ST, onsemi, NXP, Infineon).

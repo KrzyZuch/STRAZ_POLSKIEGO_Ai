@@ -513,8 +513,12 @@ async function handleActiveSessions(env, message, ctx) {
       await closeUserSession(env, message.chat_id, message.user_id, "resistor_wait_photo");
       const result = await handleResistorAnalysis(env, message);
       if (result && result._resistor_edit_data) {
-        const aiInfoStr = result._ai_resistor ? JSON.stringify(result._ai_resistor) : null;
-        await upsertUserSession(env, message.chat_id, message.user_id, "resistor_edit_bands", aiInfoStr, result._resistor_edit_data);
+        // Fix: Don't store JSON in active_device_id (INTEGER FK). Use active_device_name (TEXT).
+        const packedMetadata = JSON.stringify({
+          ai: result._ai_resistor || null,
+          edit: result._resistor_edit_data
+        });
+        await upsertUserSession(env, message.chat_id, message.user_id, "resistor_edit_bands", null, packedMetadata);
         delete result._resistor_edit_data;
         delete result._ai_resistor;
       }
@@ -535,18 +539,35 @@ async function handleActiveSessions(env, message, ctx) {
   const editBandSession = await getUserSession(env, message.chat_id, message.user_id, "resistor_edit_bands");
   if (editBandSession) {
     if (message.text && !message.text.startsWith("/")) {
-      const prevData = editBandSession.active_device_name || "";
-      const aiInfoRaw = editBandSession.active_device_id || "";
+      let prevData = editBandSession.active_device_name || "";
+      let aiInfoRaw = editBandSession.active_device_id || "";
       let aiInfo = null;
-      try { aiInfo = aiInfoRaw ? JSON.parse(aiInfoRaw) : null; } catch(_) {}
+
+      // Backward compatibility & Packed metadata detection
+      if (prevData.startsWith("{")) {
+        try {
+          const packed = JSON.parse(prevData);
+          if (packed.ai || packed.edit) {
+            aiInfo = packed.ai;
+            prevData = packed.edit;
+            aiInfoRaw = aiInfo ? JSON.stringify(aiInfo) : "";
+          }
+        } catch(_) {}
+      }
+
+      if (!aiInfo) {
+        try { aiInfo = aiInfoRaw ? JSON.parse(aiInfoRaw) : null; } catch(_) {}
+      }
+
       const aiValue = aiInfo ? aiInfo.value : null;
       const aiTolerance = aiInfo ? aiInfo.tolerance : null;
       const aiFormat = aiInfo ? aiInfo.code_format : null;
       const aiOhms = aiInfo ? aiInfo.value_ohm : null;
       const verText = runResistorVerification(aiValue, aiTolerance, aiFormat, prevData, message.text);
       await closeUserSession(env, message.chat_id, message.user_id, "resistor_edit_bands");
-      const newEditData = prevData;
-      await upsertUserSession(env, message.chat_id, message.user_id, "resistor_edit_bands", aiInfoRaw || null, newEditData);
+      
+      const newMetadata = JSON.stringify({ ai: aiInfo, edit: prevData });
+      await upsertUserSession(env, message.chat_id, message.user_id, "resistor_edit_bands", null, newMetadata);
       return {
         reply_text: verText,
         reply_markup: {
@@ -560,7 +581,13 @@ async function handleActiveSessions(env, message, ctx) {
     } else if (message.text && message.text.startsWith("/")) {
       return null;
     } else {
-      const prevData = editBandSession.active_device_name || "";
+      let prevData = editBandSession.active_device_name || "";
+      if (prevData.startsWith("{")) {
+        try {
+          const packed = JSON.parse(prevData);
+          if (packed.edit) prevData = packed.edit;
+        } catch(_) {}
+      }
       const prevDisplay = prevData.replace(/^(THT|SMD):/, "").replace(/,/g, " → ");
       return {
         reply_text: `🔍 Weryfikacja rezystora\n\n📌 Rozpoznane kolory/kod: ${prevDisplay || "brak danych"}\n\nWpisz poprawione wartości (np. \`brązowy, czarny, czerwony, złoty\` lub \`103\`), a przeliczę algorytmem:`,

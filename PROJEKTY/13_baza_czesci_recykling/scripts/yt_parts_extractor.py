@@ -24,6 +24,63 @@ class YTPartsExtractor:
         # Modele zgodnie z dyspozycją użytkownika - Faza 1 i 2 na Gemma 4
         self.MODEL_ANALYSIS = "gemma-4-31b-it" 
         self.MODEL_VERIFICATION = "gemma-4-31b-it" 
+
+    @staticmethod
+    def normalize_part_number(value: str) -> str:
+        return re.sub(r"[^A-Z0-9._+\-/]", "", str(value or "").strip().upper())
+
+    @staticmethod
+    def slugify(value: str, fallback: str = "unknown-part") -> str:
+        normalized = str(value or "").strip().lower()
+        normalized = (
+            normalized.replace("ą", "a").replace("ć", "c").replace("ę", "e")
+            .replace("ł", "l").replace("ń", "n").replace("ó", "o")
+            .replace("ś", "s").replace("ź", "z").replace("ż", "z")
+        )
+        slug = re.sub(r"[^a-z0-9]+", "-", normalized).strip("-")
+        return slug or fallback
+
+    def to_submission_records(self, process_result: Dict[str, Any], ingest_source: str = "youtube_gemma") -> List[Dict[str, Any]]:
+        """
+        Konwertuje wynik `process_url()` do tego samego kontraktu kolejki,
+        z którego korzysta bot Telegram i pipeline sync_recycled_queue.py.
+        """
+        device_model = str(process_result.get("device") or "").strip()
+        records: List[Dict[str, Any]] = []
+        for item in process_result.get("results", []):
+            part_name = str(item.get("part_name") or "").strip() or "Unknown Part"
+            part_number = str(item.get("part_number") or "").strip() or part_name
+            confidence = float(item.get("confidence") or 0.5)
+            evidence_timecode = item.get("timestamp_seconds")
+            source_url = str(item.get("yt_link_with_time") or process_result.get("url") or "").strip()
+            normalized_part_number = self.normalize_part_number(part_number)
+            records.append(
+                {
+                    "lookup_kind": "youtube_part_ingest",
+                    "query_text": device_model,
+                    "recognized_brand": "",
+                    "recognized_model": device_model,
+                    "matched_part_name": part_name,
+                    "matched_part_number": part_number,
+                    "master_part_key": normalized_part_number or self.slugify(part_name),
+                    "status": "approved",
+                    "ingest_source": ingest_source,
+                    "evidence_url": source_url,
+                    "evidence_timecode": str(evidence_timecode) if evidence_timecode is not None else "",
+                    "raw_payload_json": {
+                        "device_model": device_model,
+                        "part_name": part_name,
+                        "part_number": part_number,
+                        "normalized_part_number": normalized_part_number,
+                        "confidence": confidence,
+                        "source_url": source_url,
+                        "timestamp_seconds": evidence_timecode,
+                        "context_note": item.get("context_note", ""),
+                        "verification": item.get("verification", {}),
+                    },
+                }
+            )
+        return records
         
     def get_client(self):
         client = self.clients[self.current_key_idx]

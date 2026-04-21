@@ -66,6 +66,37 @@ function createRecycledCatalogDbMock() {
     "source_url",
     "confidence",
   ].map((name) => ({ name }));
+  const recycledPartMasterColumns = [
+    "id",
+    "part_slug",
+    "part_number",
+    "normalized_part_number",
+    "part_name",
+    "species",
+    "genus",
+    "mounting",
+    "value",
+    "description",
+    "keywords",
+    "datasheet_url",
+    "datasheet_file_id",
+    "ipn",
+    "category",
+    "parameters",
+    "kicad_symbol",
+    "kicad_footprint",
+    "kicad_reference",
+  ].map((name) => ({ name }));
+  const recycledDevicePartsColumns = [
+    "id",
+    "device_id",
+    "master_part_id",
+    "quantity",
+    "designator",
+    "source_url",
+    "confidence",
+    "stock_location",
+  ].map((name) => ({ name }));
 
   return {
     prepare(sql) {
@@ -110,6 +141,41 @@ function createRecycledCatalogDbMock() {
               }
               if (normalizedSql.includes("PRAGMA table_info(recycled_parts)")) {
                 return { results: recycledPartsColumns };
+              }
+              if (normalizedSql.includes("PRAGMA table_info(recycled_part_master)")) {
+                return { results: recycledPartMasterColumns };
+              }
+              if (normalizedSql.includes("PRAGMA table_info(recycled_device_parts)")) {
+                return { results: recycledDevicePartsColumns };
+              }
+              if (
+                normalizedSql.includes("FROM recycled_device_parts rdp") &&
+                normalizedSql.includes("JOIN recycled_part_master pm")
+              ) {
+                return {
+                  results: [
+                    {
+                      part_name: "ESP8266EX",
+                      species: "IC",
+                      value: "",
+                      designator: "U1",
+                      description: "Highly integrated Wi-Fi SoC commonly reused in automation and telemetry prototypes.",
+                      quantity: 1,
+                      datasheet_url:
+                        "https://www.espressif.com/sites/default/files/documentation/0a-esp8266ex_datasheet_en.pdf",
+                      kicad_symbol: "MCU_Espressif:ESP8266EX",
+                      kicad_footprint:
+                        "Package_DFN_QFN:QFN-32-1EP_5x5mm_P0.5mm_EP3.3x3.3mm",
+                      part_number: "ESP8266EX",
+                      ipn: "ESP8266EX",
+                      category: "wifi_soc",
+                      parameters: "{\"WiFi\":\"2.4GHz\"}",
+                      datasheet_file_id: "",
+                      kicad_reference: "U",
+                      stock_location: "",
+                    },
+                  ],
+                };
               }
               if (
                 normalizedSql.includes("FROM recycled_parts") &&
@@ -156,6 +222,39 @@ function createRecycledCatalogDbMock() {
                         device_description:
                           "Seed donor entry for DIP AVR microcontrollers and prototyping support parts.",
                         teardown_url: "",
+                      },
+                    ],
+                  };
+                }
+              }
+              if (normalizedSql.includes("FROM recycled_part_master pm")) {
+                const query = String(args[0] || "");
+                if (/atmega328p/i.test(query)) {
+                  return {
+                    results: [
+                      {
+                        id: 5,
+                        part_slug: "atmega328p-pu",
+                        part_number: "ATMEGA328P-PU",
+                        normalized_part_number: "ATMEGA328P-PU",
+                        part_name: "ATmega328P",
+                        species: "IC",
+                        genus: "microcontroller",
+                        mounting: "THT",
+                        value: "",
+                        description:
+                          "8-bit AVR microcontroller frequently reused from Arduino-compatible boards.",
+                        keywords: "ATmega328P, AVR, DIP",
+                        datasheet_url:
+                          "https://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-7810-Automotive-Microcontrollers-ATmega328P_Datasheet.pdf",
+                        datasheet_file_id: "",
+                        ipn: "ATMEGA328P-PU",
+                        category: "mcu",
+                        parameters: "{\"Flash\":\"32KB\"}",
+                        kicad_symbol: "MCU_Microchip_ATmega:ATmega328P-PU",
+                        kicad_footprint: "Package_DIP:DIP-28_W7.62mm",
+                        kicad_reference: "U",
+                        donor_count: 1,
                       },
                     ],
                   };
@@ -394,9 +493,10 @@ test("callProviderWithFallback retries Google without developer instruction when
 
   assert.equal(response.provider_name, "google");
   assert.equal(requestBodies.length, 2);
-  assert.ok(requestBodies[0].systemInstruction);
-  assert.equal(requestBodies[1].systemInstruction, undefined);
+  const firstPromptText = requestBodies[0].contents[0].parts.map((part) => part.text || "").join(" ");
   const retriedPromptText = requestBodies[1].contents[0].parts.map((part) => part.text || "").join(" ");
+  assert.match(firstPromptText, /system guidance/);
+  assert.equal(requestBodies[1].systemInstruction, undefined);
   assert.match(retriedPromptText, /system guidance/);
   assert.match(retriedPromptText, /user question/);
 });

@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Recycled Part Master",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "part_slug",
+    "part_number",
+    "normalized_part_number",
+    "part_name",
+    "species",
+    "genus",
+    "mounting",
+    "value",
+    "description",
+    "keywords",
+    "part_aliases",
+    "datasheet_url",
+    "datasheet_file_id",
+    "ipn",
+    "category",
+    "parameters",
+    "kicad_symbol",
+    "kicad_footprint",
+    "kicad_reference"
+  ],
+  "properties": {
+    "part_slug": {
+      "type": "string",
+      "minLength": 3
+    },
+    "part_number": {
+      "type": "string",
+      "minLength": 1
+    },
+    "normalized_part_number": {
+      "type": "string",
+      "minLength": 1
+    },
+    "part_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "species": {
+      "type": "string",
+      "minLength": 1
+    },
+    "genus": {
+      "type": "string",
+      "minLength": 1
+    },
+    "mounting": {
+      "type": "string",
+      "enum": ["SMD", "THT", ""]
+    },
+    "value": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "keywords": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "part_aliases": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "datasheet_url": {
+      "type": "string"
+    },
+    "datasheet_file_id": {
+      "type": "string"
+    },
+    "ipn": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string"
+    },
+    "parameters": {
+      "type": "object"
+    },
+    "kicad_symbol": {
+      "type": "string"
+    },
+    "kicad_footprint": {
+      "type": "string"
+    },
+    "kicad_reference": {
+      "type": "string"
+    }
+  }
+}

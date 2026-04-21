@@ -1,12 +1,14 @@
 {
-  "catalog_version": 1,
+  "catalog_version": 2,
   "source_of_truth": "github",
   "generated_from": [
     "PROJEKTY/13_baza_czesci_recykling/data/devices.jsonl",
+    "PROJEKTY/13_baza_czesci_recykling/data/parts_master.jsonl",
     "PROJEKTY/13_baza_czesci_recykling/data/device_parts.jsonl"
   ],
   "device_count": 4,
-  "part_count": 4,
+  "part_master_count": 4,
+  "device_part_count": 4,
   "devices": [
     {
       "device_slug": "generic-old-satellite-receiver",
@@ -83,8 +85,133 @@
   ],
   "part_index": [
     {
-      "lookup_key": "100k resistor",
+      "lookup_key": "atmega328p-pu",
+      "display_name": "ATmega328P",
+      "part_number": "ATmega328P-PU",
+      "normalized_part_number": "atmega328ppu",
+      "species": "IC",
+      "genus": "MCU",
+      "mounting": "THT",
+      "value": "",
+      "aliases": [
+        "ATMEGA328P-PU",
+        "ATmega328P"
+      ],
+      "kicad_symbol": "MCU_Microchip_ATmega:ATmega328P-PU",
+      "kicad_footprint": "Package_DIP:DIP-28_W7.62mm",
+      "kicad_reference": "U",
+      "datasheet_url": "https://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-7810-Automotive-Microcontrollers-ATmega328P_Datasheet.pdf",
+      "category": "MCU",
+      "ipn": "ATMEGA328P-PU",
+      "parameters": {
+        "Architecture": "AVR 8-bit",
+        "Package": "DIP-28",
+        "Flash": "32KB"
+      },
+      "donor_devices": [
+        {
+          "device_slug": "arduino-uno-clone",
+          "canonical_name": "Arduino Uno Clone",
+          "quantity": 1,
+          "designators": [
+            "U1"
+          ],
+          "teardown_url": "",
+          "source_url": "",
+          "confidence": 0.93,
+          "stock_location": "",
+          "evidence_url": "",
+          "evidence_timecode": null
+        }
+      ]
+    },
+    {
+      "lookup_key": "esp8266ex",
+      "display_name": "ESP8266EX",
+      "part_number": "ESP8266EX",
+      "normalized_part_number": "esp8266ex",
+      "species": "IC",
+      "genus": "MCU",
+      "mounting": "SMD",
+      "value": "",
+      "aliases": [
+        "ESP-8266EX",
+        "ESP8266"
+      ],
+      "kicad_symbol": "MCU_Espressif:ESP8266EX",
+      "kicad_footprint": "Package_DFN_QFN:QFN-32-1EP_5x5mm_P0.5mm_EP3.3x3.3mm",
+      "kicad_reference": "U",
+      "datasheet_url": "https://www.espressif.com/sites/default/files/documentation/0a-esp8266ex_datasheet_en.pdf",
+      "category": "MCU",
+      "ipn": "ESP8266EX",
+      "parameters": {
+        "Connectivity": "Wi-Fi",
+        "Package": "QFN-32",
+        "Architecture": "Xtensa"
+      },
+      "donor_devices": [
+        {
+          "device_slug": "sonoff-basic",
+          "canonical_name": "Sonoff Basic",
+          "quantity": 1,
+          "designators": [
+            "U1"
+          ],
+          "teardown_url": "https://tasmota.github.io/docs/devices/Sonoff-Basic/",
+          "source_url": "https://tasmota.github.io/docs/devices/Sonoff-Basic/",
+          "confidence": 0.95,
+          "stock_location": "",
+          "evidence_url": "",
+          "evidence_timecode": null
+        }
+      ]
+    },
+    {
+      "lookup_key": "lm7805-regulator",
+      "display_name": "7805",
+      "part_number": "7805",
+      "normalized_part_number": "7805",
+      "species": "IC",
+      "genus": "Power",
+      "mounting": "THT",
+      "value": "5V",
+      "aliases": [
+        "7805",
+        "LM7805"
+      ],
+      "kicad_symbol": "Reference:7805",
+      "kicad_footprint": "Package_TO_SOT_THT:TO-220-3_Vertical",
+      "kicad_reference": "U",
+      "datasheet_url": "https://www.sparkfun.com/datasheets/Components/LM7805.pdf",
+      "category": "Linear Regulator",
+      "ipn": "LM7805",
+      "parameters": {
+        "Output Voltage": "5V",
+        "Package": "TO-220-3",
+        "Type": "Linear Regulator"
+      },
+      "donor_devices": [
+        {
+          "device_slug": "generic-old-satellite-receiver",
+          "canonical_name": "Generic Old Satellite Receiver",
+          "quantity": 1,
+          "designators": [
+            "U1"
+          ],
+          "teardown_url": "",
+          "source_url": "",
+          "confidence": 0.61,
+          "stock_location": "",
+          "evidence_url": "",
+          "evidence_timecode": null
+        }
+      ]
+    },
+    {
+      "lookup_key": "resistor-100k-0805",
       "display_name": "100K Resistor",
+      "part_number": "100K",
+      "normalized_part_number": "100k",
       "species": "Resistor",
       "genus": "Passive",
       "mounting": "SMD",
@@ -96,7 +223,15 @@
       ],
       "kicad_symbol": "Device:R",
       "kicad_footprint": "Resistor_SMD:R_0805_2012Metric",
+      "kicad_reference": "R",
       "datasheet_url": "",
+      "category": "Resistor",
+      "ipn": "RES-100K-0805",
+      "parameters": {
+        "Resistance": "100k",
+        "Package": "0805",
+        "Tolerance": "unknown"
+      },
       "donor_devices": [
         {
           "device_slug": "tp-link-tl-wr740n",
@@ -107,91 +242,10 @@
           ],
           "teardown_url": "https://openwrt.org/toh/tp-link/tl-wr740n",
           "source_url": "https://openwrt.org/toh/tp-link/tl-wr740n",
-          "confidence": 0.52
-        }
-      ]
-    },
-    {
-      "lookup_key": "7805",
-      "display_name": "7805",
-      "species": "IC",
-      "genus": "Power",
-      "mounting": "THT",
-      "value": "5V",
-      "aliases": [
-        "7805",
-        "LM7805"
-      ],
-      "kicad_symbol": "Reference:7805",
-      "kicad_footprint": "Package_TO_SOT_THT:TO-220-3_Vertical",
-      "datasheet_url": "https://www.sparkfun.com/datasheets/Components/LM7805.pdf",
-      "donor_devices": [
-        {
-          "device_slug": "generic-old-satellite-receiver",
-          "canonical_name": "Generic Old Satellite Receiver",
-          "quantity": 1,
-          "designators": [
-            "U1"
-          ],
-          "teardown_url": "",
-          "source_url": "",
-          "confidence": 0.61
-        }
-      ]
-    },
-    {
-      "lookup_key": "atmega328p",
-      "display_name": "ATmega328P",
-      "species": "IC",
-      "genus": "MCU",
-      "mounting": "THT",
-      "value": "",
-      "aliases": [
-        "ATMEGA328P-PU",
-        "ATmega328P-PU"
-      ],
-      "kicad_symbol": "MCU_Microchip_ATmega:ATmega328P-PU",
-      "kicad_footprint": "Package_DIP:DIP-28_W7.62mm",
-      "datasheet_url": "https://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-7810-Automotive-Microcontrollers-ATmega328P_Datasheet.pdf",
-      "donor_devices": [
-        {
-          "device_slug": "arduino-uno-clone",
-          "canonical_name": "Arduino Uno Clone",
-          "quantity": 1,
-          "designators": [
-            "U1"
-          ],
-          "teardown_url": "",
-          "source_url": "",
-          "confidence": 0.93
-        }
-      ]
-    },
-    {
-      "lookup_key": "esp8266ex",
-      "display_name": "ESP8266EX",
-      "species": "IC",
-      "genus": "MCU",
-      "mounting": "SMD",
-      "value": "",
-      "aliases": [
-        "ESP-8266EX",
-        "ESP8266"
-      ],
-      "kicad_symbol": "MCU_Espressif:ESP8266EX",
-      "kicad_footprint": "Package_DFN_QFN:QFN-32-1EP_5x5mm_P0.5mm_EP3.3x3.3mm",
-      "datasheet_url": "https://www.espressif.com/sites/default/files/documentation/0a-esp8266ex_datasheet_en.pdf",
-      "donor_devices": [
-        {
-          "device_slug": "sonoff-basic",
-          "canonical_name": "Sonoff Basic",
-          "quantity": 1,
-          "designators": [
-            "U1"
-          ],
-          "teardown_url": "https://tasmota.github.io/docs/devices/Sonoff-Basic/",
-          "source_url": "https://tasmota.github.io/docs/devices/Sonoff-Basic/",
-          "confidence": 0.95
+          "confidence": 0.52,
+          "stock_location": "",
+          "evidence_url": "",
+          "evidence_timecode": null
         }
       ]
     }

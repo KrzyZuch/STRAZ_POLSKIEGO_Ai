@@ -33,13 +33,13 @@ handleResistorAnalysis,
 validateManualEntry,
 getResistorLegendText,
 runResistorVerification,
-} from "./telegram_ai.js";
-import { buildVerificationResultReply } from "./vision.js";
-import {
   initDatasheetWorkflow,
   handleFinalDatasheetRag,
   handleFinalDatasheetRagFinal,
-} from "./datasheet.js";
+  answerDeviceLookupQuestion,
+  attachPdfToDatasheetSession,
+} from "./telegram_ai.js";
+import { buildVerificationResultReply } from "./vision.js";
 import { sanitizeTelegramReply, sendTelegramReply, getMainMenuKeyboard } from "./telegram_utils.js";
 
 function jsonResponse(payload, status = 200) {
@@ -213,8 +213,10 @@ function collectInboundMessages(payload) {
     const text = item.text || item.caption; // Handle captions for photos
     const photo = item.photo; // Array of PhotoSize
     const document = item.document;
+    const voice = item.voice;
+    const audio = item.audio;
 
-    if (typeof text !== "string" && !photo && !document) {
+    if (typeof text !== "string" && !photo && !document && !voice && !audio) {
       continue;
     }
 
@@ -226,6 +228,13 @@ function collectInboundMessages(payload) {
       // Get the largest photo size
       fileId = photo[photo.length - 1].file_id;
       mimeType = "image/jpeg";
+    } else if (voice) {
+      fileId = voice.file_id;
+      mimeType = voice.mime_type || "audio/ogg";
+    } else if (audio) {
+      fileId = audio.file_id;
+      mimeType = audio.mime_type || "audio/mpeg";
+      fileName = audio.file_name || null;
     } else if (document) {
       fileId = document.file_id;
       mimeType = document.mime_type;
@@ -239,6 +248,7 @@ function collectInboundMessages(payload) {
       file_id: fileId,
       file_name: fileName,
       mime_type: mimeType,
+      is_audio: Boolean(voice || audio),
       date: item.date || null,
       chat_id: item.chat?.id !== undefined ? String(item.chat.id) : null,
       chat_type: item.chat?.type || null,
@@ -557,6 +567,22 @@ async function handleActiveSessions(env, message, ctx) {
       return { skip_reply: true, reply_text: "[Zgłoszenie przetworzone]", ...issueResult };
     }
   }
+
+  // --- SESJA PYTAŃ O URZĄDZENIE Z BAZY ---
+  const deviceQuestionSession = await getUserSession(env, message.chat_id, message.user_id, "device_lookup_question");
+  if (deviceQuestionSession) {
+    if (message.text && message.text.startsWith("/")) {
+      return null;
+    }
+    if (!message.text) {
+      return {
+        reply_text: "💬 Wpisz pytanie tekstem o to urządzenie, a odpowiem na podstawie lokalnej bazy części i danych reuse.",
+        reply_markup: getMainMenuKeyboard(),
+      };
+    }
+    return await answerDeviceLookupQuestion(env, deviceQuestionSession, message.text);
+  }
+
   // --- SESJA EDYCJI CZEŚCI ---
   const editSession = await getUserSession(env, message.chat_id, message.user_id, "recycled_parts_edit");
   if (editSession && message.text) {
@@ -600,6 +626,12 @@ async function handleActiveSessions(env, message, ctx) {
     if (message.text && message.text.startsWith("/")) {
       return null; // Komendy (np. /stop) niech anulują sesję normalnie
     }
+    if (message.file_id && message.mime_type === "application/pdf") {
+      return {
+        reply_text: "Na tym etapie potrzebuję jeszcze *modelu elektrośmiecia*, z którego pochodzi część. Jeśli go nie znasz, kliknij *Nie znam modelu*, a PDF możesz wysłać w następnym kroku.",
+        reply_markup: getMainMenuKeyboard(),
+      };
+    }
     
     let deviceModel = message.text || "Zidentyfikowany ze zdjęcia";
     if (message.file_id) {
@@ -629,21 +661,20 @@ async function handleActiveSessions(env, message, ctx) {
   const questionSession = await getUserSession(env, message.chat_id, message.user_id, "datasheet_wait_question");
   if (questionSession) {
     if (message.file_id && message.mime_type === "application/pdf") {
-      // Użytkownik przesłał PDF ręcznie — podmieniamy plik w sesji i pytamy o pytanie
-      const sessionParts = (questionSession.active_device_name || "NO_FILE|||").split('|');
-      const partQuery = sessionParts[1] || "";
-      const deviceModel = sessionParts.slice(2, sessionParts.length - 1).join('|');
-      const pdfUrl = sessionParts[sessionParts.length - 1] || "";
-      const newSessionData = `${message.file_id}|${partQuery}|${deviceModel}|${pdfUrl}`;
-      await upsertUserSession(env, message.chat_id, message.user_id, "datasheet_wait_question", null, newSessionData);
+      const ingest = await attachPdfToDatasheetSession(env, message, questionSession);
       return {
-        reply_text: "📄 Przyjąłem Twój PDF! Teraz wpisz pytanie, na które mam odpowiedzieć na podstawie tego dokumentu.",
+        reply_text: [
+          "📄 Przyjąłem Twój PDF, zeskanowałem go i zaktualizowałem dane części w bazie.",
+          ingest?.payload?.scan_summary ? `Opis z dokumentu: ${ingest.payload.scan_summary}` : "",
+          "",
+          "Teraz wpisz pytanie, na które mam odpowiedzieć na podstawie tego dokumentu.",
+        ].filter(Boolean).join("\n"),
+        reply_markup: getMainMenuKeyboard(),
       };
     }
     if (!message.text) {
       return { reply_text: "✍️ Wpisz pytanie tekstem (np. \"Jaki jest pinout?\") lub prześlij plik PDF z dokumentacją." };
     }
-    await closeUserSession(env, message.chat_id, message.user_id, "datasheet_wait_question");
     return await handleFinalDatasheetRagFinal(env, message, questionSession, message.text, ctx);
   }
 
@@ -700,6 +731,21 @@ async function processConversationMessage(env, message, intent, ctx = null) {
   const history = await loadTelegramChatHistory(env, message);
 
   try {
+    if (message.is_audio || String(message.mime_type || "").startsWith("audio/") || message.mime_type === "application/ogg") {
+      const response = {
+        reply_text: "❌ Kod błędu: `UNSUPPORTED-AUDIO`\nTen bot obsługuje tekst, zdjęcia i PDF, ale nie obsługuje dźwięku.",
+        reply_markup: getMainMenuKeyboard(),
+      };
+      await saveTelegramConversation(env, message, intent, "[audio]", response.reply_text);
+      const notificationSent = await sendTelegramReply(env, message, response.reply_text, response.reply_markup);
+      return {
+        update_id: message.update_id,
+        message_id: message.message_id,
+        status: "audio_not_supported",
+        notification_sent: notificationSent,
+      };
+    }
+
     // 1. Handle Active Sessions
     let response = await handleActiveSessions(env, message, ctx);
 
@@ -739,6 +785,22 @@ async function processConversationMessage(env, message, intent, ctx = null) {
     // Jeśli jesteśmy w zwykłej konwersacji (generateChatReply), dołączamy menu główne
       if (intent === "unknown" && response && !response.reply_markup) {
         // Menu jest już przypinane wewnątrz buildCommandReply / generateChatReply w telegram_ai.js
+      }
+    }
+
+    if (response && !response.skip_reply && !response.reply_markup) {
+      response.reply_markup = getMainMenuKeyboard();
+    } else if (response && !response.skip_reply && response.reply_markup?.inline_keyboard) {
+      const hasMenu = response.reply_markup.inline_keyboard.some((row) =>
+        Array.isArray(row) && row.some((button) => button?.callback_data === "command_start")
+      );
+      if (!hasMenu) {
+        response.reply_markup = {
+          inline_keyboard: [
+            ...response.reply_markup.inline_keyboard,
+            [{ text: "🏠 Menu główne", callback_data: "command_start" }],
+          ],
+        };
       }
     }
 
@@ -894,7 +956,7 @@ const CALLBACK_HANDLERS = {
   "menu_datasheet": async (env, id, chat_id, user_id, message, data) => {
     await upsertUserSession(env, chat_id, user_id, "datasheet_wait_target");
     await answerCallbackQuery(env, id, "Analiza Datasheet.");
-    await sendTelegramReply(env, { chat_id, message_id: message?.message_id }, "Prześlij mi plik PDF z dokumentacją lub po prostu *wpisz nazwę układu* (np. `NE555`), abym mógł go przeanalizować i odpowiedzieć na Twoje pytania.", {
+    await sendTelegramReply(env, { chat_id, message_id: message?.message_id }, "Prześlij mi plik PDF z dokumentacją albo wpisz *oznaczenie części* (np. `NE555`, `TDA7294`). Gdy wpiszesz część tekstem, zapytam osobno o *model elektrośmiecia*, z którego pochodzi.", {
       inline_keyboard: [[{ text: "❌ Anuluj", callback_data: "cancel_session:datasheet_wait_target" }]]
     });
   },
@@ -975,13 +1037,37 @@ const CALLBACK_HANDLERS = {
 },
   "datasheet_ask": async (env, id, chat_id, user_id, message, data) => {
     const partQuery = data.substring("datasheet_ask:".length);
-    await upsertUserSession(env, chat_id, user_id, "datasheet_wait_question", null, `NO_FILE|${partQuery}|${partQuery}|`);
+    await upsertUserSession(env, chat_id, user_id, "datasheet_wait_question", null, JSON.stringify({
+      version: 2,
+      part_number: partQuery,
+      master_part_id: null,
+      donor_device_model: "",
+      donor_device_id: null,
+      pdf_url: "",
+      pdf_file_id: "",
+      db_hit: false,
+      source: "callback_ask",
+      file_name: "",
+      scan_summary: "",
+    }));
     await answerCallbackQuery(env, id, "Zadaj pytanie.");
     await sendTelegramReply(env, { chat_id, message_id: message?.message_id }, `💡 Analiza datasheet dla *${partQuery}*. Wpisz pytanie (np. "Jaki jest pinout?", "Podaj napięcie zasilania"):`);
   },
   "datasheet_continue": async (env, id, chat_id, user_id, message, data) => {
     const partQuery = data.substring("datasheet_continue:".length);
-    await upsertUserSession(env, chat_id, user_id, "datasheet_wait_question", null, `NO_FILE|${partQuery}|${partQuery}|`);
+    await upsertUserSession(env, chat_id, user_id, "datasheet_wait_question", null, JSON.stringify({
+      version: 2,
+      part_number: partQuery,
+      master_part_id: null,
+      donor_device_model: "",
+      donor_device_id: null,
+      pdf_url: "",
+      pdf_file_id: "",
+      db_hit: false,
+      source: "callback_continue",
+      file_name: "",
+      scan_summary: "",
+    }));
     await answerCallbackQuery(env, id, "Kontynuacja analizy.");
     await sendTelegramReply(env, { chat_id, message_id: message?.message_id }, `💡 Kontynuuję analizę dla *${partQuery}*. O co chcesz zapytać?`);
   }

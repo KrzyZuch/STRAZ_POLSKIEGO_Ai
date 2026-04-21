@@ -2,7 +2,7 @@
 
 Ten projekt zamienia elektroodpady w publicznie dostepny katalog czesci dla AI, KiCada i spolecznosci. Glowna zasada jest prosta:
 
-- `GitHub` przechowuje kanoniczna, kuratorowana baze wiedzy o urzadzeniach-dawcach i czesciach.
+- `GitHub` przechowuje kanoniczna, kuratorowana baze wiedzy o urzadzeniach-dawcach, czesciach kanonicznych i relacjach donorowych.
 - `Cloudflare D1` sluzy tylko jako operacyjny indeks do szybkich lookupow w Telegramie i przyszlych rekomendacji AI.
 - `ecoEDA`, `Ki-nTree` i `KiCAD-MCP-Server` sa zasilane z tego samego katalogu zrodlowego.
 
@@ -32,11 +32,12 @@ W folderze `pipelines/` znajduje się skrypt `yt_parts_extractor.py`, który rea
 3. **Weryfikacja Wizualna**: Gemma 4 31B analizuje stopklatki w celu potwierdzenia numerów seryjnych.
 4. **Kolejka Społeczności**: Niepewne trafienia są publikowane z linkiem czasowym do YouTube dla ludzkiej weryfikacji.
 
-3. Sygnaly trafiaja do kolejki kuracji i sa porzadkowane do katalogu w `data/devices.jsonl` oraz `data/device_parts.jsonl`.
+3. Sygnaly trafiaja do kolejki kuracji i sa porzadkowane do katalogu w `data/devices.jsonl`, `data/parts_master.jsonl` oraz `data/device_parts.jsonl`.
 4. Skrypt budujacy generuje artefakty:
    - `data/inventory.csv` dla `ecoEDA`
    - `data/recycled_parts_seed.sql` do zasilenia `Cloudflare D1`
    - `data/mcp_reuse_catalog.json` jako zasob do lookupow reuse po stronie MCP
+   - `data/inventree_import.jsonl` jako eksport do `Ki-nTree` / `InvenTree`
 5. `Cloudflare Worker` korzysta z D1 do szybkich odpowiedzi bota i logowania zgloszen.
 6. `Ki-nTree` podbiera z katalogu dane o czesciach i mapuje je do KiCad/InvenTree.
 7. `KiCAD-MCP-Server` moze czytac `mcp_reuse_catalog.json` albo przyszle narzedzie `query_recycled_parts`.
@@ -53,10 +54,12 @@ To jest wymagane nie tylko organizacyjnie, ale i technicznie:
 ## Struktura projektu
 
 - `data/devices.jsonl`: kanoniczny katalog urzadzen-dawcow
-- `data/device_parts.jsonl`: kanoniczny katalog czesci i ich donorow
+- `data/parts_master.jsonl`: kanoniczny katalog czesci niezaleznych od donorow
+- `data/device_parts.jsonl`: kanoniczny katalog relacji czesc -> donor
 - `data/inventory.csv`: wygenerowany eksport zgodny z `ecoEDA`
 - `data/recycled_parts_seed.sql`: wygenerowany seed dla `Cloudflare D1`
 - `data/mcp_reuse_catalog.json`: wygenerowany katalog lookupow dla MCP
+- `data/inventree_import.jsonl`: wygenerowany eksport zgodny z `Ki-nTree` / `InvenTree`
 - `schemas/`: schematy rekordow katalogu
 - `scripts/build_catalog_artifacts.py`: generator artefaktow z danych GitHub
 - `docs/`: opis przeplywu scrapingu i kontraktu integracyjnego

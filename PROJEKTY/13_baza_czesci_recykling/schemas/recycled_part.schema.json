@@ -1,24 +1,14 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Recycled Part",
+  "title": "Recycled Device Part Link",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "device_slug",
-    "part_name",
-    "species",
-    "genus",
-    "mounting",
-    "value",
-    "keywords",
-    "description",
-    "kicad_symbol",
-    "kicad_footprint",
-    "datasheet_url",
+    "part_slug",
     "source_url",
     "quantity",
     "designators",
-    "part_aliases",
     "confidence"
   ],
   "properties": {
@@ -26,43 +16,9 @@
       "type": "string",
       "minLength": 3
     },
-    "part_name": {
+    "part_slug": {
       "type": "string",
-      "minLength": 1
-    },
-    "species": {
-      "type": "string",
-      "minLength": 1
-    },
-    "genus": {
-      "type": "string",
-      "minLength": 1
-    },
-    "mounting": {
-      "type": "string",
-      "enum": ["SMD", "THT", ""]
-    },
-    "value": {
-      "type": "string"
-    },
-    "keywords": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "description": {
-      "type": "string",
-      "minLength": 1
-    },
-    "kicad_symbol": {
-      "type": "string"
-    },
-    "kicad_footprint": {
-      "type": "string"
-    },
-    "datasheet_url": {
-      "type": "string"
+      "minLength": 3
     },
     "source_url": {
       "type": "string"
@@ -77,11 +33,14 @@
         "type": "string"
       }
     },
-    "part_aliases": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
+    "stock_location": {
+      "type": "string"
+    },
+    "evidence_url": {
+      "type": "string"
+    },
+    "evidence_timecode": {
+      "type": ["number", "null"]
     },
     "confidence": {
       "type": "number",

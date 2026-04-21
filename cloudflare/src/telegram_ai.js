@@ -273,6 +273,188 @@ function hasTelegramFile(message) {
   return Boolean(message && typeof message === "object" && message.file_id);
 }
 
+function parseJsonSafe(value, fallback = null) {
+  if (value == null || value === "") {
+    return fallback;
+  }
+  if (typeof value === "object") {
+    return value;
+  }
+  try {
+    return JSON.parse(String(value));
+  } catch {
+    return fallback;
+  }
+}
+
+function normalizePartNumber(value) {
+  return String(value || "")
+    .trim()
+    .toUpperCase()
+    .replace(/\s+/g, "")
+    .replace(/[^A-Z0-9._+\-/]/g, "");
+}
+
+function slugifyCatalogValue(value, fallback = "unknown-part") {
+  const normalized = normalizeForSearch(value)
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return normalized || fallback;
+}
+
+function splitKeywords(value) {
+  if (Array.isArray(value)) {
+    return value.map((item) => normalizeWhitespace(item)).filter(Boolean);
+  }
+  return String(value || "")
+    .split(/[,\n]/)
+    .map((item) => normalizeWhitespace(item))
+    .filter(Boolean);
+}
+
+function uniqueStrings(values) {
+  return Array.from(
+    new Set(
+      (Array.isArray(values) ? values : [values])
+        .flat()
+        .map((item) => normalizeWhitespace(item))
+        .filter(Boolean)
+    )
+  );
+}
+
+function coalesceText(...values) {
+  for (const value of values) {
+    const normalized = normalizeWhitespace(value);
+    if (normalized) {
+      return normalized;
+    }
+  }
+  return "";
+}
+
+function isAudioMimeType(mimeType) {
+  const normalized = String(mimeType || "").toLowerCase();
+  return normalized.startsWith("audio/") || normalized === "application/ogg";
+}
+
+function isAudioMessage(message) {
+  return Boolean(message?.is_audio || isAudioMimeType(message?.mime_type));
+}
+
+function ensureMainMenuReplyMarkup(replyMarkup) {
+  const mainMenuButton = { text: "🏠 Menu główne", callback_data: "command_start" };
+  const inlineKeyboard = Array.isArray(replyMarkup?.inline_keyboard)
+    ? replyMarkup.inline_keyboard
+        .filter((row) => Array.isArray(row) && row.length)
+        .map((row) => row.map((button) => ({ ...button })))
+    : [];
+
+  const hasMainMenu = inlineKeyboard.some((row) =>
+    row.some((button) => button?.callback_data === "command_start")
+  );
+  if (!hasMainMenu) {
+    inlineKeyboard.push([mainMenuButton]);
+  }
+  return { inline_keyboard: inlineKeyboard };
+}
+
+function withMainMenuReply(response) {
+  if (!response || typeof response !== "object") {
+    return response;
+  }
+  return {
+    ...response,
+    reply_markup: ensureMainMenuReplyMarkup(response.reply_markup),
+  };
+}
+
+function buildAiChainErrorReply(code, messageText) {
+  return withMainMenuReply({
+    reply_text: `❌ Kod błędu: \`${code}\`\n${messageText}`,
+  });
+}
+
+function buildUnsupportedAudioReply(scopeLabel) {
+  return withMainMenuReply({
+    reply_text: `❌ Kod błędu: \`UNSUPPORTED-AUDIO\`\n${scopeLabel} obsługuje tekst, zdjęcia i PDF, ale nie obsługuje dźwięku.`,
+    provider_name: "local",
+    model_name: "unsupported-audio",
+  });
+}
+
+function serializeDatasheetSessionPayload(payload) {
+  return JSON.stringify({
+    version: 2,
+    part_number: payload?.part_number || "",
+    master_part_id: payload?.master_part_id || null,
+    donor_device_model: payload?.donor_device_model || "",
+    donor_device_id: payload?.donor_device_id || null,
+    pdf_url: payload?.pdf_url || "",
+    pdf_file_id: payload?.pdf_file_id || "",
+    db_hit: Boolean(payload?.db_hit),
+    source: payload?.source || "",
+    file_name: payload?.file_name || "",
+    scan_summary: payload?.scan_summary || "",
+  });
+}
+
+function parseDatasheetSessionPayload(rawValue) {
+  const parsed = parseJsonSafe(rawValue, null);
+  if (parsed && typeof parsed === "object" && parsed.version === 2) {
+    return {
+      version: 2,
+      part_number: parsed.part_number || "",
+      master_part_id: parsed.master_part_id || null,
+      donor_device_model: parsed.donor_device_model || "",
+      donor_device_id: parsed.donor_device_id || null,
+      pdf_url: parsed.pdf_url || "",
+      pdf_file_id: parsed.pdf_file_id || "",
+      db_hit: Boolean(parsed.db_hit),
+      source: parsed.source || "",
+      file_name: parsed.file_name || "",
+      scan_summary: parsed.scan_summary || "",
+    };
+  }
+
+  const legacyParts = String(rawValue || "").split("|");
+  if (!legacyParts.some((item) => item)) {
+    return {
+      version: 2,
+      part_number: "",
+      master_part_id: null,
+      donor_device_model: "",
+      donor_device_id: null,
+      pdf_url: "",
+      pdf_file_id: "",
+      db_hit: false,
+      source: "",
+      file_name: "",
+      scan_summary: "",
+    };
+  }
+
+  const fileId = legacyParts[0] === "NO_FILE" ? "" : legacyParts[0];
+  const pdfUrl = legacyParts.length > 3 ? legacyParts[legacyParts.length - 1] : "";
+  const donorDeviceModel = legacyParts.length > 3
+    ? legacyParts.slice(2, legacyParts.length - 1).join("|")
+    : legacyParts[2] || "";
+
+  return {
+    version: 2,
+    part_number: legacyParts[1] || legacyParts[0] || "",
+    master_part_id: null,
+    donor_device_model: donorDeviceModel,
+    donor_device_id: null,
+    pdf_url: pdfUrl,
+    pdf_file_id: fileId,
+    db_hit: false,
+    source: "legacy_session",
+    file_name: "",
+    scan_summary: "",
+  };
+}
+
 function looksLikeStructuredCatalogToken(token) {
   const trimmed = String(token || "").replace(/^[^\p{Letter}\p{Number}]+|[^\p{Letter}\p{Number}]+$/gu, "");
   if (trimmed.length < 4 || trimmed.length > 40) {
@@ -671,6 +853,15 @@ function buildGoogleGenerateContentBody(promptPayload, model, options = {}) {
   return body;
 }
 
+function normalizeGoogleModelName(model) {
+  const trimmed = String(model || "").trim();
+  if (!trimmed) {
+    return "gemini-3.1-flash-lite-preview";
+  }
+  const parts = trimmed.split("/");
+  return parts[parts.length - 1] || trimmed;
+}
+
 function shouldRetryGoogleWithoutDeveloperInstruction(response, payload) {
   if (response?.ok) {
     return false;
@@ -697,7 +888,12 @@ async function callGoogleProvider(env, promptPayload, options = {}) {
     });
   }
 
-  const model = (env.TELEGRAM_AI_GOOGLE_MODEL || "gemini-3.1-flash-lite-preview").trim();
+  const requestedModel = (
+    options.modelOverride ||
+    env.TELEGRAM_AI_GOOGLE_MODEL ||
+    "gemini-3.1-flash-lite-preview"
+  ).trim();
+  const model = normalizeGoogleModelName(requestedModel);
   const timeoutMs = parsePositiveInteger(env.TELEGRAM_AI_TIMEOUT_MS, DEFAULT_TIMEOUT_MS);
   const fetchImpl = options.fetchImpl || fetch;
   const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
@@ -750,8 +946,8 @@ async function callGoogleProvider(env, promptPayload, options = {}) {
 
   return {
     text: extractTextFromGoogle(payload),
-    provider_name: "google",
-    model_name: model,
+    provider_name: options.providerNameOverride || "google",
+    model_name: requestedModel,
   };
 }
 
@@ -826,18 +1022,24 @@ export async function callProviderWithFallback(env, promptPayload, options = {})
         return await callGoogleProvider(env, promptPayload, options);
       }
       if (provider === "nvidia") {
-        if (promptPayload.media?.length) {
-          if (!lastError) {
-            lastError = new AiProviderError(
-              "NVIDIA fallback w tym workerze nie obsluguje promptow z mediami.",
+        const fallbackModel = (env.TELEGRAM_AI_NVIDIA_MODEL || "google/gemma-4-31b-it").trim();
+        const canUseGemmaViaGoogle = Boolean((env.GEMINI_API_KEY || "").trim());
+        if (promptPayload.media?.length || !(env.NVIDIA_API_KEY || "").trim()) {
+          if (!canUseGemmaViaGoogle) {
+            throw new AiProviderError(
+              "Brak GEMINI_API_KEY dla multimodalnego fallbacku Gemma 4.",
               {
                 provider,
-                model: env.TELEGRAM_AI_NVIDIA_MODEL || "google/gemma-4-31b-it",
-                retriable: false,
+                model: fallbackModel,
+                retriable: true,
               }
             );
           }
-          continue;
+          return await callGoogleProvider(env, promptPayload, {
+            ...options,
+            modelOverride: fallbackModel,
+            providerNameOverride: "nvidia",
+          });
         }
         return await callNvidiaProvider(env, promptPayload, options);
       }
@@ -1677,6 +1879,34 @@ async function ensureRecycledKnowledgeSchema(db) {
 
   await db.prepare(
     `
+    CREATE TABLE IF NOT EXISTS recycled_part_master (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      part_slug TEXT UNIQUE NOT NULL,
+      part_number TEXT,
+      normalized_part_number TEXT,
+      part_name TEXT NOT NULL,
+      species TEXT,
+      genus TEXT,
+      mounting TEXT,
+      value TEXT,
+      description TEXT,
+      keywords TEXT,
+      datasheet_url TEXT,
+      datasheet_file_id TEXT,
+      ipn TEXT,
+      category TEXT,
+      parameters TEXT,
+      kicad_symbol TEXT,
+      kicad_footprint TEXT,
+      kicad_reference TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    )
+    `
+  ).run();
+
+  await db.prepare(
+    `
     CREATE TABLE IF NOT EXISTS recycled_parts (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       device_id INTEGER NOT NULL,
@@ -1700,6 +1930,27 @@ async function ensureRecycledKnowledgeSchema(db) {
     `
   ).run();
 
+  await db.prepare(
+    `
+    CREATE TABLE IF NOT EXISTS recycled_device_parts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      device_id INTEGER NOT NULL,
+      master_part_id INTEGER NOT NULL,
+      quantity INTEGER,
+      designator TEXT,
+      source_url TEXT,
+      confidence REAL,
+      stock_location TEXT,
+      evidence_url TEXT,
+      evidence_timecode TEXT,
+      created_at TEXT NOT NULL,
+      UNIQUE (device_id, master_part_id, designator),
+      FOREIGN KEY (device_id) REFERENCES recycled_devices(id) ON DELETE CASCADE,
+      FOREIGN KEY (master_part_id) REFERENCES recycled_part_master(id) ON DELETE CASCADE
+    )
+    `
+  ).run();
+
   await ensureColumn(db, "recycled_devices", "device_category", "device_category TEXT");
   await ensureColumn(db, "recycled_devices", "source_url", "source_url TEXT");
   await ensureColumn(db, "recycled_devices", "donor_rank", "donor_rank REAL");
@@ -1713,6 +1964,24 @@ async function ensureRecycledKnowledgeSchema(db) {
   await ensureColumn(db, "recycled_parts", "quantity", "quantity INTEGER");
   await ensureColumn(db, "recycled_parts", "source_url", "source_url TEXT");
   await ensureColumn(db, "recycled_parts", "confidence", "confidence REAL");
+  await ensureColumn(db, "recycled_parts", "ipn", "ipn TEXT");
+  await ensureColumn(db, "recycled_parts", "category", "category TEXT");
+  await ensureColumn(db, "recycled_parts", "parameters", "parameters TEXT");
+  await ensureColumn(db, "recycled_parts", "datasheet_file_id", "datasheet_file_id TEXT");
+  await ensureColumn(db, "recycled_parts", "kicad_reference", "kicad_reference TEXT");
+  await ensureColumn(db, "recycled_parts", "stock_location", "stock_location TEXT");
+  await ensureColumn(db, "recycled_parts", "master_part_id", "master_part_id INTEGER");
+
+  await ensureColumn(db, "recycled_part_master", "part_number", "part_number TEXT");
+  await ensureColumn(db, "recycled_part_master", "normalized_part_number", "normalized_part_number TEXT");
+  await ensureColumn(db, "recycled_part_master", "datasheet_url", "datasheet_url TEXT");
+  await ensureColumn(db, "recycled_part_master", "datasheet_file_id", "datasheet_file_id TEXT");
+  await ensureColumn(db, "recycled_part_master", "ipn", "ipn TEXT");
+  await ensureColumn(db, "recycled_part_master", "category", "category TEXT");
+  await ensureColumn(db, "recycled_part_master", "parameters", "parameters TEXT");
+  await ensureColumn(db, "recycled_part_master", "kicad_symbol", "kicad_symbol TEXT");
+  await ensureColumn(db, "recycled_part_master", "kicad_footprint", "kicad_footprint TEXT");
+  await ensureColumn(db, "recycled_part_master", "kicad_reference", "kicad_reference TEXT");
 
   await db.prepare(
     `
@@ -1774,17 +2043,29 @@ async function ensureRecycledKnowledgeSchema(db) {
       recognized_model TEXT,
       matched_device_id INTEGER,
       matched_part_name TEXT,
+      matched_part_number TEXT,
+      master_part_id INTEGER,
       attachment_file_id TEXT,
       attachment_mime_type TEXT,
       provider_name TEXT,
       model_name TEXT,
       status TEXT NOT NULL DEFAULT 'queued',
+      ingest_source TEXT,
+      evidence_url TEXT,
+      evidence_timecode TEXT,
       raw_payload_json TEXT,
       created_at TEXT NOT NULL,
-      FOREIGN KEY (matched_device_id) REFERENCES recycled_devices(id) ON DELETE SET NULL
+      FOREIGN KEY (matched_device_id) REFERENCES recycled_devices(id) ON DELETE SET NULL,
+      FOREIGN KEY (master_part_id) REFERENCES recycled_part_master(id) ON DELETE SET NULL
     )
     `
   ).run();
+
+  await ensureColumn(db, "recycled_device_submissions", "matched_part_number", "matched_part_number TEXT");
+  await ensureColumn(db, "recycled_device_submissions", "master_part_id", "master_part_id INTEGER");
+  await ensureColumn(db, "recycled_device_submissions", "ingest_source", "ingest_source TEXT");
+  await ensureColumn(db, "recycled_device_submissions", "evidence_url", "evidence_url TEXT");
+  await ensureColumn(db, "recycled_device_submissions", "evidence_timecode", "evidence_timecode TEXT");
 
   await db.prepare(
     `
@@ -1808,7 +2089,22 @@ async function ensureRecycledKnowledgeSchema(db) {
     `CREATE INDEX IF NOT EXISTS idx_recycled_parts_device_id ON recycled_parts(device_id)`
   ).run();
   await db.prepare(
+    `CREATE INDEX IF NOT EXISTS idx_recycled_parts_master_part_id ON recycled_parts(master_part_id)`
+  ).run();
+  await db.prepare(
     `CREATE INDEX IF NOT EXISTS idx_recycled_devices_model ON recycled_devices(model)`
+  ).run();
+  await db.prepare(
+    `CREATE INDEX IF NOT EXISTS idx_recycled_part_master_slug ON recycled_part_master(part_slug)`
+  ).run();
+  await db.prepare(
+    `CREATE INDEX IF NOT EXISTS idx_recycled_part_master_number ON recycled_part_master(normalized_part_number)`
+  ).run();
+  await db.prepare(
+    `CREATE INDEX IF NOT EXISTS idx_recycled_device_parts_device_id ON recycled_device_parts(device_id)`
+  ).run();
+  await db.prepare(
+    `CREATE INDEX IF NOT EXISTS idx_recycled_device_parts_master_part_id ON recycled_device_parts(master_part_id)`
   ).run();
   await db.prepare(
     `CREATE INDEX IF NOT EXISTS idx_recycled_device_aliases_alias ON recycled_device_aliases(alias)`
@@ -1831,6 +2127,471 @@ function formatCatalogPartLine(part) {
   const quantity = Number.isFinite(quantityValue) && quantityValue > 0 ? `, ${quantityValue} szt.` : "";
   const designator = part.designator ? `, ${part.designator}` : "";
   return `- ${part.part_name}${detailBits.length ? ` (${detailBits.join(", ")}${quantity}${designator})` : ""}`;
+}
+
+function normalizeParametersObject(value) {
+  const parsed = typeof value === "string" ? parseJsonSafe(value, {}) : value;
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    return {};
+  }
+  return parsed;
+}
+
+function mergeParametersObjects(existingValue, nextValue) {
+  return {
+    ...normalizeParametersObject(existingValue),
+    ...normalizeParametersObject(nextValue),
+  };
+}
+
+async function getPartMasterById(env, masterPartId) {
+  const db = env.DB;
+  if (!db || !masterPartId) {
+    return null;
+  }
+  await ensureRecycledKnowledgeSchema(db);
+  const row = await db.prepare(
+    `
+    SELECT *
+    FROM recycled_part_master
+    WHERE id = ?
+    LIMIT 1
+    `
+  ).bind(masterPartId).first();
+  if (!row) {
+    return null;
+  }
+  return {
+    ...row,
+    parameters: normalizeParametersObject(row.parameters),
+    keywords: splitKeywords(row.keywords),
+  };
+}
+
+async function findPartMasterMatches(env, queryText) {
+  const db = env.DB;
+  const normalizedQuery = normalizeWhitespace(queryText);
+  if (!db || !normalizedQuery) {
+    return [];
+  }
+  await ensureRecycledKnowledgeSchema(db);
+
+  const normalizedNumber = normalizePartNumber(normalizedQuery);
+  const wildcard = `%${normalizedQuery}%`;
+  const result = await db.prepare(
+    `
+    SELECT
+      pm.*,
+      COUNT(DISTINCT rdp.device_id) AS donor_count
+    FROM recycled_part_master pm
+    LEFT JOIN recycled_device_parts rdp ON rdp.master_part_id = pm.id
+    WHERE
+      LOWER(COALESCE(pm.normalized_part_number, '')) = LOWER(?)
+      OR LOWER(COALESCE(pm.part_number, '')) = LOWER(?)
+      OR LOWER(pm.part_name) = LOWER(?)
+      OR LOWER(COALESCE(pm.part_slug, '')) = LOWER(?)
+      OR LOWER(COALESCE(pm.part_number, '')) LIKE LOWER(?)
+      OR LOWER(pm.part_name) LIKE LOWER(?)
+      OR LOWER(COALESCE(pm.keywords, '')) LIKE LOWER(?)
+    GROUP BY pm.id
+    ORDER BY
+      CASE
+        WHEN LOWER(COALESCE(pm.normalized_part_number, '')) = LOWER(?) THEN 0
+        WHEN LOWER(COALESCE(pm.part_number, '')) = LOWER(?) THEN 1
+        WHEN LOWER(pm.part_name) = LOWER(?) THEN 2
+        ELSE 3
+      END,
+      pm.part_name ASC
+    LIMIT 6
+    `
+  ).bind(
+    normalizedNumber,
+    normalizedQuery,
+    normalizedQuery,
+    slugifyCatalogValue(normalizedQuery),
+    wildcard,
+    wildcard,
+    wildcard,
+    normalizedNumber,
+    normalizedQuery,
+    normalizedQuery
+  ).all();
+
+  return (result?.results || []).map((row) => ({
+    ...row,
+    donor_count: Number(row.donor_count || 0),
+    parameters: normalizeParametersObject(row.parameters),
+    keywords: splitKeywords(row.keywords),
+  }));
+}
+
+async function upsertPartMaster(env, payload = {}) {
+  const db = env.DB;
+  if (!db) {
+    return null;
+  }
+  await ensureRecycledKnowledgeSchema(db);
+
+  const rawPartNumber = coalesceText(payload.part_number, payload.part_name, payload.query_text);
+  const normalizedPartNumber = normalizePartNumber(rawPartNumber);
+  const fallbackPartName = coalesceText(payload.part_name, payload.part_number, payload.query_text, "Nieznana część");
+  const requestedSlug = slugifyCatalogValue(
+    payload.part_slug || normalizedPartNumber || fallbackPartName,
+    "unknown-part"
+  );
+
+  let existing = null;
+  if (payload.id) {
+    existing = await db.prepare(
+      `SELECT * FROM recycled_part_master WHERE id = ? LIMIT 1`
+    ).bind(payload.id).first();
+  }
+  if (!existing && normalizedPartNumber) {
+    existing = await db.prepare(
+      `
+      SELECT *
+      FROM recycled_part_master
+      WHERE LOWER(COALESCE(normalized_part_number, '')) = LOWER(?)
+      LIMIT 1
+      `
+    ).bind(normalizedPartNumber).first();
+  }
+  if (!existing) {
+    existing = await db.prepare(
+      `
+      SELECT *
+      FROM recycled_part_master
+      WHERE part_slug = ?
+      LIMIT 1
+      `
+    ).bind(requestedSlug).first();
+  }
+
+  const mergedKeywords = uniqueStrings([
+    splitKeywords(existing?.keywords),
+    splitKeywords(payload.keywords),
+    splitKeywords(payload.part_aliases),
+  ]);
+  const mergedParameters = mergeParametersObjects(existing?.parameters, payload.parameters);
+  const partName = coalesceText(payload.part_name, existing?.part_name, rawPartNumber, "Nieznana część");
+  const partNumber = coalesceText(payload.part_number, existing?.part_number, rawPartNumber, partName);
+  const partSlug = existing?.part_slug || requestedSlug;
+
+  if (existing) {
+    await db.prepare(
+      `
+      UPDATE recycled_part_master
+      SET
+        part_slug = ?,
+        part_number = ?,
+        normalized_part_number = ?,
+        part_name = ?,
+        species = ?,
+        genus = ?,
+        mounting = ?,
+        value = ?,
+        description = ?,
+        keywords = ?,
+        datasheet_url = ?,
+        datasheet_file_id = ?,
+        ipn = ?,
+        category = ?,
+        parameters = ?,
+        kicad_symbol = ?,
+        kicad_footprint = ?,
+        kicad_reference = ?,
+        updated_at = ?
+      WHERE id = ?
+      `
+    ).bind(
+      partSlug,
+      partNumber,
+      normalizePartNumber(partNumber),
+      partName,
+      coalesceText(payload.species, existing.species),
+      coalesceText(payload.genus, existing.genus),
+      coalesceText(payload.mounting, existing.mounting),
+      coalesceText(payload.value, existing.value),
+      coalesceText(payload.description, existing.description),
+      mergedKeywords.join(", "),
+      coalesceText(payload.datasheet_url, existing.datasheet_url),
+      coalesceText(payload.datasheet_file_id, existing.datasheet_file_id),
+      coalesceText(payload.ipn, existing.ipn),
+      coalesceText(payload.category, existing.category),
+      JSON.stringify(mergedParameters),
+      coalesceText(payload.kicad_symbol, existing.kicad_symbol),
+      coalesceText(payload.kicad_footprint, existing.kicad_footprint),
+      coalesceText(payload.kicad_reference, existing.kicad_reference),
+      toIsoNow(),
+      existing.id
+    ).run();
+
+    return await getPartMasterById(env, existing.id);
+  }
+
+  const res = await db.prepare(
+    `
+    INSERT INTO recycled_part_master (
+      part_slug,
+      part_number,
+      normalized_part_number,
+      part_name,
+      species,
+      genus,
+      mounting,
+      value,
+      description,
+      keywords,
+      datasheet_url,
+      datasheet_file_id,
+      ipn,
+      category,
+      parameters,
+      kicad_symbol,
+      kicad_footprint,
+      kicad_reference,
+      created_at,
+      updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `
+  ).bind(
+    partSlug,
+    partNumber,
+    normalizePartNumber(partNumber),
+    partName,
+    coalesceText(payload.species),
+    coalesceText(payload.genus),
+    coalesceText(payload.mounting),
+    coalesceText(payload.value),
+    coalesceText(payload.description),
+    mergedKeywords.join(", "),
+    coalesceText(payload.datasheet_url),
+    coalesceText(payload.datasheet_file_id),
+    coalesceText(payload.ipn),
+    coalesceText(payload.category),
+    JSON.stringify(mergedParameters),
+    coalesceText(payload.kicad_symbol),
+    coalesceText(payload.kicad_footprint),
+    coalesceText(payload.kicad_reference),
+    toIsoNow(),
+    toIsoNow()
+  ).run();
+
+  const insertedId = res?.meta?.last_row_id || null;
+  return await getPartMasterById(env, insertedId);
+}
+
+async function ensureDonorDevice(env, donorModelText, options = {}) {
+  const db = env.DB;
+  const normalizedModel = normalizeWhitespace(donorModelText);
+  if (!db || !normalizedModel) {
+    return null;
+  }
+  await ensureRecycledKnowledgeSchema(db);
+
+  let device = await db.prepare(
+    `SELECT * FROM recycled_devices WHERE LOWER(model) = LOWER(?) LIMIT 1`
+  ).bind(normalizedModel).first();
+  if (device) {
+    return device;
+  }
+
+  const res = await db.prepare(
+    `
+    INSERT INTO recycled_devices (
+      model,
+      brand,
+      description,
+      teardown_url,
+      created_at,
+      device_category,
+      source_url,
+      donor_rank
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `
+  ).bind(
+    normalizedModel,
+    options.brand || null,
+    options.description || "Urządzenie-dawca dodane z workflowu Telegram datasheet.",
+    options.teardown_url || null,
+    toIsoNow(),
+    options.device_category || "unknown_device",
+    options.source_url || null,
+    options.donor_rank || 0.4
+  ).run();
+
+  return await db.prepare(
+    `SELECT * FROM recycled_devices WHERE id = ? LIMIT 1`
+  ).bind(res?.meta?.last_row_id || null).first();
+}
+
+async function linkMasterPartToDevice(env, payload = {}) {
+  const db = env.DB;
+  if (!db || !payload.device_id || !payload.master_part_id) {
+    return null;
+  }
+  await ensureRecycledKnowledgeSchema(db);
+
+  const designator = normalizeWhitespace(payload.designator || "");
+  const existingLink = await db.prepare(
+    `
+    SELECT id
+    FROM recycled_device_parts
+    WHERE device_id = ? AND master_part_id = ? AND COALESCE(designator, '') = COALESCE(?, '')
+    LIMIT 1
+    `
+  ).bind(payload.device_id, payload.master_part_id, designator).first();
+
+  if (!existingLink) {
+    await db.prepare(
+      `
+      INSERT INTO recycled_device_parts (
+        device_id,
+        master_part_id,
+        quantity,
+        designator,
+        source_url,
+        confidence,
+        stock_location,
+        evidence_url,
+        evidence_timecode,
+        created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `
+    ).bind(
+      payload.device_id,
+      payload.master_part_id,
+      payload.quantity || 1,
+      designator || null,
+      payload.source_url || null,
+      payload.confidence || 0.5,
+      payload.stock_location || null,
+      payload.evidence_url || null,
+      payload.evidence_timecode || null,
+      toIsoNow()
+    ).run();
+  }
+
+  const masterPart = await getPartMasterById(env, payload.master_part_id);
+  if (!masterPart) {
+    return null;
+  }
+
+  const existingReadModel = await db.prepare(
+    `
+    SELECT id
+    FROM recycled_parts
+    WHERE device_id = ? AND master_part_id = ? AND COALESCE(designator, '') = COALESCE(?, '')
+    LIMIT 1
+    `
+  ).bind(payload.device_id, payload.master_part_id, designator).first();
+
+  if (existingReadModel) {
+    await db.prepare(
+      `
+      UPDATE recycled_parts
+      SET
+        part_name = ?,
+        species = ?,
+        value = ?,
+        description = ?,
+        genus = ?,
+        mounting = ?,
+        keywords = ?,
+        kicad_symbol = ?,
+        kicad_footprint = ?,
+        datasheet_url = ?,
+        quantity = ?,
+        source_url = ?,
+        confidence = ?,
+        ipn = ?,
+        category = ?,
+        parameters = ?,
+        datasheet_file_id = ?,
+        kicad_reference = ?,
+        stock_location = ?
+      WHERE id = ?
+      `
+    ).bind(
+      masterPart.part_name,
+      masterPart.species || null,
+      masterPart.value || null,
+      masterPart.description || null,
+      masterPart.genus || null,
+      masterPart.mounting || null,
+      splitKeywords(masterPart.keywords).join(", "),
+      masterPart.kicad_symbol || null,
+      masterPart.kicad_footprint || null,
+      masterPart.datasheet_url || null,
+      payload.quantity || 1,
+      payload.source_url || null,
+      payload.confidence || 0.5,
+      masterPart.ipn || null,
+      masterPart.category || null,
+      JSON.stringify(normalizeParametersObject(masterPart.parameters)),
+      masterPart.datasheet_file_id || null,
+      masterPart.kicad_reference || null,
+      payload.stock_location || null,
+      existingReadModel.id
+    ).run();
+    return existingReadModel.id;
+  }
+
+  const res = await db.prepare(
+    `
+    INSERT INTO recycled_parts (
+      device_id,
+      part_name,
+      species,
+      value,
+      designator,
+      description,
+      created_at,
+      genus,
+      mounting,
+      keywords,
+      kicad_symbol,
+      kicad_footprint,
+      datasheet_url,
+      quantity,
+      source_url,
+      confidence,
+      ipn,
+      category,
+      parameters,
+      datasheet_file_id,
+      kicad_reference,
+      stock_location,
+      master_part_id
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `
+  ).bind(
+    payload.device_id,
+    masterPart.part_name,
+    masterPart.species || null,
+    masterPart.value || null,
+    designator || null,
+    masterPart.description || null,
+    toIsoNow(),
+    masterPart.genus || null,
+    masterPart.mounting || null,
+    splitKeywords(masterPart.keywords).join(", "),
+    masterPart.kicad_symbol || null,
+    masterPart.kicad_footprint || null,
+    masterPart.datasheet_url || null,
+    payload.quantity || 1,
+    payload.source_url || null,
+    payload.confidence || 0.5,
+    masterPart.ipn || null,
+    masterPart.category || null,
+    JSON.stringify(normalizeParametersObject(masterPart.parameters)),
+    masterPart.datasheet_file_id || null,
+    masterPart.kicad_reference || null,
+    payload.stock_location || null,
+    payload.master_part_id
+  ).run();
+
+  return res?.meta?.last_row_id || null;
 }
 
 export function buildDeviceCatalogReply(dbResult) {
@@ -1921,14 +2682,18 @@ export async function recordRecycledSubmission(env, payload) {
       matched_device_id,
       matched_part_name,
       matched_part_number,
+      master_part_id,
       attachment_file_id,
       attachment_mime_type,
       provider_name,
       model_name,
       status,
+      ingest_source,
+      evidence_url,
+      evidence_timecode,
       raw_payload_json,
       created_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `
   ).bind(
     payload.chat_id || null,
@@ -1941,16 +2706,20 @@ export async function recordRecycledSubmission(env, payload) {
     payload.matched_device_id || null,
     payload.matched_part_name || null,
     payload.matched_part_number || null,
+    payload.master_part_id || null,
     payload.attachment_file_id || null,
     payload.attachment_mime_type || null,
     payload.provider_name || null,
     payload.model_name || null,
     payload.status || "queued",
+    payload.ingest_source || null,
+    payload.evidence_url || null,
+    payload.evidence_timecode || null,
     payload.raw_payload_json ? JSON.stringify(payload.raw_payload_json) : null,
     toIsoNow()
   ).run();
 
-  const newId = res.meta.last_row_id;
+  const newId = res?.meta?.last_row_id || null;
 
   // Co 10 zatwierdzeń wyzwól backup przez GitHub Actions
   if (newId && newId % 10 === 0) {
@@ -1980,6 +2749,9 @@ export async function recordRecycledSubmission(env, payload) {
 
 export async function upsertUserSession(env, chat_id, user_id, session_type, device_id = null, device_name = null) {
   const db = env.DB;
+  if (!db) {
+    return;
+  }
   const now = toIsoNow();
   await db.prepare(
     `
@@ -1996,6 +2768,9 @@ export async function upsertUserSession(env, chat_id, user_id, session_type, dev
 
 export async function getUserSession(env, chat_id, user_id, session_type) {
   const db = env.DB;
+  if (!db) {
+    return null;
+  }
   return await db.prepare(
     `SELECT * FROM telegram_user_sessions WHERE chat_id = ? AND user_id = ? AND session_type = ? AND status = 'active' AND updated_at > datetime('now', '-4 hours')`
   ).bind(chat_id, user_id, session_type).first();
@@ -2003,6 +2778,9 @@ export async function getUserSession(env, chat_id, user_id, session_type) {
 
 export async function closeUserSession(env, chat_id, user_id, session_type) {
   const db = env.DB;
+  if (!db) {
+    return;
+  }
   const now = toIsoNow();
   await db.prepare(
     `UPDATE telegram_user_sessions SET status = 'closed', updated_at = ? WHERE chat_id = ? AND user_id = ? AND session_type = ?`
@@ -2011,6 +2789,9 @@ export async function closeUserSession(env, chat_id, user_id, session_type) {
 
 export async function closeAllUserSessions(env, chat_id, user_id) {
   const db = env.DB;
+  if (!db) {
+    return;
+  }
   const now = toIsoNow();
   await db.prepare(
     `UPDATE telegram_user_sessions SET status = 'closed', updated_at = ? WHERE chat_id = ? AND user_id = ?`
@@ -2087,24 +2868,60 @@ export async function getPartsForModel(env, modelName) {
     device = { ...submissionDevice, id: null, description: " Urządzenie w kolejce do weryfikacji." };
   }
 
-  const parts = await db.prepare(
-    `
-    SELECT
-      part_name,
-      species,
-      value,
-      designator,
-      description,
-      quantity,
-      datasheet_url,
-      kicad_symbol,
-      kicad_footprint,
-      NULL as part_number
-    FROM recycled_parts
-    WHERE device_id = ?
-    ORDER BY part_name ASC
-    `
-  ).bind(device.id).all();
+  const normalizedParts = device.id
+    ? await db.prepare(
+        `
+        SELECT
+          pm.part_name,
+          pm.species,
+          pm.value,
+          rdp.designator,
+          pm.description,
+          rdp.quantity,
+          pm.datasheet_url,
+          pm.kicad_symbol,
+          pm.kicad_footprint,
+          pm.part_number,
+          pm.ipn,
+          pm.category,
+          pm.parameters,
+          pm.datasheet_file_id,
+          pm.kicad_reference,
+          rdp.stock_location
+        FROM recycled_device_parts rdp
+        JOIN recycled_part_master pm ON pm.id = rdp.master_part_id
+        WHERE rdp.device_id = ?
+        ORDER BY pm.part_name ASC
+        `
+      ).bind(device.id).all()
+    : { results: [] };
+
+  const legacyParts = device.id
+    ? await db.prepare(
+        `
+        SELECT
+          part_name,
+          species,
+          value,
+          designator,
+          description,
+          quantity,
+          datasheet_url,
+          kicad_symbol,
+          kicad_footprint,
+          NULL as part_number,
+          ipn,
+          category,
+          parameters,
+          datasheet_file_id,
+          kicad_reference,
+          stock_location
+        FROM recycled_parts
+        WHERE device_id = ?
+        ORDER BY part_name ASC
+        `
+      ).bind(device.id).all()
+    : { results: [] };
 
   // Fetch crowdsourced parts from submissions
   const submissions = await db.prepare(
@@ -2136,7 +2953,15 @@ export async function getPartsForModel(env, modelName) {
   ).bind(device.id, device.model, device.model, `%${device.model}%`, `%${device.model}%`).all();
 
   const allParts = [
-    ...(parts.results || []),
+    ...(normalizedParts.results || []),
+    ...(legacyParts.results || []).filter(
+      (legacyRow) =>
+        !(normalizedParts.results || []).some(
+          (item) =>
+            normalizeWhitespace(item.part_name) === normalizeWhitespace(legacyRow.part_name) &&
+            normalizeWhitespace(item.designator) === normalizeWhitespace(legacyRow.designator)
+        )
+    ),
     ...(submissions.results || [])
   ];
 
@@ -2152,7 +2977,55 @@ async function searchPartDonors(env, queryText) {
 
   await ensureRecycledKnowledgeSchema(db);
   const wildcard = `%${normalizedQuery}%`;
-  const result = await db.prepare(
+  const normalizedResult = await db.prepare(
+    `
+    SELECT DISTINCT
+      pm.part_name,
+      pm.species,
+      pm.value,
+      rdp.designator,
+      pm.description,
+      rdp.quantity,
+      pm.datasheet_url,
+      pm.kicad_symbol,
+      pm.kicad_footprint,
+      pm.part_number,
+      d.id AS device_id,
+      d.model,
+      d.brand,
+      d.description AS device_description,
+      d.teardown_url
+    FROM recycled_part_master pm
+    JOIN recycled_device_parts rdp ON rdp.master_part_id = pm.id
+    JOIN recycled_devices d ON d.id = rdp.device_id
+    WHERE
+      LOWER(pm.part_name) = LOWER(?)
+      OR LOWER(pm.part_name) LIKE LOWER(?)
+      OR LOWER(COALESCE(pm.part_number, '')) = LOWER(?)
+      OR LOWER(COALESCE(pm.part_number, '')) LIKE LOWER(?)
+      OR LOWER(COALESCE(pm.keywords, '')) LIKE LOWER(?)
+    ORDER BY
+      CASE
+        WHEN LOWER(COALESCE(pm.part_number, '')) = LOWER(?) THEN 0
+        WHEN LOWER(pm.part_name) = LOWER(?) THEN 1
+        ELSE 2
+      END,
+      pm.part_name,
+      d.brand,
+      d.model
+    LIMIT 8
+    `
+  ).bind(
+    normalizedQuery,
+    wildcard,
+    normalizedQuery,
+    wildcard,
+    normalizedQuery,
+    normalizedQuery,
+    normalizedQuery
+  ).all();
+
+  const legacyResult = await db.prepare(
     `
     SELECT DISTINCT
       p.part_name,
@@ -2164,6 +3037,7 @@ async function searchPartDonors(env, queryText) {
       p.datasheet_url,
       p.kicad_symbol,
       p.kicad_footprint,
+      NULL as part_number,
       d.id AS device_id,
       d.model,
       d.brand,
@@ -2197,7 +3071,14 @@ async function searchPartDonors(env, queryText) {
     normalizedQuery
   ).all();
 
-  return (result.results || []).map((row) => ({
+  return [...(normalizedResult.results || []), ...(legacyResult.results || []).filter(
+    (legacyRow) =>
+      !(normalizedResult.results || []).some(
+        (row) =>
+          normalizeWhitespace(row.part_name) === normalizeWhitespace(legacyRow.part_name) &&
+          normalizeWhitespace(row.model) === normalizeWhitespace(legacyRow.model)
+      )
+  )].map((row) => ({
     ...row,
     device: {
       id: row.device_id,
@@ -2212,11 +3093,11 @@ async function searchPartDonors(env, queryText) {
 export async function handleRecycledKnowledgeLookup(env, message) {
   const queryText = normalizeWhitespace(getMessageText(message));
   if (!queryText) {
-    return {
+    return withMainMenuReply({
       reply_text: "Podejrzewam lookup czesci, ale nie widze tekstu do sprawdzenia.",
       provider_name: "local",
       model_name: "d1",
-    };
+    });
   }
 
   const deviceResult = await getPartsForModel(env, queryText);
@@ -2231,11 +3112,24 @@ export async function handleRecycledKnowledgeLookup(env, message) {
       status: "matched_device",
       raw_payload_json: { query_text: queryText },
     });
-    return {
-      reply_text: buildDeviceCatalogReply(deviceResult),
+    await upsertUserSession(
+      env,
+      message?.chat_id,
+      message?.user_id,
+      "device_lookup_question",
+      deviceResult.device.id || null,
+      JSON.stringify({
+        version: 1,
+        device_id: deviceResult.device.id || null,
+        device_model: formatDeviceName(deviceResult.device) || deviceResult.device.model || queryText,
+        query_text: queryText,
+      })
+    );
+    return withMainMenuReply({
+      reply_text: `${buildDeviceCatalogReply(deviceResult)}\n\n💬 Co chcesz wiedzieć o tym urządzeniu?`,
       provider_name: "local",
       model_name: "d1",
-    };
+    });
   }
 
   const partMatches = await searchPartDonors(env, queryText);
@@ -2252,12 +3146,12 @@ export async function handleRecycledKnowledgeLookup(env, message) {
       raw_payload_json: { query_text: queryText },
     });
     const reply = buildPartLookupReply(queryText, partMatches);
-    return {
+    return withMainMenuReply({
       reply_text: reply.text,
       reply_markup: reply.reply_markup,
       provider_name: "local",
       model_name: "d1",
-    };
+    });
   }
 
   await recordRecycledSubmission(env, {
@@ -2270,12 +3164,86 @@ export async function handleRecycledKnowledgeLookup(env, message) {
     raw_payload_json: { query_text: queryText },
   });
 
-  return {
+  return withMainMenuReply({
     reply_text:
       "Nie mam jeszcze pewnego dopasowania w katalogu reuse. Wyślij model, part number albo zdjęcie etykiety / PCB, a zgłoszenie trafi do kolejki kuracji.",
     provider_name: "local",
     model_name: "d1",
-  };
+  });
+}
+
+export async function answerDeviceLookupQuestion(env, session, userQuestion) {
+  const payload = parseJsonSafe(session?.active_device_name, {}) || {};
+  const deviceId = payload.device_id || session?.active_device_id || null;
+  const deviceLabel = payload.device_model || session?.active_device_name || "urządzenie";
+  const deviceContext =
+    (deviceId ? await getDeviceById(env, deviceId) : null) ||
+    (payload.query_text ? (await getPartsForModel(env, payload.query_text))?.device : null);
+  const partsContext = await getPartsForModel(env, deviceContext?.model || payload.query_text || deviceLabel);
+
+  if (!partsContext) {
+    return withMainMenuReply({
+      reply_text: `Nie udało mi się już odtworzyć kontekstu dla urządzenia: ${deviceLabel}. Spróbuj ponownie wyszukać je w bazie.`,
+      provider_name: "local",
+      model_name: "d1",
+    });
+  }
+
+  const partLines = (partsContext.parts || [])
+    .slice(0, 20)
+    .map((part) => {
+      const parameterText = normalizeParametersObject(part.parameters);
+      const parameterPairs = Object.entries(parameterText)
+        .slice(0, 6)
+        .map(([key, value]) => `${key}: ${value}`)
+        .join(", ");
+      return [
+        `- ${part.part_name}`,
+        part.part_number ? `nr: ${part.part_number}` : "",
+        part.designator ? `designator: ${part.designator}` : "",
+        part.value ? `wartość: ${part.value}` : "",
+        part.datasheet_url ? `datasheet: ${part.datasheet_url}` : "",
+        parameterPairs ? `parametry: ${parameterPairs}` : "",
+      ].filter(Boolean).join(" | ");
+    })
+    .join("\n");
+
+  try {
+    const response = await callProviderWithFallback(
+      env,
+      buildPromptPayload(
+        [
+          "Jesteś asystentem elektronika i odpowiadasz wyłącznie na podstawie lokalnego katalogu reuse.",
+          "Rozdzielaj model urządzenia-dawcy od oznaczeń części.",
+          "Jeśli dane nie wystarczają, powiedz to wprost i wskaż czego brakuje.",
+        ].join(" "),
+        [
+          `Urządzenie: ${formatDeviceName(partsContext.device) || deviceLabel}`,
+          partsContext.device?.description ? `Opis: ${partsContext.device.description}` : "",
+          partsContext.device?.device_category ? `Kategoria: ${partsContext.device.device_category}` : "",
+          "",
+          "Lista części z bazy:",
+          partLines || "- Brak części w katalogu.",
+          "",
+          `Pytanie użytkownika: ${userQuestion}`,
+        ].filter(Boolean).join("\n"),
+        env,
+        { maxTokens: 900, temperature: 0.2 }
+      )
+    );
+
+    return withMainMenuReply({
+      reply_text: sanitizeTelegramReply(response.text, env),
+      provider_name: response.provider_name,
+      model_name: response.model_name,
+    });
+  } catch (error) {
+    console.error("[answerDeviceLookupQuestion]", error instanceof Error ? error.message : String(error));
+    return buildAiChainErrorReply(
+      "DS-AI-CHAIN-UNAVAILABLE",
+      `Nie udało się przygotować odpowiedzi o urządzeniu ${deviceLabel}.`
+    );
+  }
 }
 
 export async function recognizeDeviceAndListParts(env, message, mediaBase64) {
@@ -2446,6 +3414,25 @@ export async function recognizePartAndRecord(env, message, mediaBase64, session,
     }
   }
 
+  const masterPart = await upsertPartMaster(env, {
+    part_number: partNumber,
+    part_name: partName,
+    description: identity.description || "",
+    category: identity.category || "",
+    keywords: uniqueStrings([partName, partNumber]),
+    parameters: identity.parameters || {},
+  });
+  if (session.active_device_id && masterPart?.id) {
+    await linkMasterPartToDevice(env, {
+      device_id: session.active_device_id,
+      master_part_id: masterPart.id,
+      quantity: 1,
+      designator: identity.designator || "",
+      confidence: Number(identity.confidence || 0.6),
+      source_url: null,
+    });
+  }
+
   const submissionId = await recordRecycledSubmission(env, {
     chat_id: message?.chat_id,
     user_id: message?.user_id,
@@ -2455,6 +3442,7 @@ export async function recognizePartAndRecord(env, message, mediaBase64, session,
     query_text: deviceName || null,
     matched_part_name: identity.part_name || null,
     matched_part_number: identity.part_number || null,
+    master_part_id: masterPart?.id || null,
     attachment_file_id: message?.file_id || null,
     attachment_mime_type: message?.mime_type || null,
     provider_name: visionResp.provider_name,
@@ -2588,217 +3576,440 @@ export async function curateSubmissions(env) {
   return { status: "error", message: "No results from AI" };
 }
 
-/**
- * PRZENIESIONO DO datasheet.js — ta kopia pozostaje dla wstecznej kompatybilności.
- * Nowe importy powinny pochodzić z "./datasheet.js".
- */
-export async function initDatasheetWorkflow(env, message, intent) {
-  let query = message.file_name || message.text || message.caption || "Analiza dokumentu PDF";
-  if (query.toLowerCase().endsWith(".pdf")) {
-    query = query.slice(0, -4);
+async function extractDatasheetMetadataFromPdf(env, options = {}) {
+  const base64 = options.base64;
+  if (!base64) {
+    return { partRecord: null, provider_name: "local", model_name: "missing-pdf" };
   }
-  const fileId = message.file_id || "NO_FILE";
 
-  // Zamknij WSZYSTKIE poprzednie sesje datasheet, aby uniknąć konfliktu URL-i
-  await closeUserSession(env, message.chat_id, message.user_id, "datasheet_wait_model");
-  await closeUserSession(env, message.chat_id, message.user_id, "datasheet_wait_question");
-  await closeUserSession(env, message.chat_id, message.user_id, "datasheet_wait_target");
+  const partQuery = coalesceText(options.partQuery, "Nieznana część");
+  const response = await callProviderWithFallback(
+    env,
+    buildPromptPayload(
+      [
+        "Jesteś ekspertem elektroniki i ekstrakcji danych technicznych z PDF.",
+        "Wyciągasz dane katalogowe części do wspólnej bazy reuse zgodnej z ecoEDA, Ki-nTree, InvenTree i KiCad-MCP.",
+        "Zwróć wyłącznie JSON.",
+      ].join(" "),
+      [
+        `Przeanalizuj PDF dla części: ${partQuery}.`,
+        "Zwróć JSON o strukturze:",
+        '{"part_name":"", "part_number":"", "description":"", "category":"", "species":"", "genus":"", "mounting":"", "value":"", "keywords":[""], "parameters":{"Voltage":"5V"}, "kicad_symbol":"", "kicad_footprint":"", "kicad_reference":"", "confidence":0.9 }',
+      ].join("\n"),
+      env,
+      {
+        media: [{ data: base64, mime_type: options.mimeType || "application/pdf" }],
+        responseMimeType: "application/json",
+        maxTokens: 1500,
+        temperature: 0.1,
+      }
+    )
+  );
 
-  const sessionData = `${fileId}|${query}`;
-  await upsertUserSession(env, message.chat_id, message.user_id, "datasheet_wait_model", null, sessionData);
-
-  const replyText = [
-    `📄 *Asystent Dokumentacji Aktywny!*`,
-    "",
-    `Szukam: *${query}*`,
-    "",
-    `👉 *Wyślij zdjęcie etykiety/modelu urządzenia* lub *wpisz jego nazwę* (np. HP LaserJet P1102).`,
-    "",
-    `_Twoja informacja pomoże innym w naprawach i recyklingu!_`
-  ].join("\n");
-
-  // Szukamy PDF już teraz, żeby dać przycisk jak najwcześniej
-  const pdfUrl = await findDatasheetPdfLink(query);
-  const replyMarkup = {
-    inline_keyboard: [
-      [{ text: "🤷‍♂️ Nie mam modelu", callback_data: "datasheet_no_model" }]
-    ]
-  };
-  if (pdfUrl) {
-    replyMarkup.inline_keyboard.unshift([{ text: "📄 Otwórz PDF", url: pdfUrl }]);
-  }
+  const parsed = extractJsonObject(response.text);
+  const partRecord = await upsertPartMaster(env, {
+    id: options.masterPartId || null,
+    part_number: coalesceText(parsed.part_number, partQuery),
+    part_name: coalesceText(parsed.part_name, partQuery),
+    description: coalesceText(parsed.description),
+    category: coalesceText(parsed.category),
+    species: coalesceText(parsed.species),
+    genus: coalesceText(parsed.genus),
+    mounting: coalesceText(parsed.mounting),
+    value: coalesceText(parsed.value),
+    keywords: uniqueStrings([parsed.keywords, partQuery, parsed.part_name, parsed.part_number]),
+    parameters: parsed.parameters || {},
+    kicad_symbol: coalesceText(parsed.kicad_symbol),
+    kicad_footprint: coalesceText(parsed.kicad_footprint),
+    kicad_reference: coalesceText(parsed.kicad_reference),
+    datasheet_url: coalesceText(options.pdfUrl),
+    datasheet_file_id: coalesceText(options.pdfFileId),
+  });
 
   return {
-    reply_text: replyText,
-    reply_markup: replyMarkup
+    partRecord,
+    provider_name: response.provider_name,
+    model_name: response.model_name,
+    parsed,
+    summary: coalesceText(parsed.description, parsed.part_name, partQuery),
   };
 }
 
-/**
- * PRZENIESIONO DO datasheet.js — ta kopia pozostaje dla wstecznej kompatybilności.
- * Nowe importy powinny pochodzić z "./datasheet.js".
- */
-export async function handleFinalDatasheetRag(env, message, session, deviceModel, ctx = null) {
-  const sessionParts = (session.active_device_name || "NO_FILE|").split('|');
-  const fileId = sessionParts[0] === "NO_FILE" ? null : sessionParts[0];
-  const partQuery = sessionParts.slice(1).join('|');
-
-  await sendTelegramReply(env, message, `⏳ Przyjąłem model: *${deviceModel}*. Szukam dokumentacji dla *${partQuery}*...`);
-
-  // Zawsze szukamy ODŚWIEŻONEGO linku PDF dla aktualnej części
-  const pdfUrl = await findDatasheetPdfLink(partQuery) || "";
-
-  // Przechowujemy: fileId|partQuery|deviceModel|pdfUrl
-  const newSessionData = `${fileId || "NO_FILE"}|${partQuery}|${deviceModel}|${pdfUrl}`;
-  await upsertUserSession(env, message.chat_id, message.user_id, "datasheet_wait_question", null, newSessionData);
-
-  const replyLines = [
-    `💡 *Świetnie!* Mamy model: \`${deviceModel}\`.`,
-    ""
-  ];
-
-  if (pdfUrl) {
-    replyLines.push(
-      `🟢 *Znalazłem dokumentację PDF!*`,
-      ``,
-      `📲 Kliknij *Otwórz PDF* poniżej, pobierz plik na telefon, a następnie wyślij mi go tutaj.`,
-      `Po przesłaniu pliku wpisz swoje pytanie — przeanalizuję dokładnie ten dokument!`
-    );
-  } else if (!fileId) {
-    replyLines.push(
-      `🟡 Nie znalazłem PDF od producenta.`,
-      ``,
-      `Możesz poszukać datasheetu ręcznie i przesłać mi plik — lub po prostu zadaj pytanie, a odpowiem z pamięci.`
-    );
-  } else {
-    replyLines.push(`🟢 Mam Twój PDF. Wpisz pytanie!`);
+export async function attachPdfToDatasheetSession(env, message, session) {
+  const payload = parseDatasheetSessionPayload(session?.active_device_name);
+  const base64 = await fetchTelegramFileAsBase64(env, message.file_id);
+  let extracted = null;
+  if (base64) {
+    extracted = await extractDatasheetMetadataFromPdf(env, {
+      base64,
+      mimeType: "application/pdf",
+      partQuery: payload.part_number || message.file_name || "Nieznana część",
+      masterPartId: payload.master_part_id || null,
+      pdfFileId: message.file_id,
+      pdfUrl: payload.pdf_url || "",
+    });
   }
 
-  if (!pdfUrl && !fileId) {
-    replyLines.push("", `_Przykłady pytań:_`, `• "Jaki jest pinout?"`, `• "Maksymalne napięcie zasilania?"`, `• "Zaproponuj zamiennik."`);
-  }
+  const partRecord = extracted?.partRecord || (payload.master_part_id ? await getPartMasterById(env, payload.master_part_id) : null);
+  const nextPayload = {
+    part_number: partRecord?.part_number || payload.part_number || message.file_name || "",
+    master_part_id: partRecord?.id || payload.master_part_id || null,
+    donor_device_model: payload.donor_device_model || "",
+    donor_device_id: payload.donor_device_id || null,
+    pdf_url: payload.pdf_url || partRecord?.datasheet_url || "",
+    pdf_file_id: message.file_id || "",
+    db_hit: true,
+    source: "uploaded_pdf",
+    file_name: message.file_name || payload.file_name || "",
+    scan_summary: extracted?.summary || payload.scan_summary || "",
+  };
 
-  const replyMarkup = pdfUrl ? {
-    inline_keyboard: [
-      [{ text: "📄 Otwórz PDF", url: pdfUrl }],
-      [{ text: "🏠 Menu główne", callback_data: "command_start" }]
-    ]
-  } : { inline_keyboard: [[{ text: "🏠 Menu główne", callback_data: "command_start" }]] };
-
-  return { reply_text: replyLines.join("\n"), reply_markup: replyMarkup };
-}
-
-/**
- * PRZENIESIONO DO datasheet.js — ta kopia pozostaje dla wstecznej kompatybilności.
- * Nowe importy powinny pochodzić z "./datasheet.js".
- */
-export async function handleFinalDatasheetRagFinal(env, message, session, userQuestion, ctx = null) {
-  // Format sesji: fileId|partQuery|deviceModel|pdfUrl
-  const sessionParts = (session.active_device_name || "NO_FILE|||").split('|');
-  const fileId = sessionParts[0] === "NO_FILE" ? null : sessionParts[0];
-  const partQuery = sessionParts[1] || "";
-  // pdfUrl jest zawsze ostatnim segmentem; deviceModel może zawierać '|'
-  const cachedPdfUrl = sessionParts[sessionParts.length - 1] || "";
-  const deviceModel = sessionParts.slice(2, sessionParts.length - 1).join('|');
-
-  await sendTelegramReply(env, message, `🔎 Analizuję datasheet pod kątem Twojego pytania: _"${userQuestion}"_...`);
-
-  let aiContext = "";
-
-  // Odśwież URL PDF dla aktualnej części — nie ufaj cache z sesji
-  const freshPdfUrl = await findDatasheetPdfLink(partQuery) || cachedPdfUrl;
-  const resolvedPdfUrl = freshPdfUrl;
-
-  const ragSystemForDevice = [
-    "Jesteś inżynierem elektronikiem. Odpowiadasz precyzyjnie na pytania techniczne.",
-    `Analizujesz część: ${partQuery} z urządzenia: ${deviceModel}.`,
-    "Odpowiedz zwięźle i technicznie. Jeśli nie znasz odpowiedzi, powiedz to szczerze."
-  ].join(" ");
-
-  if (fileId) {
-    // SCENARIUSZ A: PDF przesłany przez użytkownika
-    const base64 = await fetchTelegramFileAsBase64(env, fileId);
-    if (base64) {
-      try {
-        const visionResp = await callGoogleProvider(env, {
-          systemInstruction: ragSystemForDevice,
-          userPrompt: `Pytanie użytkownika: ${userQuestion}\n\nNazwa części: ${partQuery}`,
-          temperature: 0.1,
-          maxTokens: 1500,
-          media: [{ data: base64, mime_type: "application/pdf" }]
-        });
-        aiContext = visionResp.text;
-      } catch (error) {
-        console.error("[handleFinalDatasheetRagFinal] PDF vision error:", error instanceof Error ? error.message : String(error));
-      }
-    }
-  } else if (resolvedPdfUrl) {
-    // SCENARIUSZ B: Mamy URL – próbujemy pobrać i przeanalizować
-    await sendTelegramReply(env, message, "📥 Pobieram dokumentację do analizy...");
-    const fetchedBase64 = await fetchExternalPdfAsBase64(resolvedPdfUrl);
-
-    if (fetchedBase64) {
-      try {
-        const visionResp = await callGoogleProvider(env, {
-          systemInstruction: ragSystemForDevice,
-          userPrompt: `Pytanie użytkownika: ${userQuestion}\n\nNazwa części: ${partQuery}`,
-          temperature: 0.1,
-          maxTokens: 1500,
-          media: [{ data: fetchedBase64, mime_type: "application/pdf" }]
-        });
-        aiContext = visionResp.text;
-      } catch (error) {
-        console.error("[handleFinalDatasheetRagFinal] PDF download+vision error:", error instanceof Error ? error.message : String(error));
-      }
-    }
-  }
-
-  // FALLBACK AI – gdy nie ma treści z PDF (PDF niedostępny, brak pliku, błąd)
-  if (!aiContext) {
-    const fallbackPrompt = `Odpowiedz na pytanie techniczne o komponent elektroniczny.
-Część: ${partQuery}
-Urządzenie: ${deviceModel || "nieznane"}
-${resolvedPdfUrl ? `Link do datasheetu (informacyjnie): ${resolvedPdfUrl}` : ""}
-Pytanie: ${userQuestion}
-
-Odpowiedz precyzyjnie i technicznie. Podaj kluczowe parametry jeśli znasz.`;
-
-    const fallbackResp = await callProviderWithFallback(
-      env,
-      buildPromptPayload(ragSystemForDevice, fallbackPrompt, env, { maxTokens: 1200, temperature: 0.2 })
-    );
-    aiContext = fallbackResp.text;
-  }
-
-  // ZAPIS DO BAZY
+  await upsertUserSession(
+    env,
+    message.chat_id,
+    message.user_id,
+    "datasheet_wait_question",
+    null,
+    serializeDatasheetSessionPayload(nextPayload)
+  );
   await recordRecycledSubmission(env, {
     chat_id: message?.chat_id,
     user_id: message?.user_id,
     message_id: message?.message_id,
-    lookup_kind: "datasheet_rag_complete",
-    query_text: deviceModel,
-    matched_part_name: partQuery,
-    matched_part_number: partQuery,
+    lookup_kind: "datasheet_pdf_ingest",
+    query_text: nextPayload.part_number || null,
+    matched_part_name: partRecord?.part_name || nextPayload.part_number || null,
+    matched_part_number: nextPayload.part_number || null,
+    master_part_id: nextPayload.master_part_id || null,
+    attachment_file_id: message?.file_id || null,
+    attachment_mime_type: message?.mime_type || null,
     status: "approved",
-    raw_payload_json: { question: userQuestion, answer: aiContext, device: deviceModel, pdf_url: resolvedPdfUrl }
+    ingest_source: "telegram_pdf",
+    raw_payload_json: { file_name: message.file_name || "", scan_summary: nextPayload.scan_summary || "" },
   });
 
-  await closeUserSession(env, message.chat_id, message.user_id, "datasheet_wait_question");
-
-  // Przyciski: PDF (jeśli mamy URL) + Google + /start
-  const inlineKeyboard = [];
-  if (resolvedPdfUrl) {
-    inlineKeyboard.push([{ text: "📄 Otwórz PDF", url: resolvedPdfUrl }]);
-  }
-  inlineKeyboard.push([{ text: "🔍 Szukaj w Google", url: `https://www.google.com/search?q=${encodeURIComponent(partQuery)}+datasheet+filetype:pdf` }]);
-  inlineKeyboard.push([{ text: "🏠 Menu główne", callback_data: "command_start" }]);
-
-  const sourceLabel = fileId ? "Przesłany PDF" : (resolvedPdfUrl ? resolvedPdfUrl : "Baza wiedzy AI");
-
   return {
-    reply_text: `✅ *Analiza zakończona!*\n\n${aiContext}\n\n🔗 *Źródło:* ${sourceLabel}`,
-    reply_markup: { inline_keyboard: inlineKeyboard }
+    payload: nextPayload,
+    extracted,
   };
+}
+
+/**
+ * Kod workflowu datasheet pozostaje utrzymywany w telegram_ai.js jako głównym kodzie bota.
+ * Część logiki może być refaktoryzowana do zewnętrznych plików JS, ale kanoniczny flow jest tutaj.
+ */
+export async function initDatasheetWorkflow(env, message, intent) {
+  if (isAudioMessage(message)) {
+    return buildUnsupportedAudioReply("Analiza datasheet");
+  }
+
+  let query = normalizeWhitespace(message.file_name || message.text || message.caption || "Analiza dokumentu PDF");
+  if (query.toLowerCase().endsWith(".pdf")) {
+    query = query.slice(0, -4);
+  }
+
+  await closeUserSession(env, message.chat_id, message.user_id, "datasheet_wait_model");
+  await closeUserSession(env, message.chat_id, message.user_id, "datasheet_wait_question");
+  await closeUserSession(env, message.chat_id, message.user_id, "datasheet_wait_target");
+
+  const partRecord = await upsertPartMaster(env, {
+    part_number: query,
+    part_name: query,
+    datasheet_file_id: message.mime_type === "application/pdf" ? message.file_id : null,
+  });
+
+  if (message.file_id && message.mime_type === "application/pdf") {
+    let enrichedRecord = partRecord;
+    let scanSummary = "";
+    try {
+      const base64 = await fetchTelegramFileAsBase64(env, message.file_id);
+      if (base64) {
+        const extracted = await extractDatasheetMetadataFromPdf(env, {
+          base64,
+          mimeType: "application/pdf",
+          partQuery: query,
+          masterPartId: partRecord?.id || null,
+          pdfFileId: message.file_id,
+        });
+        enrichedRecord = extracted.partRecord || partRecord;
+        scanSummary = extracted.summary || "";
+      }
+    } catch (error) {
+      console.error("[initDatasheetWorkflow] PDF ingest", error instanceof Error ? error.message : String(error));
+    }
+
+    const sessionPayload = serializeDatasheetSessionPayload({
+      part_number: enrichedRecord?.part_number || query,
+      master_part_id: enrichedRecord?.id || partRecord?.id || null,
+      donor_device_model: "",
+      donor_device_id: null,
+      pdf_url: enrichedRecord?.datasheet_url || "",
+      pdf_file_id: message.file_id || "",
+      db_hit: true,
+      source: "uploaded_pdf",
+      file_name: message.file_name || "",
+      scan_summary: scanSummary,
+    });
+    await upsertUserSession(env, message.chat_id, message.user_id, "datasheet_wait_question", null, sessionPayload);
+    await recordRecycledSubmission(env, {
+      chat_id: message?.chat_id,
+      user_id: message?.user_id,
+      message_id: message?.message_id,
+      lookup_kind: "datasheet_pdf_ingest",
+      query_text: query,
+      matched_part_name: enrichedRecord?.part_name || query,
+      matched_part_number: enrichedRecord?.part_number || query,
+      master_part_id: enrichedRecord?.id || partRecord?.id || null,
+      attachment_file_id: message?.file_id || null,
+      attachment_mime_type: message?.mime_type || null,
+      status: "approved",
+      ingest_source: "telegram_pdf",
+      raw_payload_json: { file_name: message.file_name || "", scan_summary: scanSummary },
+    });
+
+    return withMainMenuReply({
+      reply_text: [
+        `📄 *PDF przyjęty i zeskanowany.*`,
+        "",
+        `Część zapisana w bazie jako: *${enrichedRecord?.part_name || query}*`,
+        scanSummary ? `Opis z PDF: ${scanSummary}` : "",
+        "",
+        `💬 O co chcesz zapytać?`,
+      ].filter(Boolean).join("\n"),
+    });
+  }
+
+  const matches = await findPartMasterMatches(env, query);
+  const bestMatch = matches[0] || partRecord;
+  const sessionPayload = serializeDatasheetSessionPayload({
+    part_number: bestMatch?.part_number || query,
+    master_part_id: bestMatch?.id || partRecord?.id || null,
+    donor_device_model: "",
+    donor_device_id: null,
+    pdf_url: bestMatch?.datasheet_url || "",
+    pdf_file_id: bestMatch?.datasheet_file_id || "",
+    db_hit: Boolean(matches.length || bestMatch?.datasheet_url),
+    source: "part_query",
+    file_name: message.file_name || "",
+    scan_summary: "",
+  });
+  await upsertUserSession(env, message.chat_id, message.user_id, "datasheet_wait_model", null, sessionPayload);
+
+  const replyLines = [
+    `📄 *Analiza datasheet dla części:* \`${query}\``,
+    "",
+    matches.length
+      ? `Znalazłem już tę część w bazie${matches[0].donor_count ? ` i mam ${matches[0].donor_count} znanych donorów.` : "."}`
+      : `Dodałem część do katalogu kanonicznego reuse, nawet jeśli model elektrośmiecia nie jest jeszcze znany.`,
+    "",
+    `Podaj teraz *model elektrośmiecia*, z którego pochodzi ta część, aby powiązać ją z dawcą.`,
+    `Jeśli nie znasz modelu, kliknij *Nie znam modelu* i wtedy poszukam PDF/linku lub oprę rozmowę na tym, co już jest w bazie.`,
+  ];
+
+  const replyMarkup = { inline_keyboard: [[{ text: "🤷‍♂️ Nie znam modelu", callback_data: "datasheet_no_model" }]] };
+  if (bestMatch?.datasheet_url) {
+    replyMarkup.inline_keyboard.unshift([{ text: "📄 Otwórz PDF z linka", url: bestMatch.datasheet_url }]);
+  }
+
+  return withMainMenuReply({
+    reply_text: replyLines.join("\n"),
+    reply_markup: replyMarkup,
+  });
+}
+
+/**
+ * Kod workflowu datasheet pozostaje utrzymywany w telegram_ai.js jako głównym kodzie bota.
+ * Część logiki może być refaktoryzowana do zewnętrznych plików JS, ale kanoniczny flow jest tutaj.
+ */
+export async function handleFinalDatasheetRag(env, message, session, deviceModel, ctx = null) {
+  const payload = parseDatasheetSessionPayload(session?.active_device_name);
+  const partQuery = payload.part_number || "Nieznana część";
+  const normalizedDeviceModel = normalizeWhitespace(deviceModel);
+
+  let donorDevice = null;
+  if (normalizedDeviceModel && !/nieznan/i.test(normalizedDeviceModel)) {
+    donorDevice = await ensureDonorDevice(env, normalizedDeviceModel);
+    if (donorDevice && payload.master_part_id) {
+      await linkMasterPartToDevice(env, {
+        device_id: donorDevice.id,
+        master_part_id: payload.master_part_id,
+        quantity: 1,
+        confidence: 0.7,
+        source_url: payload.pdf_url || null,
+      });
+    }
+  }
+
+  const currentPart = payload.master_part_id
+    ? await getPartMasterById(env, payload.master_part_id)
+    : (await findPartMasterMatches(env, partQuery))[0] || null;
+
+  let pdfUrl = coalesceText(payload.pdf_url, currentPart?.datasheet_url);
+  if (!pdfUrl) {
+    pdfUrl = (await findDatasheetPdfLink(partQuery)) || "";
+  }
+
+  const nextPayload = serializeDatasheetSessionPayload({
+    part_number: currentPart?.part_number || partQuery,
+    master_part_id: currentPart?.id || payload.master_part_id || null,
+    donor_device_model: donorDevice?.model || normalizedDeviceModel || "",
+    donor_device_id: donorDevice?.id || null,
+    pdf_url: pdfUrl,
+    pdf_file_id: payload.pdf_file_id || currentPart?.datasheet_file_id || "",
+    db_hit: Boolean(currentPart),
+    source: pdfUrl ? "db_or_web_pdf" : payload.source || "part_query",
+    file_name: payload.file_name || "",
+    scan_summary: payload.scan_summary || "",
+  });
+  await upsertUserSession(env, message.chat_id, message.user_id, "datasheet_wait_question", null, nextPayload);
+
+  const replyLines = [
+    normalizedDeviceModel && !/nieznan/i.test(normalizedDeviceModel)
+      ? `✅ Zapisałem powiązanie: część *${partQuery}* -> elektrośmieć *${normalizedDeviceModel}*.`
+      : `ℹ️ Kontynuuję bez znanego modelu elektrośmiecia. Część i tak pozostaje zapisana w bazie.`,
+    "",
+    currentPart
+      ? `Mogę już rozmawiać o tej części na podstawie lokalnej bazy.${pdfUrl ? " Jeśli chcesz, otwórz też PDF lub wyślij go tutaj." : ""}`
+      : `Nie mam jeszcze pełnego opisu tej części w bazie.${pdfUrl ? " Znalazłem za to link do PDF." : ""}`,
+    pdfUrl ? `📄 Wyślij mi PDF, a zeskanuję go do bazy i odpowiem na pytania na podstawie dokumentu.` : "",
+    "",
+    `💬 O co chcesz zapytać?`,
+  ].filter(Boolean);
+
+  const replyMarkup = pdfUrl
+    ? { inline_keyboard: [[{ text: "📄 Otwórz PDF z linka", url: pdfUrl }]] }
+    : undefined;
+
+  return withMainMenuReply({
+    reply_text: replyLines.join("\n"),
+    reply_markup: replyMarkup,
+  });
+}
+
+/**
+ * Kod workflowu datasheet pozostaje utrzymywany w telegram_ai.js jako głównym kodzie bota.
+ * Część logiki może być refaktoryzowana do zewnętrznych plików JS, ale kanoniczny flow jest tutaj.
+ */
+export async function handleFinalDatasheetRagFinal(env, message, session, userQuestion, ctx = null) {
+  const payload = parseDatasheetSessionPayload(session?.active_device_name);
+  const partQuery = payload.part_number || "Nieznana część";
+  const deviceModel = payload.donor_device_model || "Nieznany model elektrośmiecia";
+  const partRecord = payload.master_part_id
+    ? await getPartMasterById(env, payload.master_part_id)
+    : (await findPartMasterMatches(env, partQuery))[0] || null;
+
+  await sendTelegramReply(env, message, `🔎 Analizuję pytanie o *${partQuery}*...`);
+
+  const ragSystem = [
+    "Jesteś inżynierem elektronikiem i odpowiadasz precyzyjnie po polsku.",
+    "Rozdzielaj model części od modelu urządzenia-dawcy.",
+    "Jeśli czegoś nie ma w danych, powiedz to wprost zamiast zgadywać.",
+  ].join(" ");
+
+  try {
+    let aiContext = "";
+    const localContextLines = [
+      `Część: ${partRecord?.part_name || partQuery}`,
+      `Oznaczenie części: ${partRecord?.part_number || partQuery}`,
+      `Model elektrośmiecia: ${deviceModel}`,
+      partRecord?.category ? `Kategoria: ${partRecord.category}` : "",
+      partRecord?.description ? `Opis: ${partRecord.description}` : "",
+      partRecord?.datasheet_url ? `Datasheet URL: ${partRecord.datasheet_url}` : "",
+      Object.keys(normalizeParametersObject(partRecord?.parameters || {})).length
+        ? `Parametry: ${JSON.stringify(normalizeParametersObject(partRecord.parameters))}`
+        : "",
+    ].filter(Boolean);
+
+    if (payload.pdf_file_id) {
+      const base64 = await fetchTelegramFileAsBase64(env, payload.pdf_file_id);
+      if (base64) {
+        const pdfResp = await callProviderWithFallback(
+          env,
+          buildPromptPayload(
+            ragSystem,
+            `${localContextLines.join("\n")}\n\nPytanie użytkownika: ${userQuestion}`,
+            env,
+            {
+              media: [{ data: base64, mime_type: "application/pdf" }],
+              maxTokens: 1500,
+              temperature: 0.1,
+            }
+          )
+        );
+        aiContext = pdfResp.text;
+      }
+    } else if (payload.pdf_url) {
+      const fetchedBase64 = await fetchExternalPdfAsBase64(payload.pdf_url);
+      if (fetchedBase64) {
+        const pdfResp = await callProviderWithFallback(
+          env,
+          buildPromptPayload(
+            ragSystem,
+            `${localContextLines.join("\n")}\n\nPytanie użytkownika: ${userQuestion}`,
+            env,
+            {
+              media: [{ data: fetchedBase64, mime_type: "application/pdf" }],
+              maxTokens: 1500,
+              temperature: 0.1,
+            }
+          )
+        );
+        aiContext = pdfResp.text;
+      }
+    }
+
+    if (!aiContext) {
+      const donorMatches = await searchPartDonors(env, partQuery);
+      const donorLines = donorMatches
+        .slice(0, 8)
+        .map((item) => `- ${item.part_name} -> ${formatDeviceName(item.device)}`)
+        .join("\n");
+      const fallbackResp = await callProviderWithFallback(
+        env,
+        buildPromptPayload(
+          ragSystem,
+          [
+            localContextLines.join("\n"),
+            donorLines ? `Znani donorzy:\n${donorLines}` : "",
+            "",
+            `Pytanie użytkownika: ${userQuestion}`,
+          ].filter(Boolean).join("\n\n"),
+          env,
+          { maxTokens: 1200, temperature: 0.2 }
+        )
+      );
+      aiContext = fallbackResp.text;
+    }
+
+    await recordRecycledSubmission(env, {
+      chat_id: message?.chat_id,
+      user_id: message?.user_id,
+      message_id: message?.message_id,
+      lookup_kind: "datasheet_rag_complete",
+      query_text: deviceModel,
+      matched_part_name: partRecord?.part_name || partQuery,
+      matched_part_number: partRecord?.part_number || partQuery,
+      master_part_id: partRecord?.id || payload.master_part_id || null,
+      attachment_file_id: payload.pdf_file_id || null,
+      attachment_mime_type: payload.pdf_file_id ? "application/pdf" : null,
+      status: "approved",
+      ingest_source: payload.pdf_file_id ? "telegram_pdf" : "database_or_web",
+      raw_payload_json: { question: userQuestion, answer: aiContext, device: deviceModel, pdf_url: payload.pdf_url || "" },
+    });
+
+    return withMainMenuReply({
+      reply_text: `✅ *Analiza zakończona!*\n\n${aiContext}`,
+      reply_markup: payload.pdf_url
+        ? { inline_keyboard: [[{ text: "📄 Otwórz PDF z linka", url: payload.pdf_url }]] }
+        : undefined,
+    });
+  } catch (error) {
+    console.error("[handleFinalDatasheetRagFinal]", error instanceof Error ? error.message : String(error));
+    return buildAiChainErrorReply(
+      "DS-AI-CHAIN-UNAVAILABLE",
+      `Nie udało się przeanalizować datasheetu dla części ${partQuery}.`
+    );
+  }
 }
 
 
@@ -2892,7 +4103,11 @@ export function getResistorLegendText(){
 
 export async function handleResistorAnalysis(env, message, preFetchedBase64 = null) {
 if (!message.file_id && !message.text) {
-return { reply_text: "Aby odczytać rezystor, wyślij jego zdjęcie lub wpisz kolory pasków / kod SMD." };
+return withMainMenuReply({ reply_text: "Aby odczytać rezystor, wyślij jego zdjęcie lub wpisz kolory pasków / kod SMD." });
+}
+
+if (isAudioMessage(message)) {
+return buildUnsupportedAudioReply("Odczyt rezystora");
 }
 
   if (!message.file_id && message.text) {
@@ -2964,9 +4179,10 @@ systemPrompt = [
 "Jesteś ekspertem elektroniki specjalizującym się w odczycie rezystorów.",
 "Oblicz wartość rezystora na podstawie kolorów pasków lub kodu SMD podanego przez użytkownika.",
 "Użytkownik może podać kolory (np. brązowy czarny czerwony złoty) lub kod SMD (np. 103, 47R).",
+"Jeśli wpis nie wygląda na prawidłowe kolory ani kod SMD, nie zgaduj. Zwróć prośbę o doprecyzowanie.",
 "",
 "Zwróć TYLKO JSON w formacie:",
-'{ "type": "resistor", "value": "wartość (np. 4.7 kΩ, 220 Ω)", "value_ohm": liczba_w_ohmach, "tolerance": "np. 5%", "bands": ["kolor1","kolor2",...], "smd_code": "kod SMD jeśli applicable", "code_format": "THT" lub "SMD", "confidence": 0.9 }',
+'{ "type": "resistor", "value": "wartość (np. 4.7 kΩ, 220 Ω)", "value_ohm": liczba_w_ohmach, "tolerance": "np. 5%", "bands": ["kolor1","kolor2",...], "smd_code": "kod SMD jeśli applicable", "code_format": "THT" lub "SMD", "confidence": 0.9 } lub { "type": "needs_clarification", "message": "..." }',
 "",
 "Pole value_ohm musi być liczbą (np. 4700, nie \"4.7k\").",
 "Zwróć TYLKO JSON bez Markdown."
@@ -2984,6 +4200,14 @@ buildPromptPayload(systemPrompt, userPrompt, env, payloadOptions)
 );
 
 const identity = extractJsonObject(visionResp.text);
+
+if (identity.type === "needs_clarification") {
+  return withMainMenuReply({
+    reply_text: `Potrzebuję doprecyzowania odczytu rezystora.\n\n${identity.message || "Podaj kolory pasków oddzielone przecinkami albo dokładny kod SMD."}`,
+    provider_name: visionResp.provider_name,
+    model_name: visionResp.model_name,
+  });
+}
 
 let calcResult = null;
 let aiOhms = null;
@@ -3018,18 +4242,18 @@ calcResult = _calcSMD(identity.smd_code);
   return { reply_text: replyText, reply_markup: { inline_keyboard: kb }, _resistor_edit_data: editData, _ai_resistor: { value: identity.value, tolerance: identity.tolerance, code_format: identity.code_format, value_ohm: aiOhms }, provider_name: visionResp.provider_name, model_name: visionResp.model_name };
 }
 
-      return {
+      return withMainMenuReply({
         reply_text: `🎨 *Wynik odczytu rezystora:*\n\n${visionResp.text}`,
-        reply_markup: { inline_keyboard: [[{ text: "📖 Legenda kolorów", callback_data: "resistor_legend" }], [{ text: "🏠 Menu główne", callback_data: "command_start" }]] },
+        reply_markup: { inline_keyboard: [[{ text: "📖 Legenda kolorów", callback_data: "resistor_legend" }]] },
         provider_name: visionResp.provider_name,
         model_name: visionResp.model_name
-      };
+      });
     } catch (e) {
       console.error("Błąd handleResistorAnalysis:", e);
-      return {
-        reply_text: `❌ *Błąd odczytu rezystora:* ${e instanceof Error ? e.message : "Nieznany błąd AI"}. Spróbuj ponownie za chwilę lub wpisz kolory ręcznie.`,
-        reply_markup: { inline_keyboard: [[{ text: "🏠 Menu główne", callback_data: "command_start" }]] }
-      };
+      return buildAiChainErrorReply(
+        "RES-AI-CHAIN-UNAVAILABLE",
+        `Nie udało się odczytać rezystora. ${e instanceof Error ? e.message : "Nieznany błąd AI"}. Spróbuj ponownie za chwilę lub wpisz kolory ręcznie.`
+      );
     }
   }
 

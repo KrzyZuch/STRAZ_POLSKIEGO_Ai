@@ -852,6 +852,8 @@ async function processCommandMessage(env, message, command) {
     await closeAllUserSessions(env, message.chat_id, message.user_id);
     await sendTelegramReply(env, message, "Zresetowałem całą historię i aktywne sesje.", getMainMenuKeyboard());
     return { status: "reset_complete" };
+  } else if (command === "start" || command === "help" || command === "menu") {
+    await closeAllUserSessions(env, message.chat_id, message.user_id);
   } else if (command === "stop" || command === "anuluj") {
     const session = await getUserSession(env, message.chat_id, message.user_id, "recycled_parts");
     await closeAllUserSessions(env, message.chat_id, message.user_id);
@@ -956,10 +958,12 @@ const CALLBACK_HANDLERS = {
     });
   },
   "menu_scan": async (env, id, chat_id, user_id, message, data) => {
+    await closeAllUserSessions(env, chat_id, user_id);
     await answerCallbackQuery(env, id, "Instrukcja skanowania.");
-    await sendTelegramReply(env, { chat_id, message_id: message?.message_id }, "Prześlij mi zdjęcie płyty głównej (PCB) lub pojedynczego układu / rezystora. Rozpoznam komponenty, a w razie potrzeby poproszę o założenie nowej bazy urządzenia.");
+    await sendTelegramReply(env, { chat_id, message_id: message?.message_id }, "Prześlij mi zdjęcie płyty głównej (PCB) lub pojedynczego układu / rezystora. Rozpoznam komponenty, a w razie potrzeby poproszę o założenie nowej bazy urządzenia.", getMainMenuKeyboard());
   },
   "menu_datasheet": async (env, id, chat_id, user_id, message, data) => {
+    await closeAllUserSessions(env, chat_id, user_id);
     await upsertUserSession(env, chat_id, user_id, "datasheet_wait_target");
     await answerCallbackQuery(env, id, "Analiza Datasheet.");
     await sendTelegramReply(env, { chat_id, message_id: message?.message_id }, "Prześlij mi plik PDF z dokumentacją albo wpisz *oznaczenie części* (np. `NE555`, `TDA7294`). Gdy wpiszesz część tekstem, zapytam osobno o *model elektrośmiecia*, z którego pochodzi.", {
@@ -967,10 +971,12 @@ const CALLBACK_HANDLERS = {
     });
   },
   "menu_search": async (env, id, chat_id, user_id, message, data) => {
+    await closeAllUserSessions(env, chat_id, user_id);
     await answerCallbackQuery(env, id, "Instrukcja Wyszukiwania.");
     await sendTelegramReply(env, { chat_id, message_id: message?.message_id }, "Wpisz zapytanie (np. `Jakie części ma Xbox 360?` albo `Szukam kondensatora 10uF`), a ja przeszukam nasz zrecyklingowany katalog.");
   },
   "menu_issue": async (env, id, chat_id, user_id, message, data) => {
+    await closeAllUserSessions(env, chat_id, user_id);
     await upsertUserSession(env, chat_id, user_id, "issue_wait_idea");
     await answerCallbackQuery(env, id, "Tryb zgłaszania pomysłu.");
     await sendTelegramReply(env, { chat_id, message_id: message?.message_id }, "Jasne! Opisz mi krótko swój pomysł lub uwagę. Co chciałbyś zgłosić do projektu?", {
@@ -978,10 +984,12 @@ const CALLBACK_HANDLERS = {
     });
   },
   "menu_onboarding": async (env, id, chat_id, user_id, message, data) => {
+    await closeAllUserSessions(env, chat_id, user_id);
     await answerCallbackQuery(env, id, "Onboarding.");
     await sendTelegramReply(env, { chat_id, message_id: message?.message_id }, "Napisz mi kilka słów o sobie, czym się zajmujesz lub co potrafisz, a ja zasugeruję Ci pasujące zadania i miejsce w projekcie Straż Przyszłości.");
   },
   "menu_resistor": async (env, id, chat_id, user_id, message, data) => {
+  await closeAllUserSessions(env, chat_id, user_id);
   await upsertUserSession(env, chat_id, user_id, "resistor_wait_photo");
   await answerCallbackQuery(env, id, "Odczyt rezystora.");
   await sendTelegramReply(env, { chat_id, message_id: message?.message_id }, "Prześlij mi proszę zdjęcie rezystora (THT lub SMD) *ALBO* wpisz jego kolory (np. `brązowy, czarny, czerwony, złoty`), a ja odczytam jego wartość.", {

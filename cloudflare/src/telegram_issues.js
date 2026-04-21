@@ -1084,19 +1084,30 @@ const CALLBACK_HANDLERS = {
   },
   "datasheet_continue": async (env, id, chat_id, user_id, message, data) => {
     const partQuery = data.substring("datasheet_continue:".length);
-    await upsertUserSession(env, chat_id, user_id, "datasheet_wait_question", null, JSON.stringify({
+    
+    // Próbujemy odzyskać metadane z ostatniego zgłoszenia dla tego użytkownika
+    const lastSub = await env.DB.prepare(`
+      SELECT * FROM recycled_device_submissions 
+      WHERE chat_id = ? AND user_id = ? 
+      AND (matched_part_name = ? OR matched_part_number = ?)
+      ORDER BY created_at DESC LIMIT 1
+    `).bind(chat_id, user_id, partQuery, partQuery).first();
+
+    const metadata = {
       version: 2,
       part_number: partQuery,
-      master_part_id: null,
-      donor_device_model: "",
+      master_part_id: lastSub?.master_part_id || null,
+      donor_device_model: lastSub?.query_text || "",
       donor_device_id: null,
-      pdf_url: "",
-      pdf_file_id: "",
-      db_hit: false,
+      pdf_url: (lastSub?.raw_payload_json ? JSON.parse(lastSub.raw_payload_json).pdf_url : "") || "",
+      pdf_file_id: lastSub?.attachment_file_id || "",
+      db_hit: Boolean(lastSub?.master_part_id),
       source: "callback_continue",
       file_name: "",
       scan_summary: "",
-    }));
+    };
+
+    await upsertUserSession(env, chat_id, user_id, "datasheet_wait_question", null, JSON.stringify(metadata));
     await answerCallbackQuery(env, id, "Kontynuacja analizy.");
     await sendTelegramReply(env, { chat_id, message_id: message?.message_id }, `💡 Kontynuuję analizę dla *${partQuery}*. O co chcesz zapytać?`, getMainMenuKeyboard());
   }

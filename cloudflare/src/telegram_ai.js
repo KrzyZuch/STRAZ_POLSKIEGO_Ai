@@ -2606,11 +2606,20 @@ export async function initDatasheetWorkflow(env, message, intent) {
         `_Twoja informacja pomoże innym w naprawach i recyklingu!_`
     ].join("\n");
     
+    // Szukamy PDF już teraz, żeby dać przycisk jak najwcześniej
+    const pdfUrl = await findDatasheetPdfLink(query);
+    const replyMarkup = {
+        inline_keyboard: [
+            [{ text: "🤷‍♂️ Nie mam modelu", callback_data: "datasheet_no_model" }]
+        ]
+    };
+    if (pdfUrl) {
+        replyMarkup.inline_keyboard.unshift([{ text: "📄 Otwórz PDF", url: pdfUrl }]);
+    }
+    
     return {
         reply_text: replyText,
-        reply_markup: {
-            inline_keyboard: [[{ text: "🤷‍♂️ Nie mam modelu", callback_data: "datasheet_no_model" }]]
-        }
+        reply_markup: replyMarkup
     };
 }
 
@@ -2624,11 +2633,8 @@ export async function handleFinalDatasheetRag(env, message, session, deviceModel
     
     await sendTelegramReply(env, message, `⏳ Przyjąłem model: *${deviceModel}*. Szukam dokumentacji...`);
 
-    // Jeśli nie ma PDF od użytkownika, szukamy już teraz w sieci
-    let pdfUrl = "";
-    if (!fileId) {
-        pdfUrl = await findDatasheetPdfLink(partQuery) || "";
-    }
+    // Zawsze szukamy linku PDF, nawet jeśli mamy plik od użytkownika
+    const pdfUrl = await findDatasheetPdfLink(partQuery) || "";
 
     // Przechowujemy: fileId|partQuery|deviceModel|pdfUrl
     const newSessionData = `${fileId || "NO_FILE"}|${partQuery}|${deviceModel}|${pdfUrl}`;

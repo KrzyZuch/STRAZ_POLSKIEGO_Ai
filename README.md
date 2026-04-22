@@ -68,6 +68,16 @@ Pracujemy nad kolejnym modułem autonomicznego pobierania i strukturyzowania dan
 *   **Cel:** Automatyczne zasilenie bazy danych wszystkimi kluczowymi parametrami IC (napięcia, prądy, funkcje pinów) w celu umożliwienia AI samodzielnego projektowania nowych urządzeń z części odzyskanych z recyklingu.
 *   **Technologia:** Wykorzystujemy zaawansowane skrypty (np. `supplement_ic_database.py`) integrujące logikę scrapowania dystrybutorów z multimodalną analizą dokumentów przez Gemini.
 
+### 4. W Przygotowaniu: Autonomiczna Optymalizacja i Analiza Potencjału
+Docelowa automatyzacja analizy potencjału projektów oraz tworzenie procesów automatyzacji z dostępnych zasobów będzie korzystała z metod optymalizacji zainspirowanych najnowszymi badaniami nad ewolucyjnymi i refleksyjnymi systemami AI, takimi jak:
+
+*   **[Abstral](https://github.com/ws2694/abstral_paper):** Wykorzystanie metadanych i śladów wykonania do samodoskonalenia architektury agentowej (Abstracting and Extracting Structural Information). Metoda ta pozwala systemowi na automatyczną korektę własnych instrukcji (Skills) poprzez analizę przyczynową sukcesów i porażek.
+*   **[LangGraph](https://github.com/langchain-ai/langgraph):** Zaawansowana orkiestracja wieloagentowa umożliwiająca tworzenie stateful procesów z pętlami decyzyjnymi. Zapewnia trwałą pamięć i kontrolę nad złożonymi, wieloetapowymi procesami automatyzacji.
+*   **[OpenEvolve](https://github.com/algorithmicsuperintelligence/openevolve):** Algorytmiczna ewolucja kodu i promptów wykorzystująca mechanizmy Quality-Diversity (MAP-Elites). System autonomicznie "hoduje" najskuteczniejsze algorytmy przetwarzania danych.
+*   **[GEPA](https://github.com/gepa-ai/gepa):** Optymalizacja "Genetic-Pareto" bazująca na Actionable Side Information (ASI). Metoda ta pozwala na precyzyjne diagnozowanie wąskich gardeł w procesach AI i ich automatyczną eliminację na podstawie pełnych logów egzekucji.
+
+System będzie dążył do autonomicznego odkrywania najwydajniejszych ścieżek przetwarzania dostępnych zasobów (np. elektrośmieci) w wysokowartościowe dobra, optymalizując procesy bez ingerencji człowieka.
+
 # Strategia Marketingowa i Budowa Społeczności
 
 
@@ -99,7 +109,7 @@ W celu krystalizacji naszych idei, gromadzimy przykłady technologii i rozwiąza
 *   **[10. Łączność Mesh i LoRa](PROJEKTY/10_lacznosc_mesh_lora.md)** – Suwerenna sieć komunikacyjna Mesh (Meshtastic, Reticulum) do monitorowania zasobów gospodarczych.
 *   **[11. Autonomiczne Systemy R+D](PROJEKTY/11_autonomiczne_systemy_rd.md)** – Omijanie paradygmatu "czystych" technologii na rzecz brudnej, śmiałej automatyzacji.
 *   **[12. Autonomiczne PCB ze śmieci](PROJEKTY/12_autonomiczne_pcb_ze_smieci.md)** – Połączenie Ai i recyklingu e-odpadów w celu budowy suwerennej elektroniki bez kapitału.
-*   **[13. GitHub-first baza części z recyklingu](PROJEKTY/13_baza_czesci_recykling/README.md)** – Kanoniczny katalog urządzeń-dawców i części (JSONL). Projekt wykorzystuje autonomicznego "Łowcę Części" AI (**[Notatnik Kaggle](PROJEKTY/13_baza_czesci_recykling/youtube-databaseparts.ipynb)**), który codziennie analizuje filmy z napraw elektroniki, budując testową bazę komponentów w pliku **[test_db.jsonl](PROJEKTY/13_baza_czesci_recykling/autonomous_test/results/test_db.jsonl)**. Docelowo system będzie tworzył otwarty zasób wiedzy dostępny dla każdego. Funkcja budowania i przeszukiwania bazy jest już zintegrowana z naszym botem na Telegramie.
+*   **[13. GitHub-first baza części z recyklingu](PROJEKTY/13_baza_czesci_recykling/README.md)** – Kanoniczny katalog urządzeń-dawców i części (JSONL). Projekt wykorzystuje autonomicznego "Łowcę Części" AI (**[Notatnik Kaggle](PROJEKTY/13_baza_czesci_recykling/youtube-databaseparts.ipynb)**), który codziennie analizuje filmy z napraw elektroniki, budując testową baza komponentów w pliku **[test_db.jsonl](PROJEKTY/13_baza_czesci_recykling/autonomous_test/results/test_db.jsonl)**. Docelowo system będzie tworzył otwarty zasób wiedzy dostępny dla każdego. Funkcja budowania i przeszukiwania bazy jest już zintegrowana z naszym botem na Telegramie.
 *   **[14. Autonomiczne Projektowanie 3D i CAD (MCP)](PROJEKTY/14_autonomiczne_projektowanie_3d_cad.md)** – Kolejny łańcuch automatyzacji R+D: wykorzystanie AI oraz protokołu MCP do iteracyjnego projektowania brył 3D we FreeCAD i docelowej generacji G-code.
 *   **[15. Analiza Social Media dla Recyklingu](PROJEKTY/15_analiza_social_media_recykling.md)** – AI skanujące polskie grupy i portale aukcyjne w celu łączenia darmowych ofert z zapotrzebowaniem użytkowników.
 *   **[16. Geoportal i Potencjał Rozwoju](PROJEKTY/16_geoportal_potencjal_rozwoju.md)** – Analiza danych geoprzestrzennych dla nowoczesnego planowania automatyzacji AI.

@@ -1,0 +1,20 @@
+{
+  "schema_version": "v1",
+  "experiment_id": "experiment-kaggle-review-ready-pack-01",
+  "gap_id": "gap-project13-review-ready-artifacts-01",
+  "hypothesis": "Jesli execution pack dla Kaggle bedzie mial jawne acceptance criteria, gotowy fork-flow i szablon raportu, to odsetek review-ready artefaktow wzrosnie.",
+  "method_summary": "Przygotowac jeden kanoniczny KaggleNotebookPack dla Project 13, uruchomic go z wolontariuszem i porownac jakosc wynikow do poprzednich, mniej ustrukturyzowanych uruchomien.",
+  "success_criteria": [
+    "Artefakt ma komplet provenance, logow i output refs.",
+    "Artefakt trafia do review bez dodatkowego recznego porzadkowania przez maintainera.",
+    "Wynik nadaje sie do promocji do katalogu albo do poprawki z jednoznacznym feedbackiem."
+  ],
+  "failure_signals": [
+    "Brak powtarzalnego formatu outputu.",
+    "Wolontariusz potrzebuje ciaglego prowadzenia poza execution packiem.",
+    "Artefakt nie jest gotowy do review po pierwszym przebiegu."
+  ],
+  "status": "ready",
+  "created_at": "2026-04-22T10:15:00Z",
+  "updated_at": "2026-04-22T10:15:00Z"
+}

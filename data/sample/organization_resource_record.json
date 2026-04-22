@@ -1,0 +1,24 @@
+{
+  "schema_version": "v1",
+  "resource_id": "resource-kaggle-volunteers-01",
+  "resource_kind": "compute",
+  "title": "Rozproszone darmowe notebooki Kaggle wolontariuszy",
+  "summary": "Wolontariusze moga uruchamiac execution packi na swoich kontach Kaggle i przekazywac artefakty przez fork oraz pull request.",
+  "discovery_channel": "kaggle_offer",
+  "access_model": "volunteer_opt_in",
+  "status": "active",
+  "availability_pattern": "recurring",
+  "expected_leverage": "high",
+  "references": [
+    "docs/ARCHITEKTURA_ORGANIZACJI_AGENTOWEJ.md",
+    "PROJEKTY/13_baza_czesci_recykling/docs/MODEL_WOLONTARIACKICH_NOTEBOOKOW_KAGGLE.md"
+  ],
+  "tags": [
+    "kaggle",
+    "volunteer",
+    "compute",
+    "execution-pack"
+  ],
+  "discovered_at": "2026-04-22T10:00:00Z",
+  "last_reviewed_at": "2026-04-22T10:00:00Z"
+}

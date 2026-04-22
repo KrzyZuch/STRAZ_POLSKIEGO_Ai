@@ -1,0 +1,733 @@
+schema_name: organization_agent_v1
+schema_version: v1
+description: >
+  Minimalny schemat kanoniczny Strazy Przyszlosci dla organizacji
+  agentowej AI. Obejmuje encje potrzebne do przejscia od sygnalu i
+  resource scoutingu do execution packow, artefaktow i decyzji
+  review/deploy.
+
+types:
+  EntityReference:
+    type: object
+    required:
+      - entity_kind
+      - entity_id
+    properties:
+      entity_kind:
+        type: string
+        enum:
+          - resource_record
+          - potential_dossier
+          - capability_gap
+          - experiment
+          - execution_pack
+          - task
+          - run
+          - artifact
+          - approval
+          - readiness_gate
+          - integrity_risk_assessment
+      entity_id:
+        type: string
+
+  ResourceRecord:
+    type: object
+    required:
+      - schema_version
+      - resource_id
+      - resource_kind
+      - title
+      - discovery_channel
+      - status
+      - discovered_at
+    properties:
+      schema_version:
+        type: string
+        enum: [v1]
+      resource_id:
+        type: string
+      resource_kind:
+        type: string
+        enum:
+          - hardware
+          - compute
+          - data
+          - codebase
+          - people
+          - facility
+          - energy
+          - logistics
+          - materials
+      title:
+        type: string
+      summary:
+        type: string
+      discovery_channel:
+        type: string
+        enum:
+          - manual_observation
+          - external_repo
+          - volunteer_offer
+          - kaggle_offer
+          - social_signal
+          - field_report
+          - internal_scan
+      access_model:
+        type: string
+        enum:
+          - open
+          - volunteer_opt_in
+          - permission_required
+          - owned
+          - unknown
+      status:
+        type: string
+        enum:
+          - candidate
+          - mapped
+          - scored
+          - active
+          - archived
+      availability_pattern:
+        type: string
+        enum:
+          - one_off
+          - recurring
+          - continuous
+          - unknown
+      expected_leverage:
+        type: string
+        enum:
+          - low
+          - medium
+          - high
+          - strategic
+      references:
+        type: array
+        items:
+          type: string
+      tags:
+        type: array
+        items:
+          type: string
+      discovered_at:
+        type: string
+        format: date-time
+      last_reviewed_at:
+        type: string
+        format: date-time
+
+  PotentialDossier:
+    type: object
+    required:
+      - schema_version
+      - dossier_id
+      - title
+      - target_domain
+      - problem_statement
+      - candidate_status
+      - overall_priority_score
+      - recommended_action
+      - created_at
+    properties:
+      schema_version:
+        type: string
+        enum: [v1]
+      dossier_id:
+        type: string
+      title:
+        type: string
+      target_domain:
+        type: string
+        enum:
+          - food
+          - water
+          - health
+          - energy
+          - logistics
+          - recycling
+          - hardware
+          - compute
+          - knowledge
+          - cross_domain
+      problem_statement:
+        type: string
+      candidate_status:
+        type: string
+        enum:
+          - draft
+          - ranked
+          - pilot_ready
+          - active
+          - paused
+          - archived
+      social_impact_score:
+        type: number
+      time_to_value_score:
+        type: number
+      cost_to_start_score:
+        type: number
+      volunteer_fit_score:
+        type: number
+      reusability_score:
+        type: number
+      physical_world_score:
+        type: number
+      confidence_score:
+        type: number
+      overall_priority_score:
+        type: number
+      recommended_action:
+        type: string
+        enum:
+          - discard
+          - monitor
+          - research
+          - pilot
+          - scale
+      linked_resources:
+        type: array
+        items:
+          $ref: "#/types/EntityReference"
+      linked_repos:
+        type: array
+        items:
+          type: string
+      main_risks:
+        type: array
+        items:
+          type: string
+      public_interest_risks:
+        type: array
+        items:
+          type: string
+      next_questions:
+        type: array
+        items:
+          type: string
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+
+  CapabilityGap:
+    type: object
+    required:
+      - schema_version
+      - gap_id
+      - dossier_id
+      - title
+      - gap_kind
+      - current_state
+      - target_state
+      - severity
+      - status
+      - created_at
+    properties:
+      schema_version:
+        type: string
+        enum: [v1]
+      gap_id:
+        type: string
+      dossier_id:
+        type: string
+      title:
+        type: string
+      gap_kind:
+        type: string
+        enum:
+          - data
+          - skill
+          - tooling
+          - workflow
+          - hardware
+          - compute
+          - validation
+          - logistics
+          - governance
+      current_state:
+        type: string
+      target_state:
+        type: string
+      blocking_reason:
+        type: string
+      severity:
+        type: string
+        enum:
+          - low
+          - medium
+          - high
+          - critical
+      status:
+        type: string
+        enum:
+          - open
+          - exploring
+          - partially_addressed
+          - ready_for_pack
+          - closed
+      candidate_resources:
+        type: array
+        items:
+          $ref: "#/types/EntityReference"
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+
+  Experiment:
+    type: object
+    required:
+      - schema_version
+      - experiment_id
+      - gap_id
+      - hypothesis
+      - status
+      - success_criteria
+      - created_at
+    properties:
+      schema_version:
+        type: string
+        enum: [v1]
+      experiment_id:
+        type: string
+      gap_id:
+        type: string
+      hypothesis:
+        type: string
+      method_summary:
+        type: string
+      success_criteria:
+        type: array
+        items:
+          type: string
+      failure_signals:
+        type: array
+        items:
+          type: string
+      status:
+        type: string
+        enum:
+          - draft
+          - ready
+          - running
+          - succeeded
+          - failed
+          - superseded
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+
+  ExecutionPack:
+    type: object
+    required:
+      - schema_version
+      - pack_id
+      - title
+      - linked_subject
+      - execution_mode
+      - objective
+      - instructions_summary
+      - acceptance_criteria
+      - target_output_kind
+      - status
+      - created_at
+    properties:
+      schema_version:
+        type: string
+        enum: [v1]
+      pack_id:
+        type: string
+      title:
+        type: string
+      linked_subject:
+        $ref: "#/types/EntityReference"
+      execution_mode:
+        type: string
+        enum:
+          - local_agent
+          - kaggle_notebook
+          - colab_notebook
+          - manual_research
+          - repo_patch
+          - field_run
+          - hardware_build
+      objective:
+        type: string
+      instructions_summary:
+        type: string
+      human_actions:
+        type: array
+        items:
+          type: string
+      required_resources:
+        type: array
+        items:
+          $ref: "#/types/EntityReference"
+      rag_sources:
+        type: array
+        items:
+          type: string
+      expected_artifacts:
+        type: array
+        items:
+          type: string
+      acceptance_criteria:
+        type: array
+        items:
+          type: string
+      safety_notes:
+        type: array
+        items:
+          type: string
+      misuse_risks:
+        type: array
+        items:
+          type: string
+      target_output_kind:
+        type: string
+        enum:
+          - issue_comment
+          - pull_request
+          - report
+          - data_snapshot
+          - catalog_record
+          - design_file
+          - deployment_note
+      status:
+        type: string
+        enum:
+          - draft
+          - ready
+          - active
+          - retired
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+
+  Task:
+    type: object
+    required:
+      - schema_version
+      - task_id
+      - pack_id
+      - assignee_mode
+      - status
+      - created_at
+    properties:
+      schema_version:
+        type: string
+        enum: [v1]
+      task_id:
+        type: string
+      pack_id:
+        type: string
+      assignee_mode:
+        type: string
+        enum:
+          - maintainer
+          - volunteer
+          - agent_only
+          - volunteer_plus_agent
+          - field_operator
+      requested_by:
+        type: string
+      status:
+        type: string
+        enum:
+          - queued
+          - in_progress
+          - blocked
+          - submitted
+          - cancelled
+          - closed
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+
+  Run:
+    type: object
+    required:
+      - schema_version
+      - run_id
+      - task_id
+      - pack_id
+      - operator_kind
+      - environment_kind
+      - status
+      - started_at
+    properties:
+      schema_version:
+        type: string
+        enum: [v1]
+      run_id:
+        type: string
+      task_id:
+        type: string
+      pack_id:
+        type: string
+      operator_kind:
+        type: string
+        enum:
+          - maintainer
+          - volunteer
+          - local_agent
+          - hybrid_team
+      environment_kind:
+        type: string
+        enum:
+          - local
+          - kaggle
+          - colab
+          - cloudflare
+          - field
+          - lab
+      status:
+        type: string
+        enum:
+          - queued
+          - running
+          - succeeded
+          - failed
+          - cancelled
+          - needs_review
+      logs_ref:
+        type: string
+      output_refs:
+        type: array
+        items:
+          type: string
+      started_at:
+        type: string
+        format: date-time
+      ended_at:
+        type: string
+        format: date-time
+
+  Artifact:
+    type: object
+    required:
+      - schema_version
+      - artifact_id
+      - run_id
+      - artifact_kind
+      - title
+      - storage_ref
+      - review_status
+      - created_at
+    properties:
+      schema_version:
+        type: string
+        enum: [v1]
+      artifact_id:
+        type: string
+      run_id:
+        type: string
+      artifact_kind:
+        type: string
+        enum:
+          - pull_request
+          - report
+          - dataset
+          - catalog_update
+          - notebook_output
+          - design_file
+          - hardware_build_note
+          - deployment_plan
+      title:
+        type: string
+      summary:
+        type: string
+      storage_ref:
+        type: string
+      review_status:
+        type: string
+        enum:
+          - draft
+          - review_ready
+          - accepted
+          - rejected
+          - superseded
+      provenance:
+        type: array
+        items:
+          $ref: "#/types/EntityReference"
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+
+  Approval:
+    type: object
+    required:
+      - schema_version
+      - approval_id
+      - artifact_id
+      - decision
+      - approval_scope
+      - reviewer_role
+      - decided_at
+    properties:
+      schema_version:
+        type: string
+        enum: [v1]
+      approval_id:
+        type: string
+      artifact_id:
+        type: string
+      decision:
+        type: string
+        enum:
+          - approved
+          - rejected
+          - needs_changes
+          - deferred
+      approval_scope:
+        type: string
+        enum:
+          - knowledge_base_promotion
+          - workflow_promotion
+          - deployment
+          - field_action
+          - hardware_build
+          - budget_spend
+      reviewer_role:
+        type: string
+        enum:
+          - maintainer
+          - domain_reviewer
+          - safety_reviewer
+          - hardware_reviewer
+          - community_curator
+      reason_codes:
+        type: array
+        items:
+          type: string
+      integrity_assessments:
+        type: array
+        items:
+          $ref: "#/types/EntityReference"
+      notes:
+        type: string
+      next_step:
+        type: string
+      decided_at:
+        type: string
+        format: date-time
+
+  ReadinessGate:
+    type: object
+    required:
+      - schema_version
+      - gate_id
+      - subject
+      - gate_kind
+      - status
+      - checked_at
+    properties:
+      schema_version:
+        type: string
+        enum: [v1]
+      gate_id:
+        type: string
+      subject:
+        $ref: "#/types/EntityReference"
+      gate_kind:
+        type: string
+        enum:
+          - potential_review
+          - experiment_ready
+          - pack_ready
+          - review_ready
+          - integrity_ready
+          - deployment_ready
+          - safety_ready
+      status:
+        type: string
+        enum:
+          - pass
+          - fail
+          - conditional
+      notes:
+        type: string
+      checked_at:
+        type: string
+        format: date-time
+
+  IntegrityRiskAssessment:
+    type: object
+    required:
+      - schema_version
+      - assessment_id
+      - subject
+      - assessment_scope
+      - risk_level
+      - status
+      - assessed_at
+    properties:
+      schema_version:
+        type: string
+        enum: [v1]
+      assessment_id:
+        type: string
+      subject:
+        $ref: "#/types/EntityReference"
+      assessment_scope:
+        type: string
+        enum:
+          - code_change
+          - workflow_design
+          - governance_rule
+          - resource_allocation
+          - deployment
+      risk_signals:
+        type: array
+        items:
+          type: string
+      risk_level:
+        type: string
+        enum:
+          - low
+          - medium
+          - high
+          - critical
+      findings:
+        type: array
+        items:
+          type: string
+      mitigations_required:
+        type: array
+        items:
+          type: string
+      reviewer_role:
+        type: string
+        enum:
+          - maintainer
+          - community_curator
+          - domain_reviewer
+          - safety_reviewer
+          - public_interest_reviewer
+      status:
+        type: string
+        enum:
+          - pass
+          - needs_changes
+          - blocked
+      assessed_at:
+        type: string
+        format: date-time

@@ -1,0 +1,29 @@
+{
+  "schema_version": "v1",
+  "assessment_id": "integrity-project13-pr-01",
+  "subject": {
+    "entity_kind": "artifact",
+    "entity_id": "artifact-project13-pr-01"
+  },
+  "assessment_scope": "code_change",
+  "risk_signals": [
+    "nepotism",
+    "private_capture",
+    "corruption",
+    "opaque_approval_path",
+    "volunteer_work_appropriation"
+  ],
+  "risk_level": "low",
+  "findings": [
+    "Artefakt ma jawne provenance i wskazuje autora, run oraz execution pack.",
+    "Sciezka promocji jest publiczna i oparta o PR oraz review.",
+    "Nie wykryto ukrytego przekierowania wyniku do prywatnego interesu."
+  ],
+  "mitigations_required": [
+    "Zostawic jawny slad approval i reviewer_role.",
+    "Nie promowac artefaktow bez provenance oraz review status."
+  ],
+  "reviewer_role": "public_interest_reviewer",
+  "status": "pass",
+  "assessed_at": "2026-04-22T11:18:00Z"
+}

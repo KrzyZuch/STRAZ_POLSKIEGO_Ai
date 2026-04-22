@@ -14,6 +14,19 @@ To ważne również z punktu widzenia onboardingu. Nowa osoba nie musi mieć od 
 - modelami rekomendacyjnymi,
 - kuracją gotowego kodu do adaptacji.
 
+## Jak traktować zewnętrzne repozytoria
+
+Zewnętrzne repozytoria linkowane w tym projekcie należy traktować jako **warstwę RAG otwartych wzorców i gotowych klocków**.
+
+Na etapie strategicznym ich rola polega przede wszystkim na:
+
+- dostarczaniu wzorców architektonicznych,
+- skracaniu czasu analizy potencjału nowych kierunków,
+- pokazywaniu, które klasy problemów mają już dojrzałe rozwiązania,
+- zasilaniu agentów planujących, badawczych i onboardingowych wspólnym kontekstem.
+
+Dopiero po takiej analizie wybrane repozytoria przechodzą do etapu adaptacji kodu we własnym standardzie Straży Przyszłości.
+
 ## Przykład referencyjny: openSenseMap
 
 ### Linki

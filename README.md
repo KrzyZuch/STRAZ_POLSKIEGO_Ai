@@ -68,7 +68,7 @@ Pracujemy nad kolejnym modułem autonomicznego pobierania i strukturyzowania dan
 *   **Cel:** Automatyczne zasilenie bazy danych wszystkimi kluczowymi parametrami IC (napięcia, prądy, funkcje pinów) w celu umożliwienia AI samodzielnego projektowania nowych urządzeń z części odzyskanych z recyklingu.
 *   **Technologia:** Wykorzystujemy zaawansowane skrypty (np. `supplement_ic_database.py`) integrujące logikę scrapowania dystrybutorów z multimodalną analizą dokumentów przez Gemini.
 
-### 4. W Przygotowaniu: Autonomiczna Optymalizacja i Analiza Potencjału
+### 4. W Przygotowaniu: Autonomiczna Optymalizacja, Analiza Potencjału i Resource Scouting
 Docelowa automatyzacja analizy potencjału projektów oraz tworzenie procesów automatyzacji z dostępnych zasobów będzie korzystała z metod optymalizacji zainspirowanych najnowszymi badaniami nad ewolucyjnymi i refleksyjnymi systemami AI, takimi jak:
 
 *   **[Abstral](https://github.com/ws2694/abstral_paper):** Wykorzystanie metadanych i śladów wykonania do samodoskonalenia architektury agentowej (Abstracting and Extracting Structural Information). Metoda ta pozwala systemowi na automatyczną korektę własnych instrukcji (Skills) poprzez analizę przyczynową sukcesów i porażek.
@@ -76,7 +76,7 @@ Docelowa automatyzacja analizy potencjału projektów oraz tworzenie procesów a
 *   **[OpenEvolve](https://github.com/algorithmicsuperintelligence/openevolve):** Algorytmiczna ewolucja kodu i promptów wykorzystująca mechanizmy Quality-Diversity (MAP-Elites). System autonomicznie "hoduje" najskuteczniejsze algorytmy przetwarzania danych.
 *   **[GEPA](https://github.com/gepa-ai/gepa):** Optymalizacja "Genetic-Pareto" bazująca na Actionable Side Information (ASI). Metoda ta pozwala na precyzyjne diagnozowanie wąskich gardeł w procesach AI i ich automatyczną eliminację na podstawie pełnych logów egzekucji.
 
-System będzie dążył do autonomicznego odkrywania najwydajniejszych ścieżek przetwarzania dostępnych zasobów (np. elektrośmieci) w wysokowartościowe dobra, optymalizując procesy bez ingerencji człowieka.
+System będzie dążył do autonomicznego odkrywania najwydajniejszych ścieżek przetwarzania dostępnych zasobów w wysokowartościowe dobra, optymalizując procesy bez ingerencji człowieka. Elektrośmieci są tutaj pierwszym strategicznym zasobem rozpoznanym ręcznie, ale docelowo automatyzacja ma sama wykrywać, klasyfikować i porównywać także inne zasoby: sprzęt, moc obliczeniową, dane, energię, materiały i wolne moce wykonawcze społeczności.
 
 ### Inspiracje Strategiczne i Źródła Kontekstu
 Dla projektowania suwerennej i odpornej na brak łączności automatyzacji, jako kluczowe źródło kontekstu wykorzystujemy:
@@ -91,7 +91,7 @@ Dla projektowania suwerennej i odpornej na brak łączności automatyzacji, jako
 
 2. **Burza mózgów, analiza, planowanie oraz praca twórcza** – repozytorium służy jako przestrzeń do zgłaszania i szerokiej analizy pomysłów i możliwości. 
 
-3. **Krystalizacja genialnych idei oraz pozyskiwanie zasobów** – cały proces opiera się o bezwarunkowy intelekt i pracę merytoryczną. Wyszukiwanie, katalogowanie i opisywanie zaawansowanych repozytoriów (jak np. sterowanie sensoryczne platformami drona) to kluczowy wkład intelektualny, który pozwala AI na błyskawiczne wdrażanie nowych funkcjonalności bez pisania kodu od zera. Eksperci tworzą i dostarczają niezwykle precyzyjne zasoby technologiczne, będące fundamentem pod dalszą realizację.
+3. **Krystalizacja genialnych idei oraz pozyskiwanie zasobów** – cały proces opiera się o bezwarunkowy intelekt i pracę merytoryczną. Wyszukiwanie, katalogowanie i opisywanie zaawansowanych repozytoriów (jak np. sterowanie sensoryczne platformami drona) to kluczowy wkład intelektualny, który pozwala AI na błyskawiczne wdrażanie nowych funkcjonalności bez pisania kodu od zera. Eksperci tworzą i dostarczają niezwykle precyzyjne zasoby technologiczne, będące fundamentem pod dalszą realizację. Docelowo sama automatyzacja ma również prowadzić `resource scouting`, czyli aktywnie szukać nowych klas zasobów, które warto zagospodarować dla dobra wspólnego.
 
 4. **Kapitał w służbie idei i samonapędzająca się gospodarka** – przy minimalnych nakładach uruchamiana jest produkcja maksymalnie autonomiczna, sterowana przez AI i zasilana z odnawialnych źródeł energii (OZE). Wygenerowany produkt i zysk wracają do systemu, napędzając dalszy rozwój i skalowanie projektów. Docelowym punktem tego modelu jest stworzenie samowystarczalnej gospodarki technologicznej, która pozwoli na finansowanie **Dochodu Gwarantowanego (UBI)**. *Przykład finansowania:* [Upcykling LED TV na Solarne Okna](PROJEKTY/04_lampa_z_recyklingu_tv.md).
 
@@ -117,6 +117,7 @@ W celu krystalizacji naszych idei, gromadzimy przykłady technologii i rozwiąza
 *   **[14. Autonomiczne Projektowanie 3D i CAD (MCP)](PROJEKTY/14_autonomiczne_projektowanie_3d_cad.md)** – Kolejny łańcuch automatyzacji R+D: wykorzystanie AI oraz protokołu MCP do iteracyjnego projektowania brył 3D we FreeCAD i docelowej generacji G-code.
 *   **[15. Analiza Social Media dla Recyklingu](PROJEKTY/15_analiza_social_media_recykling.md)** – AI skanujące polskie grupy i portale aukcyjne w celu łączenia darmowych ofert z zapotrzebowaniem użytkowników.
 *   **[16. Geoportal i Potencjał Rozwoju](PROJEKTY/16_geoportal_potencjal_rozwoju.md)** – Analiza danych geoprzestrzennych dla nowoczesnego planowania automatyzacji AI.
+*   **[17. Autonomiczne Przetwarzanie Elektrośmieci na Hardware Automatyzacji](PROJEKTY/17_autonomiczne_przetwarzanie_elektrosmieci_na_hardware.md)** – Zamiana elektrośmieci w sterowniki, węzły edge, urządzenia pomiarowe i sprzęt obliczeniowy potrzebny do dalszych automatyzacji.
 
 
 **Najważniejsze w tworzeniu NARODOWYCH SIŁ INTELEKTUALNYCH nie są pieniądze na start, lecz bezcenny, realny wysiłek intelektualny.**
@@ -152,6 +153,10 @@ Jeśli chcesz już teraz otrzymać zadanie dopasowane do Twoich pasji, wypełnij
 Jeżeli wchodzisz do inicjatywy po raz pierwszy jako Strażnik Przyszłości, zacznij od:
 
 * **[Architektura Onboardingu](docs/ARCHITEKTURA_ONBOARDINGU.md)**
+* **[Architektura Organizacji Agentowej](docs/ARCHITEKTURA_ORGANIZACJI_AGENTOWEJ.md)**
+* **[Plan Rozwoju Organizacji Agentowej](docs/PLAN_ROZWOJU_ORGANIZACJI_AGENTOWEJ.md)**
+* **[Encje i Workflowy Organizacji Agentowej](docs/ENCJE_I_WORKFLOWY_ORGANIZACJI_AGENTOWEJ.md)**
+* **[Instrukcja Rozwojowa Dla Agenta](docs/INSTRUKCJA_ROZWOJOWA_DLA_AGENTA.md)**
 * **[Przykłady Gotowego Kodu i Otwartych Wzorców](docs/PRZYKLADY_GOTOWEGO_KODU.md)**
 * **[Nowy Strażnik / pierwsze zaangażowanie](.github/ISSUE_TEMPLATE/nowy_straznik.md)**
 * **[Pomysł / propozycja rozwiązania](.github/ISSUE_TEMPLATE/pomysl_rozwiazanie.md)**
@@ -168,6 +173,10 @@ Rozwijamy publiczną warstwę integracyjną dla projektów Straży Przyszłości
 * **[Zasady Nazwy i Marki](docs/ZASADY_NAZWY_I_MARKI.md)**
 * **[Jak Zostać Dostawcą Danych](docs/JAK_ZOSTAC_DOSTAWCA_DANYCH.md)**
 * **[Architektura Onboardingu](docs/ARCHITEKTURA_ONBOARDINGU.md)**
+* **[Architektura Organizacji Agentowej](docs/ARCHITEKTURA_ORGANIZACJI_AGENTOWEJ.md)**
+* **[Plan Rozwoju Organizacji Agentowej](docs/PLAN_ROZWOJU_ORGANIZACJI_AGENTOWEJ.md)**
+* **[Encje i Workflowy Organizacji Agentowej](docs/ENCJE_I_WORKFLOWY_ORGANIZACJI_AGENTOWEJ.md)**
+* **[Instrukcja Rozwojowa Dla Agenta](docs/INSTRUKCJA_ROZWOJOWA_DLA_AGENTA.md)**
 * **[Architektura Węzłów Pomiarowych](docs/ARCHITEKTURA_WEZLOW_POMIAROWYCH.md)**
 * **[Architektura Edge: Smartfony + Centralne API + Baza Wiedzy](docs/ARCHITEKTURA_EDGE_SMARTFONY_CLOUD.md)**
 * **[Architektura mostu Telegram -> GitHub Issues](docs/ARCHITEKTURA_MOSTU_TELEGRAM_GITHUB_ISSUES.md)**

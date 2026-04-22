@@ -1,0 +1,22 @@
+{
+  "schema_version": "v1",
+  "approval_id": "approval-project13-pr-01",
+  "artifact_id": "artifact-project13-pr-01",
+  "decision": "approved",
+  "approval_scope": "knowledge_base_promotion",
+  "reviewer_role": "community_curator",
+  "reason_codes": [
+    "PROVENANCE_COMPLETE",
+    "FORMAT_VALID",
+    "READY_FOR_CATALOG"
+  ],
+  "integrity_assessments": [
+    {
+      "entity_kind": "integrity_risk_assessment",
+      "entity_id": "integrity-project13-pr-01"
+    }
+  ],
+  "notes": "Artefakt spelnia kryteria review-ready i moze zostac promowany do wspolnej bazy wiedzy po merge.",
+  "next_step": "Scalic PR i przebudowac downstream artefakty katalogu.",
+  "decided_at": "2026-04-22T11:20:00Z"
+}

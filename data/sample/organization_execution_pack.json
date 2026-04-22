@@ -1,0 +1,53 @@
+{
+  "schema_version": "v1",
+  "pack_id": "pack-project13-kaggle-enrichment-01",
+  "title": "Kaggle pack do discovery i enrichment dla Project 13",
+  "linked_subject": {
+    "entity_kind": "experiment",
+    "entity_id": "experiment-kaggle-review-ready-pack-01"
+  },
+  "execution_mode": "kaggle_notebook",
+  "objective": "Uruchomic autonomiczny notebook Kaggle, ktory zbierze kandydatow czesci z materialow YouTube i zapisze wynik do forka wolontariusza w formacie gotowym do review.",
+  "instructions_summary": "Wolontariusz pobiera notebook, ustawia sekrety na swoim koncie Kaggle, uruchamia przebieg, commit'uje wynik do forka i otwiera pull request zgodnie z szablonem packa.",
+  "human_actions": [
+    "Skonfigurowac Kaggle Secrets zgodnie z runbookiem.",
+    "Uruchomic notebook na swoim koncie.",
+    "Sprawdzic podsumowanie outputu i otworzyc PR."
+  ],
+  "required_resources": [
+    {
+      "entity_kind": "resource_record",
+      "entity_id": "resource-kaggle-volunteers-01"
+    }
+  ],
+  "rag_sources": [
+    "docs/ARCHITEKTURA_ORGANIZACJI_AGENTOWEJ.md",
+    "docs/PLAN_ROZWOJU_ORGANIZACJI_AGENTOWEJ.md",
+    "PROJEKTY/13_baza_czesci_recykling/README.md",
+    "PROJEKTY/13_baza_czesci_recykling/docs/MODEL_WOLONTARIACKICH_NOTEBOOKOW_KAGGLE.md"
+  ],
+  "expected_artifacts": [
+    "data snapshot z kandydatami czesci",
+    "krotki raport przebiegu",
+    "pull request do upstream"
+  ],
+  "acceptance_criteria": [
+    "Wynik posiada jawne provenance i odniesienie do notebooka lub runu.",
+    "Format outputu zgadza sie z uzgodnionym kontraktem packa.",
+    "Artefakt nadaje sie do review bez recznego przepisywania danych."
+  ],
+  "safety_notes": [
+    "Pack jest opt-in i korzysta tylko z sekretow ustawionych swiadomie przez wolontariusza.",
+    "Repozytorium nie przechowuje prywatnych kluczy wolontariusza.",
+    "Wynik trafia najpierw do forka, a nie bezposrednio do upstream."
+  ],
+  "misuse_risks": [
+    "Ukryte przekierowanie wynikow do prywatnego repo lub zamknietego katalogu.",
+    "Brak jawnego provenance utrudniajacy wykrycie zawlaszczenia pracy wolontariusza.",
+    "Nadmierne uprzywilejowanie wybranej grupy reviewerow bez sladu decyzji."
+  ],
+  "target_output_kind": "pull_request",
+  "status": "ready",
+  "created_at": "2026-04-22T10:20:00Z",
+  "updated_at": "2026-04-22T10:20:00Z"
+}

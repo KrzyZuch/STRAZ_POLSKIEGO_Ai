@@ -1,0 +1,46 @@
+{
+  "schema_version": "v1",
+  "dossier_id": "dossier-project13-resource-scouting-01",
+  "title": "Project 13 jako pilot resource scoutingu i reuse hardware",
+  "target_domain": "recycling",
+  "problem_statement": "Organizacja potrzebuje taniego, szybkiego i skalowalnego sposobu zamiany rozproszonych sygnalow o elektroodpadach i darmowych zasobach obliczeniowych w review-ready artefakty.",
+  "candidate_status": "pilot_ready",
+  "social_impact_score": 0.84,
+  "time_to_value_score": 0.79,
+  "cost_to_start_score": 0.88,
+  "volunteer_fit_score": 0.91,
+  "reusability_score": 0.93,
+  "physical_world_score": 0.81,
+  "confidence_score": 0.78,
+  "overall_priority_score": 0.86,
+  "recommended_action": "pilot",
+  "linked_resources": [
+    {
+      "entity_kind": "resource_record",
+      "entity_id": "resource-kaggle-volunteers-01"
+    }
+  ],
+  "linked_repos": [
+    "langchain-ai/langgraph",
+    "algorithmicsuperintelligence/openevolve",
+    "sparkmicro/Ki-nTree",
+    "humancomputerintegration/ecoEDA"
+  ],
+  "main_risks": [
+    "Niestabilna jakosc artefaktow bez dobrych acceptance criteria.",
+    "Rozjazd miedzy discovery a review-ready promotion.",
+    "Za mala liczba execution packow gotowych dla nowych wolontariuszy."
+  ],
+  "public_interest_risks": [
+    "Centralizacja review w zbyt waskiej grupie osob.",
+    "Przechwycenie efektow wolontariatu przez prywatny interes.",
+    "Nieprzejrzyste promowanie artefaktow do kanonicznej bazy wiedzy."
+  ],
+  "next_questions": [
+    "Jakie execution packi daja najwyzszy odsetek zaakceptowanych artefaktow?",
+    "Ktore sygnaly reuse daja najlepszy zwrot wzgledem czasu wolontariusza?",
+    "Jak szybko zamieniac wyniki Kaggle na rekordy gotowe do review?"
+  ],
+  "created_at": "2026-04-22T10:05:00Z",
+  "updated_at": "2026-04-22T10:05:00Z"
+}

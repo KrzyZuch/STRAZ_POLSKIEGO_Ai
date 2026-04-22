@@ -35,6 +35,7 @@ Minimalne dane wejściowe dla rekomendatora:
 - sposób pracy i używane narzędzia, także narzędzia AI-native,
 - dostępny czas,
 - dostępne zasoby, na przykład stary smartfon, ESP32, czujniki, kamera, wiedza domenowa,
+- dostępne zasoby obliczeniowe, na przykład konto `Kaggle`, `Colab`, lokalny GPU albo możliwość uruchamiania notebooków,
 - preferowany rodzaj wkładu: kod, hardware, dokumentacja, analiza, marketing, badania, provider danych.
 
 Warto przy tym jasno komunikować, że brak własnego urządzenia pomiarowego nie wyklucza realnego wejścia do projektu. Jeżeli dane są dostarczane przez providerów i społeczność przez wspólne API, nowy Strażnik może od początku wejść w architekturę danych, adaptery, analizę, dokumentację i budowę bazy wiedzy. Przykład takiego modelu opisuje dokument:
@@ -47,7 +48,26 @@ Minimalne dane wyjściowe rekomendatora:
 - lista dokumentów startowych,
 - lista projektów do przeczytania,
 - lista pierwszych zadań lub Issues,
+- wskazanie, czy dana osoba nadaje się do uruchamiania autonomicznych notebooków badawczych na własnych zasobach,
+- wskazanie, czy dana osoba nadaje się do zadań `resource scoutingu`, czyli rozpoznawania nowych klas zasobów możliwych do uruchomienia przez inicjatywę,
 - wskazanie, czy dana osoba powinna przejść dalej do onboardingu providera.
+
+Ważny wariant tej ścieżki to **wolontariusz z agentami AI i kontem Kaggle/Colab**. Taka osoba może nie mieć własnego hardware terenowego, a mimo to wnosić bardzo realny wkład:
+
+- uruchamiać autonomiczne notebooki przygotowane przez inicjatywę,
+- zużywać własne darmowe tokeny i limity obliczeniowe na rzecz wspólnego celu,
+- zapisywać wyniki do własnego forka,
+- przekazywać je do głównego repozytorium przez `Pull Request`,
+- działać jako rozproszony węzeł wykonawczy dla zadań discovery, enrichment i research.
+
+To powinno być komunikowane wprost jako pełnoprawna ścieżka wejścia do inicjatywy.
+
+Równolegle warto przewidzieć wariant **wolontariusza-resource scouta**. Taka osoba może wnosić wkład przez:
+
+- wskazywanie nowych klas zasobów, które AI powinno analizować,
+- rozpoznawanie lokalnych źródeł sprzętu, danych, energii albo mocy obliczeniowej,
+- testowanie, czy dany zasób da się włączyć do kolejnych łańcuchów automatyzacji,
+- dokumentowanie ograniczeń, kosztów wejścia i potencjału rozwojowego.
 
 ## Onboarding providera danych
 

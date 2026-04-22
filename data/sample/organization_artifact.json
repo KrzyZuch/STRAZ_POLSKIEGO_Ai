@@ -1,0 +1,22 @@
+{
+  "schema_version": "v1",
+  "artifact_id": "artifact-project13-pr-01",
+  "run_id": "run-project13-kaggle-enrichment-01",
+  "artifact_kind": "pull_request",
+  "title": "PR z kandydatami reuse po uruchomieniu KaggleNotebookPack",
+  "summary": "Artefakt zawiera snapshot kandydatow czesci, raport przebiegu oraz provenance do notebooka Kaggle i forka wolontariusza.",
+  "storage_ref": "https://github.com/StrazPrzyszlosci/STRAZ_PRZYSZLOSCI/pull/123",
+  "review_status": "review_ready",
+  "provenance": [
+    {
+      "entity_kind": "execution_pack",
+      "entity_id": "pack-project13-kaggle-enrichment-01"
+    },
+    {
+      "entity_kind": "run",
+      "entity_id": "run-project13-kaggle-enrichment-01"
+    }
+  ],
+  "created_at": "2026-04-22T11:08:00Z",
+  "updated_at": "2026-04-22T11:08:00Z"
+}

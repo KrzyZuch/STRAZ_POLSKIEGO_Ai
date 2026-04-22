@@ -20,6 +20,27 @@ System **InvenTree** (baza inwentarzowa) połączony z narzędziem **Ki-nTree** 
 - **Automatyczne Katalogowanie:** Ki-nTree zaciąga noty katalogowe (PDF), parametry i symbole części w kilka sekund.
 - **Integracja AI:** Moduł OCR rozpoznaje chip na starej płycie i tworzy rekord w bazie przez API. Skatalogowany „wylut” jest od razu dostępny jako symbol dla AI projektującego nową PCB.
 
+## IV. Wyjscie do warstwy sprzetowej
+
+To podejscie nie powinno zatrzymywac sie na samej plytce PCB. Docelowo AI ma projektowac i uruchamiac **urzadzenia dla dalszych automatyzacji**, korzystajac z odzyskanych zasobow:
+
+- modulow obliczeniowych,
+- zasilaczy,
+- przetwornic,
+- sensorow,
+- ukladow sterujacych,
+- obudow i elementow mechanicznych.
+
+Innymi slowy, PCB reuse jest tylko jednym z ogniw wiekszego lancucha:
+
+```text
+elektrosmieci -> katalog -> reuse electronics -> nowe urzadzenie -> kolejna automatyzacja
+```
+
+Szerzej opisuje to kierunek:
+
+- [17. Autonomiczne Przetwarzanie Elektrośmieci na Hardware Automatyzacji](17_autonomiczne_przetwarzanie_elektrosmieci_na_hardware.md)
+
 ---
 
 ## Treści i Założenia

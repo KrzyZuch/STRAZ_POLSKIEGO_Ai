@@ -1,0 +1,20 @@
+{
+  "schema_version": "v1",
+  "gap_id": "gap-project13-review-ready-artifacts-01",
+  "dossier_id": "dossier-project13-resource-scouting-01",
+  "title": "Brak stabilnej sciezki od sygnalu do review-ready artefaktu",
+  "gap_kind": "workflow",
+  "current_state": "Istnieja sygnaly z YouTube, Telegrama i Kaggle, ale ich jakosc oraz format nie zawsze prowadza do artefaktow gotowych do szybkiego review.",
+  "target_state": "Kazdy execution pack dla Project 13 konczy sie artefaktem review_ready z jawnym provenance i kryteriami odbioru.",
+  "blocking_reason": "Brakuje ujednoliconych execution packow, acceptance criteria i warstwy gate'ow przed promocja do kanonicznej bazy wiedzy.",
+  "severity": "high",
+  "status": "ready_for_pack",
+  "candidate_resources": [
+    {
+      "entity_kind": "resource_record",
+      "entity_id": "resource-kaggle-volunteers-01"
+    }
+  ],
+  "created_at": "2026-04-22T10:10:00Z",
+  "updated_at": "2026-04-22T10:10:00Z"
+}

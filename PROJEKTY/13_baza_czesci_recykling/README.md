@@ -1,6 +1,6 @@
 # [PROJEKT 13] GitHub-First Baza Czesci z Recyklingu
 
-Ten projekt zamienia elektroodpady w publicznie dostepny katalog czesci dla AI, KiCada i spolecznosci. Glowna zasada jest prosta:
+Ten projekt zamienia elektroodpady w publicznie dostepny katalog czesci dla AI, KiCada i spolecznosci. Jest to zarazem **pierwszy pilot szerszego resource scoutingu**, w ktorym automatyzacja uczy sie rozpoznawac zasoby, oceniac ich potencjal i przekladac je na kolejne zdolnosci wykonawcze. Glowna zasada jest prosta:
 
 - `GitHub` przechowuje kanoniczna, kuratorowana baze wiedzy o urzadzeniach-dawcach, czesciach kanonicznych i relacjach donorowych.
 - `Cloudflare D1` sluzy tylko jako operacyjny indeks do szybkich lookupow w Telegramie i przyszlych rekomendacji AI.
@@ -50,6 +50,25 @@ To jest wymagane nie tylko organizacyjnie, ale i technicznie:
 - zmiany mozna recenzowac przez commit / PR zamiast przepisywac dane w ciszy do prywatnej bazy,
 - eksport do `ecoEDA` i D1 da sie odtworzyc z jednego zrodla,
 - spolecznosc moze dokladac rekordy urzadzen i czesci bez dostepu operatorskiego do chmury.
+
+## Project 13 jako pilot resource scoutingu
+
+Elektroodpady nie powinny byc traktowane jako jedyny docelowy zasob calej inicjatywy. W tym projekcie sa one po prostu pierwsza dobrze rozpoznana klasa zasobow, na ktorej da sie zbudowac praktyczny loop:
+
+- wykrywanie zasobu,
+- ocena potencjalu,
+- ekstrakcja wiedzy i czesci,
+- kuracja katalogu,
+- eksport do kolejnych procesow automatyzacji.
+
+Jesli ten loop zadziala dla elektroodpadow, ten sam wzorzec mozna rozszerzac na inne klasy zasobow:
+
+- darmowe zasoby obliczeniowe uruchamiane przez wolontariuszy,
+- gotowe moduly i donor hardware,
+- dane terenowe i dokumentacje techniczne,
+- lokalne nadwyzki materialowe lub energetyczne.
+
+W tym sensie `Project 13` jest nie tylko baza czesci, ale takze zalazkiem warstwy, w ktorej AI uczy sie **samodzielnie szukac zasobow** i porownywac, ktore z nich najlepiej oplaca sie uruchamiac.
 
 ## Struktura projektu
 
@@ -108,6 +127,63 @@ Automatyczny branch + commit + push + PR:
 python3 pipelines/sync_recycled_queue.py --remote --apply --git-mode pr --push --create-pr --sync-d1-status
 ```
 
+## Model wolontariackich notatnikow Kaggle
+
+Ten projekt nadaje sie bardzo dobrze do modelu rozproszonego uruchamiania notatnikow przez wolontariuszy.
+
+Szczegolowy opis tego modelu znajduje sie tutaj:
+
+- [Model Wolontariackich Notebookow Kaggle](docs/MODEL_WOLONTARIACKICH_NOTEBOOKOW_KAGGLE.md)
+
+Docelowy przebieg powinien wygladac tak:
+
+1. repozytorium publikuje autonomiczny notatnik `Kaggle` albo jego szkielet,
+2. lokalny agent wolontariusza instruuje go, jak pobrac notebook i ustawic sekrety,
+3. wolontariusz uruchamia notebook na swoim koncie `Kaggle`,
+4. notebook wykorzystuje jego darmowe limity obliczeniowe do discovery lub enrichment,
+5. wyniki sa zapisywane do forka wolontariusza,
+6. z forka powstaje `PR` do glownego repozytorium,
+7. dopiero po review dane przechodza do wspolnej bazy wiedzy.
+
+To pozwala budowac realna moc obliczeniowa inicjatywy bez centralnego budzetu na GPU.
+
+Mozemy tez traktowac `Kaggle` szerzej: nie tylko jako miejsce jednego notebooka, ale jako **darmowego dostawce zasobow dla wolontariuszy**, przez ktory beda uruchamiane cale lancuchy automatyzacji.
+
+To rowniez jest forma `resource scoutingu`: system nie tylko przetwarza juz znane elektroodpady, ale wykrywa i aktywuje rozproszone zasoby obliczeniowe spolecznosci wtedy, gdy sa potrzebne do kolejnych etapow discovery, enrichment i kuracji.
+
+W praktyce oznacza to, ze:
+
+- repozytorium przygotowuje `execution packi` i notebooki dla kolejnych etapow pracy,
+- agent wolontariusza prowadzi go przez uruchomienie,
+- wolontariusz dostarcza inicjatywie swoj darmowy przydzial obliczeniowy,
+- wynik wraca do wspolnego systemu przez fork i `PR`.
+
+Najbardziej naturalne zastosowania tego modelu w `Project 13` to:
+
+- autonomiczny low-cost hunting filmow i timestampow,
+- OCR i weryfikacja stopklatek,
+- batchowe wzbogacanie danych o datasheety,
+- generowanie kandydatow do kolejki kuracji,
+- eksperymenty porownawcze na roznych promptach i workflowach.
+
+Docelowo te zadania powinny byc grupowane w osobne lancuchy:
+
+- `discovery chain`,
+- `verification chain`,
+- `enrichment chain`,
+- `curation chain`,
+- `export chain`.
+
+## Zasady bezpieczenstwa dla notatnikow Kaggle
+
+Ten model musi pozostac jawnie dobrowolny i bezpieczny:
+
+- wolontariusz sam decyduje, czy chce zuzyc wlasny darmowy przydzial `Kaggle`,
+- potrzebne sekrety powinny byc ustawiane na jego koncie jako `Kaggle Secrets`,
+- notebook nie powinien dostawac wiekszego zakresu dostepu, niz potrzebuje,
+- preferowany jest zapis do forka wolontariusza, nie bezposrednio do upstream,
+- artefakty powinny byc reviewowane przed promocja do katalogu kanonicznego.
+
 ## Rekomendacje projektowe
 
 - Marketplace i grupy spolecznosciowe warto traktowac jako strumien sygnalow, nie jako kanoniczna baze wiedzy. Do GitHub najlepiej zapisywac rekordy znormalizowane, a nie surowe ogloszenia.
@@ -116,6 +192,7 @@ python3 pipelines/sync_recycled_queue.py --remote --apply --git-mode pr --push -
 - `Ki-nTree` najlepiej traktowac jako warstwe publikacji danych o czesciach do `KiCad` i `InvenTree`, a nie jako miejsce kuracji wiedzy o donorach.
 - `KiCAD-MCP-Server` powinien dostac lekki, deterministyczny zasob reuse, zamiast bezposrednio czytac rozproszone fora, PDF-y i marketplace'y.
 - **Automatyczne Wzbogacanie (AI Agent):** Baza nie powinna polegać wyłącznie na zgłoszeniach użytkowników. Agent AI musi periodycznie "odpytywać" internet o każdy model w bazie, wyciągając listy części ze schematów i filmów naprawczych, co drastycznie zwiększy gęstość danych bez angażowania ludzi.
+- **Autonomiczne notebooki Kaggle:** discovery i enrichment powinny miec wariant `execution pack`, w ktorym wolontariusz uruchamia gotowy notebook na swoim koncie `Kaggle`, a wynik wraca do inicjatywy przez fork i `PR`.
 
 ## Kolejny etap
 

@@ -1,0 +1,12 @@
+{
+  "schema_version": "v1",
+  "gate_id": "gate-pack-ready-project13-01",
+  "subject": {
+    "entity_kind": "execution_pack",
+    "entity_id": "pack-project13-kaggle-enrichment-01"
+  },
+  "gate_kind": "pack_ready",
+  "status": "pass",
+  "notes": "Pack ma gotowe acceptance criteria, jawne safety notes i zrozumiala instrukcje dla wolontariusza.",
+  "checked_at": "2026-04-22T10:22:00Z"
+}

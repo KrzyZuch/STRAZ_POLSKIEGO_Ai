@@ -1,0 +1,16 @@
+{
+  "schema_version": "v1",
+  "run_id": "run-project13-kaggle-enrichment-01",
+  "task_id": "task-project13-kaggle-enrichment-01",
+  "pack_id": "pack-project13-kaggle-enrichment-01",
+  "operator_kind": "hybrid_team",
+  "environment_kind": "kaggle",
+  "status": "needs_review",
+  "logs_ref": "kaggle://project13/runs/2026-04-22-01",
+  "output_refs": [
+    "fork://wolontariusz/project13/results/candidates_2026-04-22.jsonl",
+    "fork://wolontariusz/project13/reports/run_2026-04-22.md"
+  ],
+  "started_at": "2026-04-22T10:30:00Z",
+  "ended_at": "2026-04-22T11:05:00Z"
+}

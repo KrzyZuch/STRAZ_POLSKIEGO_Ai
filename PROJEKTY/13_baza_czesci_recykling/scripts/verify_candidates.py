@@ -9,15 +9,16 @@ OCR-based verification (multimodal frame check) requires the API key and
 falls back to rule-based-only mode when absent.
 
 Commands:
-load — Load candidate snapshot and report stats
-validate — Rule-based MPN validation + enrichment field cross-check
-ocr-check — Attempt OCR-based frame verification (requires GEMINI_API_KEY)
-score — Compute disagreement scores and assign verification_status
-triage — Classify disputed records into triage categories (ocr_needed, manual_review, threshold_tuning, likely_confirmed)
-snapshot — Write verified snapshot (test_db_verified.jsonl)
-report — Generate verification_report.md (includes triage summary when available)
-run — Execute full pipeline: load + validate + score + triage + snapshot + report
-dry-run — Same as run but writes to a separate dry-run output directory
+ load — Load candidate snapshot and report stats
+ validate — Rule-based MPN validation + enrichment field cross-check
+ ocr-check — Attempt OCR-based frame verification (requires GEMINI_API_KEY)
+ score — Compute disagreement scores and assign verification_status
+ triage — Classify disputed records into triage categories (ocr_needed, manual_review, threshold_tuning, likely_confirmed)
+ resolve-status — Apply status resolution policy: promote likely_confirmed, reject threshold_tuning, defer ocr_needed/manual_review
+ snapshot — Write verified snapshot (test_db_verified.jsonl)
+ report — Generate verification_report.md (includes triage summary when available)
+ run — Execute full pipeline: load + validate + score + triage + resolve-status + snapshot + report
+ dry-run — Same as run but writes to a separate dry-run output directory
 """
 
 from __future__ import annotations
@@ -94,6 +95,21 @@ MPN_REJECTION_PATTERNS: list[tuple[str, str]] = [
     (r"^\d+[KkMm]?[ΩΩ]$", "value_not_mpn"),
     (r"^[0-9]{1,4}$", "short_number"),
     (r"BLĄD\s", "ocr_error"),
+    (r"PATENT\s*#", "patent_number"),
+    (r"^MODEL:\s+", "model_label_not_mpn"),
+    (r"^[A-Z][a-z]+\s+NOK\s+", "full_model_string_not_mpn"),
+    (r"\d{2}[\/\-](?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[\/\-]\d{2,4}", "date_code_in_part_number"),
+    (r"\bBOM\s*:", "bom_label_in_part_number"),
+    (r"\b(?:FSB|Rev\.?|REV\.?)\b", "spec_annotation_not_mpn"),
+]
+
+MPN_REJECTION_BROAD_PATTERNS: list[tuple[re.Pattern[str], str]] = [
+    (re.compile(r"^[A-Z][a-z]+\s+NOK\s+", re.IGNORECASE), "full_model_string_not_mpn"),
+    (re.compile(r"PATENT\s*#", re.IGNORECASE), "patent_number"),
+    (re.compile(r"^MODEL:\s+", re.IGNORECASE), "model_label_not_mpn"),
+    (re.compile(r"\d{2}[\/\-](?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[\/\-]\d{2,4}", re.IGNORECASE), "date_code_in_part_number"),
+    (re.compile(r"\bBOM\s*:", re.IGNORECASE), "bom_label_in_part_number"),
+    (re.compile(r"\b(?:FSB|Rev\.?|REV\.?)\b", re.IGNORECASE), "spec_annotation_not_mpn"),
 ]
 
 PART_NUMBER_IC_PATTERNS: list[re.Pattern[str]] = [
@@ -125,16 +141,53 @@ RESISTOR_CAP_PATTERN: list[re.Pattern[str]] = [
     ]
 ]
 
+STATUS_RESOLUTION_POLICY: dict[str, dict[str, Any]] = {
+    "likely_confirmed": {
+        "resolution": "promote_to_confirmed",
+        "condition": "mpn_valid AND confidence>=0.6 AND disagreement<=0.15 AND no_threshold_indicators",
+        "new_status": "confirmed",
+        "audit_note": "Auto-promoted from disputed (triage=likely_confirmed) per status resolution policy v2",
+    },
+    "threshold_tuning": {
+        "resolution": "reject_by_heuristics",
+        "condition": "mpn_invalid_due_to_rejection_pattern OR comma_separated_list",
+        "new_status": "rejected",
+        "audit_note": "Rejected by improved MPN heuristics (triage=threshold_tuning) per status resolution policy v2",
+    },
+    "ocr_needed": {
+        "resolution": "defer_pending_ocr",
+        "condition": "ocr_actionable AND no GEMINI_API_KEY",
+        "new_status": "disputed",
+        "audit_note": "Deferred: OCR check required but GEMINI_API_KEY not available",
+    },
+    "manual_review": {
+        "resolution": "defer_pending_human",
+        "condition": "board_model OR custom_transformer",
+        "new_status": "disputed",
+        "audit_note": "Deferred: requires human reviewer decision",
+    },
+}
+
+STATUS_RESOLUTION_PACKET_PATH = REPORTS_DIR / "status_resolution_packet.json"
+
 
 def classify_mpn_quality(part_number: str) -> dict[str, Any]:
     if not part_number or not part_number.strip():
-        return {"valid": False, "reason": "empty_field", "confidence": 0.0}
+        return {"valid": False, "reason": "empty_field", "confidence": 0.1}
 
     pn = part_number.strip()
 
     for pattern, reason in MPN_REJECTION_PATTERNS:
         if re.match(pattern, pn):
             return {"valid": False, "reason": reason, "confidence": 0.1}
+
+    for pattern, reason in MPN_REJECTION_BROAD_PATTERNS:
+        if pattern.search(pn):
+            return {"valid": False, "reason": reason, "confidence": 0.1}
+
+    comma_count = pn.count(",")
+    if comma_count >= 3:
+        return {"valid": False, "reason": "comma_separated_list", "confidence": 0.1}
 
     if len(pn) < 2:
         return {"valid": False, "reason": "too_short", "confidence": 0.1}
@@ -732,6 +785,214 @@ def cmd_triage(args: argparse.Namespace) -> dict[str, Any]:
     }
 
 
+def cmd_resolve_status(args: argparse.Namespace) -> dict[str, Any]:
+    print("=== Verification Resolve Status: Applying status resolution policy ===\n")
+
+    scored_path = REPORTS_DIR / "verification_scored.jsonl"
+    if not scored_path.exists():
+        print(" No scored records found. Run 'score' and 'triage' first.")
+        return {"resolved": 0}
+
+    candidates = read_jsonl(scored_path)
+
+    status_before: dict[str, int] = {}
+    for rec in candidates:
+        s = rec.get("verification_status", "unknown")
+        status_before[s] = status_before.get(s, 0) + 1
+
+    resolution_log: list[dict[str, Any]] = []
+    ocr_needed_remaining: list[dict[str, Any]] = []
+    manual_review_remaining: list[dict[str, Any]] = []
+
+    for rec in candidates:
+        if rec.get("verification_status") != "disputed":
+            continue
+
+        triage = rec.get("triage", {})
+        if not triage:
+            triage = classify_disputed_triage(rec)
+            rec["triage"] = triage
+
+        cat = triage.get("triage_category", "manual_review")
+        policy = STATUS_RESOLUTION_POLICY.get(cat, STATUS_RESOLUTION_POLICY["manual_review"])
+
+        old_status = rec["verification_status"]
+
+        if cat == "likely_confirmed":
+            mpn_result = rec.get("_mpn_result") or classify_mpn_quality(rec.get("part_number", ""))
+            rec["_mpn_result"] = mpn_result
+            indicators = triage.get("triage_indicators", [])
+            has_threshold_indicator = any(
+                ind in indicators
+                for ind in [
+                    "designator_list_not_mpn",
+                    "date_code_in_part_number",
+                    "model_label_not_mpn",
+                    "patent_number_in_part_number",
+                    "full_model_string_not_mpn",
+                    "comma_separated_list",
+                ]
+            )
+            if mpn_result.get("valid") and not has_threshold_indicator:
+                rec["verification_status"] = "confirmed"
+                rec["status_resolution"] = {
+                    "policy": "likely_confirmed_promote_v2",
+                    "from": old_status,
+                    "to": "confirmed",
+                    "triage_category": cat,
+                    "audit_note": policy["audit_note"],
+                    "resolved_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                }
+                resolution_log.append({
+                    "part_number": rec.get("part_number", ""),
+                    "part_name": rec.get("part_name", ""),
+                    "triage_category": cat,
+                    "from": old_status,
+                    "to": "confirmed",
+                    "audit_note": policy["audit_note"],
+                })
+            else:
+                rec["verification_status"] = "rejected"
+                rec["status_resolution"] = {
+                    "policy": "likely_confirmed_blocked_by_threshold_v2",
+                    "from": old_status,
+                    "to": "rejected",
+                    "triage_category": cat,
+                    "audit_note": "Likely_confirmed blocked by threshold indicators; rejected per policy v2",
+                    "resolved_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                }
+                resolution_log.append({
+                    "part_number": rec.get("part_number", ""),
+                    "part_name": rec.get("part_name", ""),
+                    "triage_category": cat,
+                    "from": old_status,
+                    "to": "rejected",
+                    "audit_note": "likely_confirmed blocked by threshold indicators",
+                })
+
+        elif cat == "threshold_tuning":
+            mpn_result = rec.get("_mpn_result") or classify_mpn_quality(rec.get("part_number", ""))
+            rec["_mpn_result"] = mpn_result
+            if not mpn_result.get("valid"):
+                rec["verification_status"] = "rejected"
+            else:
+                rec["verification_status"] = "rejected"
+            rec["status_resolution"] = {
+                "policy": "threshold_tuning_reject_v2",
+                "from": old_status,
+                "to": "rejected",
+                "triage_category": cat,
+                "audit_note": policy["audit_note"],
+                "resolved_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            }
+            resolution_log.append({
+                "part_number": rec.get("part_number", ""),
+                "part_name": rec.get("part_name", ""),
+                "triage_category": cat,
+                "from": old_status,
+                "to": "rejected",
+                "audit_note": policy["audit_note"],
+            })
+
+        elif cat == "ocr_needed":
+            ocr_needed_remaining.append({
+                "part_number": rec.get("part_number", ""),
+                "part_name": rec.get("part_name", ""),
+                "device": rec.get("device", ""),
+                "triage_category": cat,
+                "ocr_actionable": triage.get("ocr_actionable", False),
+                "audit_note": policy["audit_note"],
+            })
+            rec["status_resolution"] = {
+                "policy": "ocr_needed_defer_v2",
+                "from": old_status,
+                "to": "disputed",
+                "triage_category": cat,
+                "audit_note": policy["audit_note"],
+                "resolved_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            }
+
+        elif cat == "manual_review":
+            manual_review_remaining.append({
+                "part_number": rec.get("part_number", ""),
+                "part_name": rec.get("part_name", ""),
+                "device": rec.get("device", ""),
+                "triage_category": cat,
+                "triage_indicators": triage.get("triage_indicators", []),
+                "audit_note": policy["audit_note"],
+            })
+            rec["status_resolution"] = {
+                "policy": "manual_review_defer_v2",
+                "from": old_status,
+                "to": "disputed",
+                "triage_category": cat,
+                "audit_note": policy["audit_note"],
+                "resolved_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            }
+
+    status_after: dict[str, int] = {}
+    for rec in candidates:
+        s = rec.get("verification_status", "unknown")
+        status_after[s] = status_after.get(s, 0) + 1
+
+    now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    packet: dict[str, Any] = {
+        "generated_at": now,
+        "policy_version": "v2",
+        "status_before": status_before,
+        "status_after": status_after,
+        "resolution_log": resolution_log,
+        "ocr_needed_remaining": ocr_needed_remaining,
+        "manual_review_remaining": manual_review_remaining,
+        "blocked_for_clean_snapshot": [],
+    }
+
+    if ocr_needed_remaining:
+        packet["blocked_for_clean_snapshot"].extend(
+            [f"ocr_needed: {r['part_number']}" for r in ocr_needed_remaining]
+        )
+    if manual_review_remaining:
+        packet["blocked_for_clean_snapshot"].extend(
+            [f"manual_review: {r['part_number']}" for r in manual_review_remaining]
+        )
+
+    dry_run = getattr(args, "dry_run", False)
+    packet_path = STATUS_RESOLUTION_PACKET_PATH
+    if dry_run:
+        packet_path = STATUS_RESOLUTION_PACKET_PATH.parent / (
+            STATUS_RESOLUTION_PACKET_PATH.name + DRY_RUN_SUFFIX
+        )
+
+    write_json(packet_path, packet)
+
+    print(" Status resolution policy applied:")
+    for status in ["confirmed", "disputed", "rejected"]:
+        before = status_before.get(status, 0)
+        after = status_after.get(status, 0)
+        delta = after - before
+        sign = "+" if delta > 0 else ""
+        print(f"  {status}: {before} -> {after} ({sign}{delta})")
+
+    print(f"\n Resolutions applied: {len(resolution_log)}")
+    print(f" Still deferred (ocr_needed): {len(ocr_needed_remaining)}")
+    print(f" Still deferred (manual_review): {len(manual_review_remaining)}")
+    print(f" Blocked for clean snapshot: {len(packet['blocked_for_clean_snapshot'])}")
+    print(f"\n Status resolution packet: {packet_path}")
+
+    write_jsonl(scored_path, candidates)
+    print(f" Scored records updated with resolution: {scored_path}")
+
+    print(f"\n=== Resolve Status complete ===")
+    return {
+        "resolved": len(resolution_log),
+        "status_before": status_before,
+        "status_after": status_after,
+        "ocr_needed_remaining": len(ocr_needed_remaining),
+        "manual_review_remaining": len(manual_review_remaining),
+    }
+
+
 def cmd_snapshot(args: argparse.Namespace) -> dict[str, Any]:
     print("=== Verification Snapshot: Writing verified snapshot ===\n")
 
@@ -818,6 +1079,16 @@ def cmd_report(args: argparse.Namespace) -> dict[str, Any]:
         if alt_t.exists():
             triage_path = alt_t
     triage_records = read_jsonl(triage_path) if triage_path.exists() else []
+
+    resolution_packet_path = STATUS_RESOLUTION_PACKET_PATH
+    if dry_run:
+        alt_r = STATUS_RESOLUTION_PACKET_PATH.parent / (STATUS_RESOLUTION_PACKET_PATH.name + DRY_RUN_SUFFIX)
+        if alt_r.exists():
+            resolution_packet_path = alt_r
+    resolution_packet = {}
+    if resolution_packet_path.exists():
+        with open(resolution_packet_path, "r", encoding="utf-8") as f:
+            resolution_packet = json.load(f)
 
     if not candidates:
         print(" No verified records found. Run 'score' and 'snapshot' first.")
@@ -920,7 +1191,29 @@ def cmd_report(args: argparse.Namespace) -> dict[str, Any]:
         ocr_actionable_count = sum(
             1 for tr in triage_records if tr.get("ocr_actionable")
         )
-        lines.append(f"- OCR-actionable records: {ocr_actionable_count}")
+    lines.append(f"- OCR-actionable records: {ocr_actionable_count}")
+    lines.append("")
+
+    if resolution_packet:
+        lines.append("## Status resolution summary")
+        lines.append("")
+        before = resolution_packet.get("status_before", {})
+        after = resolution_packet.get("status_after", {})
+        lines.append("| Status | Before | After | Delta |")
+        lines.append("|--------|--------|-------|-------|")
+        for status in ["confirmed", "disputed", "rejected"]:
+            b = before.get(status, 0)
+            a = after.get(status, 0)
+            delta = a - b
+            sign = "+" if delta > 0 else ""
+            lines.append(f"| {status} | {b} | {a} | {sign}{delta} |")
+        lines.append("")
+        lines.append(f"- Resolutions applied: {len(resolution_packet.get('resolution_log', []))}")
+        lines.append(f"- Still deferred (ocr_needed): {len(resolution_packet.get('ocr_needed_remaining', []))}")
+        lines.append(f"- Still deferred (manual_review): {len(resolution_packet.get('manual_review_remaining', []))}")
+        lines.append(f"- Blocked for clean verified snapshot: {len(resolution_packet.get('blocked_for_clean_snapshot', []))}")
+        lines.append(f"- Resolution packet: `{resolution_packet_path}`")
+        lines.append(f"- Policy version: {resolution_packet.get('policy_version', 'unknown')}")
         lines.append("")
 
     lines.extend(
@@ -934,21 +1227,25 @@ def cmd_report(args: argparse.Namespace) -> dict[str, Any]:
             "5. OCR frame check (optional, requires GEMINI_API_KEY — disputed records only)",
             "6. Disputed triage (classify disputed into: likely_confirmed, ocr_needed, manual_review, threshold_tuning)",
             "",
-            "## Output contract",
-            "",
-            f"- Verified snapshot: `{verified_path}`",
-            f"- This report: `{VERIFICATION_REPORT_PATH}`",
-            f"- Disagreement log: `{disagreement_path}`",
-            f"- Triage report: `{triage_path}`",
-            "",
-            "## Limitations",
-            "",
-            "- OCR-based verification requires GEMINI_API_KEY and was skipped if not available",
-            "- Rule-based validation may produce false positives for short or ambiguous MPNs",
-            "- Disputed records now have triage categories; threshold_tuning records should improve scoring rules",
-            "- ocr_needed records remain deferred until GEMINI_API_KEY is available",
-            "- Verification is separate from curation and export (no downstream promotion)",
-            "",
+    "## Output contract",
+    "",
+    f"- Verified snapshot: `{verified_path}`",
+    f"- This report: `{VERIFICATION_REPORT_PATH}`",
+    f"- Disagreement log: `{disagreement_path}`",
+    f"- Triage report: `{triage_path}`",
+    f"- Status resolution packet: `{resolution_packet_path}`",
+    "",
+    "## Limitations",
+    "",
+    "- OCR-based verification requires GEMINI_API_KEY and was skipped if not available",
+    "- Rule-based validation may produce false positives for short or ambiguous MPNs",
+    "- threshold_tuning records are now rejected by improved MPN heuristics (status resolution policy v2)",
+    "- likely_confirmed records are now promoted to confirmed by status resolution policy v2",
+    "- ocr_needed records remain deferred until GEMINI_API_KEY is available",
+    "- manual_review records remain deferred until human reviewer decides",
+    "- Verification is separate from curation and export (no downstream promotion)",
+    "- Verification pack does NOT handle export gate; that is curation's responsibility",
+    "",
             "## Handoff to curation",
             "",
             "After review of this report and disagreement log, run:",
@@ -996,6 +1293,7 @@ def cmd_run(args: argparse.Namespace, dry_run: bool = False) -> dict[str, Any]:
     validate_result = cmd_validate(args)
     score_result = cmd_score(args)
     triage_result = cmd_triage(args)
+    resolve_result = cmd_resolve_status(args)
 
     if not dry_run:
         api_key = getattr(args, "api_key", None) or os.environ.get("GEMINI_API_KEY")
@@ -1010,6 +1308,7 @@ def cmd_run(args: argparse.Namespace, dry_run: bool = False) -> dict[str, Any]:
     print(f" Validated: {validate_result.get('validated', 0)}")
     print(f" Scored: {score_result.get('scored', 0)}")
     print(f" Triaged: {triage_result.get('triaged', 0)} disputed")
+    print(f" Resolved: {resolve_result.get('resolved', 0)} status changes")
     print(f" Snapshot: {snapshot_result.get('written', 0)} records")
     print(f" Report: {'written' if report_result.get('report') else 'skipped'}")
 
@@ -1024,6 +1323,7 @@ def cmd_run(args: argparse.Namespace, dry_run: bool = False) -> dict[str, Any]:
         "validated": validate_result.get("validated", 0),
         "scored": score_result.get("scored", 0),
         "triaged": triage_result.get("triaged", 0),
+        "resolved": resolve_result.get("resolved", 0),
         "snapshot": snapshot_result.get("written", 0),
         "report": report_result.get("report", False),
     }
@@ -1046,6 +1346,7 @@ def main() -> None:
         ("ocr-check", "OCR-based frame verification (requires GEMINI_API_KEY)"),
         ("score", "Compute disagreement scores and assign verification status"),
         ("triage", "Classify disputed records into triage categories"),
+        ("resolve-status", "Apply status resolution policy to disputed records"),
         ("snapshot", "Write verified snapshot and disagreement log"),
         ("report", "Generate verification_report.md"),
         (
@@ -1070,6 +1371,7 @@ def main() -> None:
         "ocr-check": cmd_ocr_check,
         "score": cmd_score,
         "triage": cmd_triage,
+        "resolve-status": cmd_resolve_status,
         "snapshot": cmd_snapshot,
         "report": cmd_report,
         "run": lambda a: cmd_run(a, dry_run=False),

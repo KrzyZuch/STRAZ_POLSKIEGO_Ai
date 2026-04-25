@@ -1,6 +1,6 @@
 # Verification Report
 
-Generated: 2026-04-24T10:29:34Z
+Generated: 2026-04-25T13:44:36Z
 Pack: pack-project13-kaggle-verification-01
 Execution surface: scripts/verify_candidates.py
 
@@ -14,28 +14,27 @@ Execution surface: scripts/verify_candidates.py
 
 | Status | Count |
 |--------|-------|
-| Confirmed | 9 |
-| Disputed | 30 |
-| Rejected | 43 |
+| Confirmed | 23 |
+| Disputed | 9 |
+| Rejected | 50 |
 | **Total** | 82 |
 
 ## Disagreement summary
 
-- Disputed records: 30
+- Disputed records: 9
 - Disagreement log: `/home/krzysiek/Dokumenty/INFO_GROUP/STRAZ_POLSKIEGO_Ai/PROJEKTY/13_baza_czesci_recykling/autonomous_test/reports/verification_disagreements.jsonl.dry-run`
 
 ### Key disputed cases
 
-- **Lenovo NOK ILG5081008 308C1K835W000Y 43398 7628365100030** (device: Lenovo Laptop) — disagreement: 0.12, reason: unknown
-- **M425R1GB4BB0-CWM0D** (device: Lenovo Laptop) — disagreement: 0.12, reason: unknown
-- **P28A41E** (device: Lenovo Laptop) — disagreement: 0.12, reason: unknown
-- **230130, 2R2, 33 25V H33** (device: Lenovo Laptop) — disagreement: 0.12, reason: unknown
-- **3336220400007** (device: Dell Precision M4800) — disagreement: 0.18, reason: unknown
-- **UE50MU6102KXXH** (device: Samsung UE50MU6102K) — disagreement: 0.12, reason: unknown
-- **K6100 1124 08.24** (device: Samsung UE50MU6102K) — disagreement: 0.12, reason: unknown
-- **1244-2** (device: Samsung UE32EH4000) — disagreement: 0.18, reason: unknown
-- **M51413ASP** (device: Unknown Electronic Waste) — disagreement: 0.12, reason: unknown
-- **MT1588AE 0311-ARS HF986** (device: Unknown Electronic Waste) — disagreement: 0.12, reason: unknown
+- **3336220400007** (device: Dell Precision M4800) — disagreement: 0.18, triage: ocr_needed, indicators: video_source_available_for_ocr
+- **UE50MU6102KXXH** (device: Samsung UE50MU6102K) — disagreement: 0.12, triage: ocr_needed, indicators: board_model_number, video_source_available_for_ocr
+- **1244-2** (device: Samsung UE32EH4000) — disagreement: 0.18, triage: ocr_needed, indicators: video_source_available_for_ocr
+- **LF80537** (device: Laptop (Generic/Unspecified)) — disagreement: 0.38, triage: ocr_needed, indicators: enrichment_v2_with_video_source
+- **TS8121K** (device: Laptop (Generic/Unspecified)) — disagreement: 0.38, triage: ocr_needed, indicators: enrichment_v2_with_video_source
+- **BN44-00213A** (device: Samsung Power Supply Board (BN44-00213A)) — disagreement: 0.38, triage: manual_review, indicators: board_model_number
+- **QHAD01249** (device: Samsung Power Supply Board (BN44-00213A)) — disagreement: 0.38, triage: manual_review, indicators: custom_wound_transformer_no_datasheet
+- **BD243C** (device: Samsung Power Supply Board (BN44-00213A)) — disagreement: 0.38, triage: ocr_needed, indicators: enrichment_v2_with_video_source
+- **QHA001249** (device: Samsung Power Supply Board (BN44-00213A)) — disagreement: 0.38, triage: ocr_needed, indicators: enrichment_v2_with_video_source
 
 ## Disputed triage summary
 
@@ -44,11 +43,26 @@ Execution surface: scripts/verify_candidates.py
 | likely_confirmed | 14 | High MPN confidence, low disagreement; safe to auto-promote after review |
 | ocr_needed | 7 | OCR frame check could resolve; requires GEMINI_API_KEY |
 | manual_review | 2 | Human reviewer needed; no automated resolution path |
-| threshold_tuning | 7 | Record should be rejected or recategorized by improved MPN heuristics |
+| threshold_tuning | 1 | Record should be rejected or recategorized by improved MPN heuristics |
 
 - Triage report: `/home/krzysiek/Dokumenty/INFO_GROUP/STRAZ_POLSKIEGO_Ai/PROJEKTY/13_baza_czesci_recykling/autonomous_test/reports/verification_triage.jsonl.dry-run`
 - GEMINI_API_KEY available: True
 - OCR-actionable records: 7
+
+## Status resolution summary
+
+| Status | Before | After | Delta |
+|--------|--------|-------|-------|
+| confirmed | 9 | 23 | +14 |
+| disputed | 24 | 9 | -15 |
+| rejected | 49 | 50 | +1 |
+
+- Resolutions applied: 15
+- Still deferred (ocr_needed): 7
+- Still deferred (manual_review): 2
+- Blocked for clean verified snapshot: 9
+- Resolution packet: `/home/krzysiek/Dokumenty/INFO_GROUP/STRAZ_POLSKIEGO_Ai/PROJEKTY/13_baza_czesci_recykling/autonomous_test/reports/status_resolution_packet.json.dry-run`
+- Policy version: v2
 
 ## Verification method
 
@@ -65,14 +79,18 @@ Execution surface: scripts/verify_candidates.py
 - This report: `/home/krzysiek/Dokumenty/INFO_GROUP/STRAZ_POLSKIEGO_Ai/PROJEKTY/13_baza_czesci_recykling/autonomous_test/reports/verification_report.md`
 - Disagreement log: `/home/krzysiek/Dokumenty/INFO_GROUP/STRAZ_POLSKIEGO_Ai/PROJEKTY/13_baza_czesci_recykling/autonomous_test/reports/verification_disagreements.jsonl.dry-run`
 - Triage report: `/home/krzysiek/Dokumenty/INFO_GROUP/STRAZ_POLSKIEGO_Ai/PROJEKTY/13_baza_czesci_recykling/autonomous_test/reports/verification_triage.jsonl.dry-run`
+- Status resolution packet: `/home/krzysiek/Dokumenty/INFO_GROUP/STRAZ_POLSKIEGO_Ai/PROJEKTY/13_baza_czesci_recykling/autonomous_test/reports/status_resolution_packet.json.dry-run`
 
 ## Limitations
 
 - OCR-based verification requires GEMINI_API_KEY and was skipped if not available
 - Rule-based validation may produce false positives for short or ambiguous MPNs
-- Disputed records now have triage categories; threshold_tuning records should improve scoring rules
+- threshold_tuning records are now rejected by improved MPN heuristics (status resolution policy v2)
+- likely_confirmed records are now promoted to confirmed by status resolution policy v2
 - ocr_needed records remain deferred until GEMINI_API_KEY is available
+- manual_review records remain deferred until human reviewer decides
 - Verification is separate from curation and export (no downstream promotion)
+- Verification pack does NOT handle export gate; that is curation's responsibility
 
 ## Handoff to curation
 

@@ -3,16 +3,18 @@
 Execution surface for pack-project13-curation-01.
 
 Curate verified candidates into canonical catalog schemas with
-explicit accept/defer/reject decisions and audit trail.
+explicit accept/defer/reject decisions, review queue, and export gate.
 
 Commands:
-  review          — Load and summarize verification input (snapshot + report + disagreements)
-  align           — Align each candidate to canonical catalog schemas
-  decide          — Apply curation decisions (auto + manual for disputed)
-  apply           — Write accepted candidates into canonical catalog files
-  validate        — Validate catalog cross-file consistency after apply
-  report          — Generate curation_report.md and curation_decisions.jsonl
-  dry-run         — Run align+decide+validate+report without writing to catalog
+ review — Load and summarize verification input (snapshot + report + disagreements + status resolution)
+ align — Align each candidate to canonical catalog schemas
+ decide — Apply curation decisions (auto + triage-informed for disputed)
+ review-queue — Generate explicit review queue from curation decisions
+ export-gate — Check whether export is allowed; generate export gate packet
+ apply — Write accepted candidates into canonical catalog files
+ validate — Validate catalog cross-file consistency after apply
+ report — Generate curation_report.md and curation_decisions.jsonl
+ dry-run — Run align+decide+review-queue+export-gate+validate+report without writing to catalog
 """
 
 import argparse
@@ -39,6 +41,25 @@ DISAGREEMENT_LOG_PATH = REPORTS_DIR / "verification_disagreements.jsonl"
 
 CURATION_DECISIONS_PATH = REPORTS_DIR / "curation_decisions.jsonl"
 CURATION_REPORT_PATH = REPORTS_DIR / "curation_report.md"
+REVIEW_QUEUE_PATH = REPORTS_DIR / "curation_review_queue.jsonl"
+EXPORT_GATE_PACKET_PATH = REPORTS_DIR / "export_gate_packet.json"
+
+STATUS_RESOLUTION_PACKET_PATH = REPORTS_DIR / "status_resolution_packet.json"
+
+EXPORT_GATE_POLICY = {
+    "can_export_if": [
+        "all accepted candidates have review_status=approved",
+        "no deferred candidates remain in accept queue",
+        "catalog validation passes (no duplicate slugs, no broken links)",
+        "at least one human review approval recorded",
+    ],
+    "cannot_export_if": [
+        "deferred candidates exist that have not been explicitly resolved",
+        "accepted candidates still have review_status=pending",
+        "catalog validation has errors",
+        "no human review approval recorded",
+    ],
+}
 
 CATALOG_EXECUTION_SURFACE = PROJECT_ROOT / "scripts" / "curate_candidates.py"
 

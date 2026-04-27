@@ -15,6 +15,7 @@ reviewed catalog -> export-all -> review-ready diff -> PR
 - lokalne repo z reviewowanym katalogiem `Project 13`
 - dzialajace skrypty `build_catalog_artifacts.py`
 - czysty kontekst, w ktorym wiadomo, jakie zmiany w katalogu zostaly juz przyjete
+- **export gate OPEN** — uruchom `python3 scripts/curate_candidates.py export-gate` i sprawdz, ze `gate_result` w `autonomous_test/reports/export_gate_packet.json` jest `"OPEN"`. Jesli gate jest BLOCKED, nie uruchamiaj exportu.
 
 ## Komenda glowna
 

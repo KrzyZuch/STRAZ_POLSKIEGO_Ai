@@ -1,7 +1,7 @@
 # Instrukcja Montazu: Czujnik temperatury Wi-Fi z ESP8266
 
 - dry_run: True
-- generated_at: 2026-04-26T15:45:53+00:00
+- generated_at: 2026-04-27T14:59:55+00:00
 
 ## Wymagane czesci
 

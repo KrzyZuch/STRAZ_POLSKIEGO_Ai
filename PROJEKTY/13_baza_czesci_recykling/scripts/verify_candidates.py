@@ -15,6 +15,7 @@ Commands:
  score — Compute disagreement scores and assign verification_status
  triage — Classify disputed records into triage categories (ocr_needed, manual_review, threshold_tuning, likely_confirmed)
  resolve-status — Apply status resolution policy: promote likely_confirmed, reject threshold_tuning, defer ocr_needed/manual_review
+ deferred-workpack — Generate operator-ready workpack for deferred OCR and manual review cases
  snapshot — Write verified snapshot (test_db_verified.jsonl)
  report — Generate verification_report.md (includes triage summary when available)
  run — Execute full pipeline: load + validate + score + triage + resolve-status + snapshot + report
@@ -993,6 +994,258 @@ def cmd_resolve_status(args: argparse.Namespace) -> dict[str, Any]:
     }
 
 
+DEFERRED_WORKPACK_JSON_PATH = REPORTS_DIR / "deferred_resolution_workpack.json"
+DEFERRED_WORKPACK_MD_PATH = REPORTS_DIR / "deferred_resolution_workpack.md"
+
+
+def cmd_deferred_workpack(args: argparse.Namespace) -> dict[str, Any]:
+    print("=== Verification Deferred Workpack: Generating operator-ready packet for deferred cases ===\n")
+
+    resolution_path = STATUS_RESOLUTION_PACKET_PATH
+    if getattr(args, "dry_run", False):
+        alt = STATUS_RESOLUTION_PACKET_PATH.parent / (STATUS_RESOLUTION_PACKET_PATH.name + DRY_RUN_SUFFIX)
+        if alt.exists():
+            resolution_path = alt
+
+    if not resolution_path.exists():
+        print(" No status resolution packet found. Run 'resolve-status' first.")
+        return {"workpack": False}
+
+    with open(resolution_path, "r", encoding="utf-8") as f:
+        resolution_packet = json.load(f)
+
+    ocr_needed = resolution_packet.get("ocr_needed_remaining", [])
+    manual_review = resolution_packet.get("manual_review_remaining", [])
+
+    if not ocr_needed and not manual_review:
+        print(" No deferred cases remaining. Workpack not needed.")
+        return {"workpack": False, "ocr_needed": 0, "manual_review": 0}
+
+    verified_path = VERIFIED_SNAPSHOT_PATH
+    if getattr(args, "dry_run", False):
+        alt = VERIFIED_SNAPSHOT_PATH.parent / (VERIFIED_SNAPSHOT_PATH.name + DRY_RUN_SUFFIX)
+        if alt.exists():
+            verified_path = alt
+
+    verified_records = read_jsonl(verified_path)
+    verified_by_pn: dict[str, dict[str, Any]] = {}
+    for rec in verified_records:
+        pn = rec.get("part_number", "")
+        if pn:
+            verified_by_pn[pn] = rec
+
+    review_queue_path = REPORTS_DIR / "curation_review_queue.jsonl"
+    review_queue = read_jsonl(review_queue_path) if review_queue_path.exists() else []
+    candidate_id_by_pn: dict[str, str] = {}
+    for entry in review_queue:
+        pn = entry.get("part_number", "")
+        cid = entry.get("candidate_id", "")
+        if pn and cid:
+            candidate_id_by_pn[pn] = cid
+
+    now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    ocr_entries: list[dict[str, Any]] = []
+    for case in ocr_needed:
+        pn = case.get("part_number", "")
+        rec = verified_by_pn.get(pn, {})
+        verification_raw = rec.get("verification_raw", {})
+        entry: dict[str, Any] = {
+            "candidate_id": candidate_id_by_pn.get(pn, ""),
+            "part_number": pn,
+            "part_name": case.get("part_name", ""),
+            "device": case.get("device", ""),
+            "disagreement_score": rec.get("disagreement_score", 0.0),
+            "confidence": rec.get("confidence", 0.0),
+            "triage_indicators": case.get("triage_indicators", rec.get("triage", {}).get("triage_indicators", [])),
+            "evidence_url": rec.get("yt_link", ""),
+            "source_video": rec.get("source_video", ""),
+            "verification_observed_text": rec.get("verification", {}).get("observed_text", ""),
+            "verification_verified": rec.get("verification", {}).get("verified"),
+            "datasheet_url": rec.get("datasheet_url"),
+            "footprint": rec.get("footprint"),
+            "ocr_actionable": case.get("ocr_actionable", True),
+            "next_action": "run_ocr_check",
+            "next_action_detail": f"GEMINI_API_KEY required. Run: GEMINI_API_KEY=... python3 scripts/verify_candidates.py ocr-check. Verify '{pn}' against video frame for {case.get('part_name', '')} on {case.get('device', '')}.",
+            "resolution_if_ocr_confirms": "promote to confirmed -> re-run curation pipeline",
+            "resolution_if_ocr_rejects": "reject -> update status_resolution -> re-run curation",
+            "resolution_if_ocr_inconclusive": "escalate to manual_review",
+        }
+        if verification_raw:
+            entry["verification_raw_verified"] = verification_raw.get("verified")
+            entry["verification_raw_observed_text"] = verification_raw.get("observed_text", "")
+        ocr_entries.append(entry)
+
+    manual_entries: list[dict[str, Any]] = []
+    for case in manual_review:
+        pn = case.get("part_number", "")
+        rec = verified_by_pn.get(pn, {})
+        verification_raw = rec.get("verification_raw", {})
+        m_entry: dict[str, Any] = {
+            "candidate_id": candidate_id_by_pn.get(pn, ""),
+            "part_number": pn,
+            "part_name": case.get("part_name", ""),
+            "device": case.get("device", ""),
+            "disagreement_score": rec.get("disagreement_score", 0.0),
+            "confidence": rec.get("confidence", 0.0),
+            "triage_indicators": case.get("triage_indicators", rec.get("triage", {}).get("triage_indicators", [])),
+            "evidence_url": rec.get("yt_link", ""),
+            "source_video": rec.get("source_video", ""),
+            "verification_observed_text": rec.get("verification", {}).get("observed_text", ""),
+            "verification_verified": rec.get("verification", {}).get("verified"),
+            "datasheet_url": rec.get("datasheet_url"),
+            "footprint": rec.get("footprint"),
+            "ocr_actionable": False,
+            "next_action": "human_review_decision",
+            "next_action_detail": f"Human reviewer must decide: Is '{pn}' a valid catalog entry for {case.get('part_name', '')}?",
+            "decision_options": ["accept", "reject", "defer"],
+        }
+        if verification_raw:
+            m_entry["verification_raw_verified"] = verification_raw.get("verified")
+            m_entry["verification_raw_observed_text"] = verification_raw.get("observed_text", "")
+        manual_entries.append(m_entry)
+
+    workpack_json: dict[str, Any] = {
+        "generated_at": now,
+        "pack": "pack-project13-kaggle-verification-01",
+        "description": "Operator-ready workpack for deferred verification cases. Each case has evidence, next action, and resolution path.",
+        "total_cases": len(ocr_entries) + len(manual_entries),
+        "ocr_needed_cases": len(ocr_entries),
+        "manual_review_cases": len(manual_entries),
+        "ocr_needed": ocr_entries,
+        "manual_review": manual_entries,
+        "procedure_when_gemini_available": [
+            "1. Set GEMINI_API_KEY environment variable",
+            "2. Run: GEMINI_API_KEY=... python3 scripts/verify_candidates.py ocr-check",
+            "3. Review OCR results in verification_scored.jsonl for ocr_needed cases",
+            "4. Re-run full pipeline: python3 scripts/verify_candidates.py run",
+            "5. Then re-run curation: python3 scripts/curate_candidates.py dry-run --fallback-test-db",
+            "6. Then re-check export gate: python3 scripts/curate_candidates.py export-gate",
+        ],
+        "procedure_for_human_review": [
+            "1. Read reviewer_context for each manual_review case",
+            "2. Choose one of the decision_options",
+            "3. Update curation_review_queue.jsonl: set reviewed_by, reviewed_at, and review_status",
+            "4. Re-run: python3 scripts/curate_candidates.py export-gate",
+        ],
+        "dependencies": {
+            "ocr_needed": "GEMINI_API_KEY (not currently available)",
+            "manual_review": "Human reviewer decision (no automated resolution possible)",
+        },
+        "provenance": {
+            "status_resolution_packet": str(resolution_path),
+            "verification_report": str(VERIFICATION_REPORT_PATH),
+            "verification_triage": str(TRIAGE_REPORT_PATH),
+            "verification_disagreements": str(DISAGREEMENT_LOG_PATH),
+            "curation_review_queue": str(review_queue_path) if review_queue_path.exists() else "not yet generated",
+            "export_gate_packet": str(REPORTS_DIR / "export_gate_packet.json"),
+            "verified_snapshot": str(verified_path),
+        },
+    }
+
+    dry_run = getattr(args, "dry_run", False)
+    workpack_json_path = DEFERRED_WORKPACK_JSON_PATH
+    workpack_md_path = DEFERRED_WORKPACK_MD_PATH
+    if dry_run:
+        workpack_json_path = DEFERRED_WORKPACK_JSON_PATH.parent / (DEFERRED_WORKPACK_JSON_PATH.name + DRY_RUN_SUFFIX)
+        workpack_md_path = DEFERRED_WORKPACK_MD_PATH.parent / (DEFERRED_WORKPACK_MD_PATH.name + DRY_RUN_SUFFIX)
+
+    write_json(workpack_json_path, workpack_json)
+
+    md_lines = [
+        "# Deferred Resolution Workpack",
+        "",
+        f"Generated: {now}",
+        "Pack: pack-project13-kaggle-verification-01",
+        "",
+        "## Summary",
+        "",
+        f"{len(ocr_entries) + len(manual_entries)} deferred verification cases need resolution.",
+        "",
+        "| Track | Count | Requirement |",
+        "|-------|-------|-------------|",
+        f"| ocr_needed | {len(ocr_entries)} | GEMINI_API_KEY |",
+        f"| manual_review | {len(manual_entries)} | Human reviewer decision |",
+        "",
+    ]
+
+    if ocr_entries:
+        md_lines.append("## OCR-Needed Cases")
+        md_lines.append("")
+        for i, entry in enumerate(ocr_entries, 1):
+            md_lines.append(f"### {i}. {entry['part_number']} — {entry['part_name']} ({entry['device']})")
+            md_lines.append("")
+            md_lines.append(f"- **candidate_id**: {entry.get('candidate_id', 'unknown')}")
+            md_lines.append(f"- **disagreement**: {entry.get('disagreement_score', 0)}, **confidence**: {entry.get('confidence', 0)}")
+            md_lines.append(f"- **evidence_url**: {entry.get('evidence_url', 'N/A')}")
+            md_lines.append(f"- **observed_text**: {entry.get('verification_observed_text', 'N/A')}")
+            if entry.get("footprint"):
+                md_lines.append(f"- **footprint**: {entry['footprint']}")
+            md_lines.append(f"- **next_action**: {entry.get('next_action', '')}")
+            md_lines.append(f"- **next_action_detail**: {entry.get('next_action_detail', '')}")
+            md_lines.append(f"- **if confirmed**: {entry.get('resolution_if_ocr_confirms', '')}")
+            md_lines.append(f"- **if rejected**: {entry.get('resolution_if_ocr_rejects', '')}")
+            md_lines.append(f"- **if inconclusive**: {entry.get('resolution_if_ocr_inconclusive', '')}")
+            md_lines.append("")
+
+    if manual_entries:
+        md_lines.append("## Manual Review Cases")
+        md_lines.append("")
+        for i, entry in enumerate(manual_entries, 1):
+            md_lines.append(f"### {i}. {entry['part_number']} — {entry['part_name']} ({entry['device']})")
+            md_lines.append("")
+            md_lines.append(f"- **candidate_id**: {entry.get('candidate_id', 'unknown')}")
+            md_lines.append(f"- **disagreement**: {entry.get('disagreement_score', 0)}, **confidence**: {entry.get('confidence', 0)}")
+            md_lines.append(f"- **evidence_url**: {entry.get('evidence_url', 'N/A')}")
+            md_lines.append(f"- **observed_text**: {entry.get('verification_observed_text', 'N/A')}")
+            if entry.get("footprint"):
+                md_lines.append(f"- **footprint**: {entry['footprint']}")
+            md_lines.append(f"- **next_action**: {entry.get('next_action', '')}")
+            md_lines.append(f"- **decision_options**: {', '.join(entry.get('decision_options', []))}")
+            md_lines.append("")
+
+    md_lines.extend([
+        "## Procedures",
+        "",
+        "### When GEMINI_API_KEY becomes available",
+        "",
+        "```bash",
+        "GEMINI_API_KEY=... python3 scripts/verify_candidates.py ocr-check",
+        "python3 scripts/verify_candidates.py run",
+        "python3 scripts/curate_candidates.py dry-run --fallback-test-db",
+        "python3 scripts/curate_candidates.py export-gate",
+        "```",
+        "",
+        "### For human reviewer decisions",
+        "",
+        "1. Read case details above",
+        "2. Choose one of the decision_options",
+        "3. Update `curation_review_queue.jsonl`: set `reviewed_by`, `reviewed_at`, `review_status`",
+        "4. Re-run: `python3 scripts/curate_candidates.py export-gate`",
+        "",
+        f"JSON workpack: `{workpack_json_path}`",
+        "",
+    ])
+
+    workpack_md_path.parent.mkdir(parents=True, exist_ok=True)
+    workpack_md_path.write_text("\n".join(md_lines), encoding="utf-8")
+
+    print(f" OCR-needed cases: {len(ocr_entries)}")
+    print(f" Manual review cases: {len(manual_entries)}")
+    print(f" Total deferred cases: {len(ocr_entries) + len(manual_entries)}")
+    print(f"\n JSON workpack: {workpack_json_path}")
+    print(f" Markdown workpack: {workpack_md_path}")
+    print(f"\n=== Deferred Workpack complete ===")
+
+    return {
+        "workpack": True,
+        "ocr_needed": len(ocr_entries),
+        "manual_review": len(manual_entries),
+        "json_path": str(workpack_json_path),
+        "md_path": str(workpack_md_path),
+    }
+
+
 def cmd_snapshot(args: argparse.Namespace) -> dict[str, Any]:
     print("=== Verification Snapshot: Writing verified snapshot ===\n")
 
@@ -1347,6 +1600,7 @@ def main() -> None:
         ("score", "Compute disagreement scores and assign verification status"),
         ("triage", "Classify disputed records into triage categories"),
         ("resolve-status", "Apply status resolution policy to disputed records"),
+        ("deferred-workpack", "Generate operator-ready workpack for deferred OCR and manual review cases"),
         ("snapshot", "Write verified snapshot and disagreement log"),
         ("report", "Generate verification_report.md"),
         (
@@ -1372,6 +1626,7 @@ def main() -> None:
         "score": cmd_score,
         "triage": cmd_triage,
         "resolve-status": cmd_resolve_status,
+        "deferred-workpack": cmd_deferred_workpack,
         "snapshot": cmd_snapshot,
         "report": cmd_report,
         "run": lambda a: cmd_run(a, dry_run=False),

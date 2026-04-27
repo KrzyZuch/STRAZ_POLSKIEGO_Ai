@@ -90,6 +90,12 @@ def append_jsonl(path, records):
             f.write(json.dumps(r, ensure_ascii=False) + "\n")
 
 
+def write_json(path, data):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
 def slugify(text):
     text = text.lower().strip()
     text = re.sub(r"[^a-z0-9]+", "-", text)
@@ -1259,6 +1265,15 @@ def cmd_report(args):
         report_lines.append("Curation proceeded with available data, but results may not reflect the full verification state.")
         report_lines.append("")
 
+    gate_packet = {}
+    if EXPORT_GATE_PACKET_PATH.exists():
+        with open(EXPORT_GATE_PACKET_PATH, "r", encoding="utf-8") as f:
+            gate_packet = json.load(f)
+
+    gate_result = gate_packet.get("gate_result", "UNKNOWN")
+    gate_blockers = gate_packet.get("blockers", [])
+    gate_warnings = gate_packet.get("warnings", [])
+
     report_lines.extend(
         [
             "## Provenance",
@@ -1267,18 +1282,56 @@ def cmd_report(args):
             f"- Disagreement log: `{disagreement_path}`",
             f"- Source snapshot: `{snapshot_path}`",
             f"- Curation decisions: `{CURATION_DECISIONS_PATH}`",
+            f"- Review queue: `{REVIEW_QUEUE_PATH}`",
+            f"- Export gate packet: `{EXPORT_GATE_PACKET_PATH}`",
             "",
-            "## Handoff to export",
+            "## Export gate status",
             "",
-            "After merge of this curation PR, the downstream export pack is safe to run:",
-            "",
-            "```bash",
-            "python3 PROJEKTY/13_baza_czesci_recykling/scripts/build_catalog_artifacts.py export-all",
-            "python3 PROJEKTY/13_baza_czesci_recykling/scripts/build_catalog_artifacts.py validate",
-            "```",
+            f"**Gate: {gate_result}**",
             "",
         ]
     )
+
+    if gate_result == "OPEN":
+        report_lines.extend(
+            [
+                "Export gate is OPEN. Downstream export pack is safe to run:",
+                "",
+                "```bash",
+                "python3 PROJEKTY/13_baza_czesci_recykling/scripts/build_catalog_artifacts.py export-all",
+                "python3 PROJEKTY/13_baza_czesci_recykling/scripts/build_catalog_artifacts.py validate",
+                "```",
+                "",
+            ]
+        )
+    else:
+        report_lines.append("Export gate is **BLOCKED**. Do not run export until blockers are resolved:")
+        report_lines.append("")
+        if gate_blockers:
+            for b in gate_blockers:
+                report_lines.append(f"- BLOCKER: {b}")
+        if gate_warnings:
+            for w in gate_warnings:
+                report_lines.append(f"- warning: {w}")
+        if not gate_blockers and not gate_warnings:
+            report_lines.append("- (no explicit blockers listed in gate packet — re-run export-gate)")
+        report_lines.append("")
+        report_lines.append("To resolve:")
+        report_lines.append("1. Review pending_human_approval candidates in curation_review_queue.jsonl")
+        report_lines.append("2. Set reviewed_by and reviewed_at for approved entries")
+        report_lines.append("3. Re-run: python3 scripts/curate_candidates.py export-gate")
+        report_lines.append("")
+
+    if gate_packet.get("next_steps"):
+        report_lines.extend(
+            [
+                "### Next steps (from gate packet)",
+                "",
+            ]
+        )
+        for step in gate_packet["next_steps"]:
+            report_lines.append(f"- {step}")
+        report_lines.append("")
 
     limitations = []
     if not report_path.exists():
@@ -1316,7 +1369,7 @@ def cmd_report(args):
     if blockers:
         report_lines.extend(
             [
-                "## What blocks export without additional review",
+                "## Deferred candidates detail",
                 "",
             ]
         )
@@ -1345,7 +1398,7 @@ def cmd_report(args):
 
 def cmd_dry_run(args):
     print(
-        "=== Curation Dry-Run: align + decide + validate + report (no catalog writes) ===\n"
+        "=== Curation Dry-Run: align + decide + review-queue + export-gate + validate + report (no catalog writes) ===\n"
     )
 
     align_args = argparse.Namespace(
@@ -1361,17 +1414,29 @@ def cmd_dry_run(args):
     )
     decide_counts = cmd_decide(decide_args)
 
+    review_queue_args = argparse.Namespace(
+        snapshot=args.snapshot,
+    )
+    queue_result = cmd_review_queue(review_queue_args)
+
+    export_gate_args = argparse.Namespace(
+        snapshot=args.snapshot,
+    )
+    gate_result = cmd_export_gate(export_gate_args)
+
     validate_result = cmd_validate(argparse.Namespace())
 
     report_result = cmd_report(decide_args)
 
     print("\n=== Dry-Run Summary ===")
-    print(f"  Aligned: {align_counts}")
-    print(f"  Decisions: {decide_counts}")
-    print(f"  Validation: {validate_result}")
-    print(f"  Report: {report_result}")
-    print(f"\n  NOTE: Canonical catalog files were NOT modified (dry-run mode).")
-    print(f"  To apply accepted candidates, run: curate_candidates.py apply")
+    print(f" Aligned: {align_counts}")
+    print(f" Decisions: {decide_counts}")
+    print(f" Review queue: {queue_result}")
+    print(f" Export gate: {gate_result}")
+    print(f" Validation: {validate_result}")
+    print(f" Report: {report_result}")
+    print(f"\n NOTE: Canonical catalog files were NOT modified (dry-run mode).")
+    print(f" To apply accepted candidates, run: curate_candidates.py apply")
 
 
 def main():
@@ -1387,10 +1452,12 @@ def main():
             "decide",
             "Apply curation decisions (auto for confirmed/rejected, defer for disputed)",
         ),
+        ("review-queue", "Generate explicit review queue from curation decisions"),
+        ("export-gate", "Check whether export is allowed; generate export gate packet"),
         ("apply", "Write accepted candidates into canonical catalog files"),
         ("validate", "Validate catalog cross-file consistency"),
         ("report", "Generate curation_report.md"),
-        ("dry-run", "Run align+decide+validate+report without writing to catalog"),
+        ("dry-run", "Run align+decide+review-queue+export-gate+validate+report without writing to catalog"),
     ]:
         sp = sub.add_parser(name, help=help_text)
         sp.add_argument(
@@ -1425,6 +1492,8 @@ def main():
         "review": cmd_review,
         "align": cmd_align,
         "decide": cmd_decide,
+        "review-queue": cmd_review_queue,
+        "export-gate": cmd_export_gate,
         "apply": cmd_apply,
         "validate": cmd_validate,
         "report": cmd_report,

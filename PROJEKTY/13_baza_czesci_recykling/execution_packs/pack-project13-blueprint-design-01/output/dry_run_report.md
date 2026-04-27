@@ -1,6 +1,6 @@
 # Dry Run Report: pack-project13-blueprint-design-01
 
-- executed_at_utc: 2026-04-26T15:45:53+00:00
+- executed_at_utc: 2026-04-27T14:59:55+00:00
 - run_mode: local_dry_run
 - overall_status: pass
 - pack_id: pack-project13-blueprint-design-01
@@ -9,7 +9,7 @@
 - device_name: Czujnik temperatury Wi-Fi z ESP8266
 - bom_summary: total=6, reuse=3, missing=3
 - output_dir: /home/krzysiek/Dokumenty/INFO_GROUP/STRAZ_POLSKIEGO_Ai/PROJEKTY/13_baza_czesci_recykling/execution_packs/pack-project13-blueprint-design-01/output
-- run_stamp: 20260426T154553Z
+- run_stamp: 20260427T145955Z
 
 ## Checks
 

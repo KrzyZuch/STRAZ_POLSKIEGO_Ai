@@ -7,7 +7,7 @@ Ten pack formalizuje etap review i kuracji miedzy verification a downstream expo
 Docelowy przeplyw:
 
 ```text
-verified candidates -> schema alignment -> curation decisions -> catalog-ready records -> PR
+verified candidates -> schema alignment -> curation decisions -> review queue -> export gate -> catalog-ready records -> PR
 ```
 
 W wiekszym lancuchu:
@@ -116,9 +116,25 @@ Dla kazdego kandydata ze snapshotu:
 4. Dolacz `curation_report.md` i `curation_decisions.jsonl` jako czesc PR.
 5. W opisie PR jawnie wskaz handoff point: po merge tego PR mozna uruchomic `pack-project13-catalog-export-01`.
 
-## Krok 6. Handoff do exportu
+## Krok 6. Wygeneruj review queue i export gate
 
-Po merge PR curation:
+1. Uruchom `review-queue` aby wygenerowac `curation_review_queue.jsonl`:
+   ```bash
+   python3 PROJEKTY/13_baza_czesci_recykling/scripts/curate_candidates.py review-queue
+   ```
+2. Uruchom `export-gate` aby sprawdzic, czy eksport jest dozwolony:
+   ```bash
+   python3 PROJEKTY/13_baza_czesci_recykling/scripts/curate_candidates.py export-gate
+   ```
+3. Jesli gate jest BLOCKED, nie otwieraj PR exportowego. Zamiast tego:
+   - rozwiń pending_human_approval w `curation_review_queue.jsonl` (ustaw reviewed_by i reviewed_at),
+   - rozstrzygnij deferred candidates (OCR lub manual review),
+   - re-run `export-gate` po kazdej zmianie.
+4. Jesli gate jest OPEN, przejdz do Kroku 7.
+
+## Krok 7. Handoff do exportu
+
+Po merge PR curation **i po tym, jak export gate jest OPEN**:
 
 1. Uruchomienie packa `pack-project13-catalog-export-01` jest bezpieczne, bo katalog jest po review.
 2. Komenda:
@@ -158,12 +174,15 @@ Pack jest `real_verified_tested`:
 - kontrakt dokumentacyjny jest gotowy,
 - outputy i acceptance criteria sa nazwane,
 - scope jest jasno oddzielony od verification i exportu,
-- handoff point do exportu jest czytelny,
+- handoff point do exportu jest czytelny i warunkowany export gate,
 - review checklist definiuje, co znaczy "gotowe do katalogu",
-- execution surface jest dostepny: `scripts/curate_candidates.py` z 7 komendami,
-- dry-run na 82 kandydatach z `test_db_verified.jsonl` (realny verified input): 23 accepted (9 confirmed + 14 triage=likely_confirmed), 9 deferred (7 ocr_needed + 2 manual_review), 50 rejected (43 rejected + 7 threshold_tuning),
+- execution surface jest dostepny: `scripts/curate_candidates.py` z 9 komendami (review, align, decide, review-queue, export-gate, apply, validate, report, dry-run),
+- review queue (`curation_review_queue.jsonl`) rozdziela kandydatow na: auto_approved (9), pending_human_approval (14), deferred (9), auto_rejected (50),
+- export gate packet (`export_gate_packet.json`) mowi wprost: BLOCKED, z lista blockerow i next steps,
+- curation_report.md nie oglasza gotowosci exportu wbrew gate packetowi,
+- dry-run na 82 kandydatach z `test_db_verified.jsonl` (realny verified input): 23 accepted (9 confirmed + 14 triage=likely_confirmed), 9 deferred (7 ocr_needed + 2 manual_review), 50 rejected,
 - disputed candidates sa teraz rozstrzygane na podstawie triage z verification (likely_confirmed->accept, threshold_tuning->reject, ocr_needed/manual_review->defer),
-- raport curation zawiera triage breakdown, stability assessment i jawne blockers do exportu.
+- raport curation zawiera triage breakdown, stability assessment i jawny export gate status (BLOCKED/OPEN).
 
 ## Minimalne kryterium sukcesu
 
@@ -171,17 +190,21 @@ Pack spelnia kryteria sukcesu:
 
 - ma stabilny input z verification (verified snapshot + report + disagreement log),
 - ma jawny output curation decisions z rationale i triage category,
+- ma jawna review queue z podzialem na auto_approved / pending_human_approval / deferred / auto_rejected,
+- ma jawny export gate packet z wynikiem BLOCKED/OPEN i lista blockerow,
 - reviewer dostaje audit trail zamiast czarnej skrzynki,
-- handoff do packa export jest czytelny w PR.
+- curation_report.md nie oglasza gotowosci exportu, jesli gate jest zablokowany,
+- handoff do packa export jest czytelny i warunkowany w PR.
 
 Pozostale warunki do domkniecia przed realnym apply:
 
-- 14 auto-promotowanych disputed candidates (triage=likely_confirmed) wymaga ludzkiego potwierdzenia,
-- 9 deferred candidates (7 ocr_needed + 2 manual_review) wymaga rozstrzygniecia.
+- 14 auto-promotowanych disputed candidates (triage=likely_confirmed) wymaga ludzkiego potwierdzenia (pending_human_approval w review queue),
+- 9 deferred candidates (7 ocr_needed + 2 manual_review) wymaga rozstrzygniecia,
+- export gate pozostaje BLOCKED dopoki powyzsze nie zostana rozstrzygniete.
 
 ## Execution surface
 
-Skrypt `scripts/curate_candidates.py` oferuje 7 komend:
+Skrypt `scripts/curate_candidates.py` oferuje 9 komend:
 
 ### `review` — przeglad wejscia z verification
 
@@ -222,6 +245,44 @@ Stosuje automatyczne decyzje kuracyjne z wykorzystaniem triage z verification:
 - `rejected` lub niewazny MPN -> `reject` z rationale,
 - zapisuje `curation_decisions.jsonl` z pelnym audit trail (candidate_id, decision, rationale, verification_status, triage_category, provenance, decided_at).
 
+### `review-queue` — jawniej kolejka review
+
+```bash
+python3 PROJEKTY/13_baza_czesci_recykling/scripts/curate_candidates.py review-queue
+```
+
+Generuje `curation_review_queue.jsonl` z jawnym podzialem na kategorie review:
+- `auto_approved` — confirmed z verification, bez dodatkowego review,
+- `pending_human_approval` — auto-promotowane z disputed (likely_confirmed), wymagaja ludzkiego potwierdzenia,
+- `deferred` — ocr_needed lub manual_review, nie wchodza do exportu,
+- `auto_rejected` — rejected z verification lub niewazny MPN.
+
+Kazdy wpis ma: candidate_id, part_number, part_name, device, curation_decision, verification_status, triage_category, review_status, review_note, reviewed_by (None dopoki nie zostawiony), reviewed_at (None dopoki nie zostawiony), queue_added_at.
+
+Aby zatwierdzic pending_human_approval: ustaw `reviewed_by` i `reviewed_at` w `curation_review_queue.jsonl`, potem re-run `export-gate`.
+
+### `export-gate` — bramka eksportowa
+
+```bash
+python3 PROJEKTY/13_baza_czesci_recykling/scripts/curate_candidates.py export-gate
+```
+
+Sprawdza, czy eksport jest dozwolony. Generuje `export_gate_packet.json` z:
+- `gate_result`: OPEN lub BLOCKED,
+- `gate_checks`: lista sprawdzonych warunkow z wynikiem PASS/FAIL i szczegolami,
+- `blockers`: lista blockerow, jesli gate jest BLOCKED,
+- `warnings`: lista ostrzezen (np. deferred candidates),
+- `queue_summary`: counts z review queue,
+- `next_steps`: co zrobic, zeby odblokowac gate.
+
+Gate jest OPEN, gdy:
+- brak pending_human_approval,
+- brak nie rozstrzygnietych deferrals,
+- walidacja katalogu przechodzi,
+- co najmniej jeden human review approval recorded.
+
+Gate jest BLOCKED, gdy ktorykolwiek z powyzszych nie jest spelniony.
+
 ### `apply` — zapis do kanonicznego katalogu
 
 ```bash
@@ -261,4 +322,4 @@ Generuje `curation_report.md` z counts, najwazniejszymi przypadkami, provenance 
 python3 PROJEKTY/13_baza_czesci_recykling/scripts/curate_candidates.py dry-run --fallback-test-db
 ```
 
-Uruchamia align + decide + validate + report bez modyfikacji kanonicznego katalogu. Sluzy do smoke-testu pipeline'u przed realnym runem.
+Uruchamia align + decide + review-queue + export-gate + validate + report bez modyfikacji kanonicznego katalogu. Sluzy do smoke-testu pipeline'u przed realnym runem.

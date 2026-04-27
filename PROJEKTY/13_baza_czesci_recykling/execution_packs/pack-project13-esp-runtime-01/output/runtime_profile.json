@@ -1,0 +1,22 @@
+{
+  "schema_version": "v1",
+  "board_id": "recovered-esp-devkitc-v4-01",
+  "board_variant": "ESP32-WROOM-32D",
+  "operating_voltage": "3.3V",
+  "flash_size": "4MB",
+  "flash_method": "USB-CDC (onboard CP2102)",
+  "pin_map": {
+    "available_GPIO2": "2",
+    "available_GPIO4": "4",
+    "available_GPIO5": "5",
+    "available_GPIO13": "13",
+    "available_GPIO14": "14"
+  },
+  "wifi": true,
+  "bluetooth_le": true,
+  "damaged_pins": "brak uszkodzonych",
+  "dry_run": true,
+  "simulated": true,
+  "generated_at": "2026-04-27T14:59:55+00:00",
+  "note": "To jest stub wygenerowany przez simulated precheck. Nie jest runtime profilem gotowym do flashowania."
+}

@@ -216,114 +216,187 @@ export async function handleFinalDatasheetRag(env, message, session, deviceModel
 }
 
 export async function handleFinalDatasheetRagFinal(env, message, session, userQuestion, ctx = null) {
-  const sessionData = session.active_device_name.split("|");
-  const partQuery = sessionData[0] || "Nieznana część";
-  const deviceModel = sessionData[1] || "Nieznany model";
-  const contentType = sessionData[2] || null;
-  const sourceInfo = sessionData.slice(3).join("|") || null;
+ const sessionData = session.active_device_name.split("|");
+ const partQuery = sessionData[0] || "Nieznana część";
+ const deviceModel = sessionData[1] || "Nieznany model";
+ const contentType = sessionData[2] || null;
+ const sourceInfo = sessionData.slice(3).join("|") || null;
 
-  await sendTelegramReply(env, message, `🔎 Analizuję datasheet pod kątem: _"${userQuestion}"_...`);
+ // ── Anti-Prompt-Injection: sanitize user question ──
+ const { sanitizeUserInput, extractAndAnalyzePdf, buildPdfHiddenContentWarning, buildAntiInjectionSystemPrefix, getGenericRejectionMessage, persistAuditToDb } = await import("./input_sanitizer.js");
 
-  let aiContext = "";
-  let finalPdfUrl = null;
+ const sanitized = sanitizeUserInput(userQuestion || "", {
+ chat_id: message?.chat_id,
+ user_id: message?.user_id,
+ message_id: message?.message_id,
+ env,
+ });
 
-  if (contentType === "PDF" && sourceInfo) {
-    const base64 = await fetchTelegramFileAsBase64(env, session.active_device_id);
-    if (!base64) {
-      const fallback = await findAndDownloadDatasheetPdf(partQuery);
-      if (fallback.base64) {
-        const visionResp = await callProviderWithFallback(env, buildPromptPayload(
-          "Jesteś inżynierem elektronikiem. Analizujesz datasheet PDF. Odpowiedz na pytanie użytkownika na podstawie tego dokumentu. Podaj konkretne informacje z dokumentu.",
-          `Pytanie: ${userQuestion}\n\nNazwa części: ${partQuery}\nModel: ${deviceModel}`,
-          env,
-          { media: [{ data: fallback.base64, mime_type: "application/pdf" }], maxTokens: 2000 }
-        ));
-        aiContext = visionResp.text;
-        finalPdfUrl = fallback.url;
-      }
-    } else {
-      const visionResp = await callProviderWithFallback(env, buildPromptPayload(
-        "Jesteś inżynierem elektronikiem. Analizujesz datasheet PDF. Odpowiedz na pytanie użytkownika na podstawie tego dokumentu. Podaj konkretne informacje z dokumentu.",
-        `Pytanie: ${userQuestion}\n\nNazwa części: ${partQuery}\nModel: ${deviceModel}`,
-        env,
-        { media: [{ data: base64, mime_type: "application/pdf" }], maxTokens: 2000 }
-      ));
-      aiContext = visionResp.text;
-      finalPdfUrl = sourceInfo;
-    }
-  } else if (contentType === "URL" && sourceInfo) {
-    const base64 = await downloadPdfAsBase64(sourceInfo);
-    if (base64) {
-      const visionResp = await callProviderWithFallback(env, buildPromptPayload(
-        "Jesteś inżynierem elektronikiem. Analizujesz stronę z dokumentacją. Odpowiedz na pytanie użytkownika na podstawie informacji z tej strony.",
-        `Pytanie: ${userQuestion}\n\nNazwa części: ${partQuery}\nModel: ${deviceModel}`,
-        env,
-        { media: [{ data: base64, mime_type: "application/pdf" }], maxTokens: 2000 }
-      ));
-      aiContext = visionResp.text;
-      finalPdfUrl = sourceInfo;
-    } else {
-      const webSearchResult = await searchDatasheetUrl(`${partQuery} ${deviceModel}`);
-      if (webSearchResult) {
-        aiContext = `Nie udało się pobrać PDF z ${sourceInfo}.\n\nZnalazłem jednak stronę producenta: ${webSearchResult.url}\n\nNa podstawie wyszukiwania mogę powiedzieć, że \`${partQuery}\` to popularny układ. Szczegółowe informacje znajdziesz bezpośrednio na stronie producenta.`;
-        finalPdfUrl = webSearchResult.url;
-      } else {
-        aiContext = `Nie udało się pobrać dokumentacji dla \`${partQuery}\` (${deviceModel}). Spróbuj przesłać PDF bezpośrednio.`;
-      }
-    }
-  } else {
-    const webSearchResult = await searchDatasheetUrl(`${partQuery} ${deviceModel}`);
-    if (webSearchResult) {
-      const base64 = await downloadPdfAsBase64(webSearchResult.url);
-      if (base64) {
-        const visionResp = await callProviderWithFallback(env, buildPromptPayload(
-          "Jesteś inżynierem elektronikiem. Odpowiedz na pytanie użytkownika na podstawie datasheet.",
-          `Pytanie: ${userQuestion}\n\nNazwa części: ${partQuery}\nModel: ${deviceModel}`,
-          env,
-          { media: [{ data: base64, mime_type: "application/pdf" }], maxTokens: 2000 }
-        ));
-        aiContext = visionResp.text;
-        finalPdfUrl = webSearchResult.url;
-      } else {
-        aiContext = `Znalazłem stronę producenta dla \`${partQuery}\`: ${webSearchResult.url}\n\nNie udało mi się pobrać PDF automatycznie, ale możesz otworzyć stronę ręcznie.`;
-        finalPdfUrl = webSearchResult.url;
-      }
-    } else {
-      aiContext = `Nie znalazłem automatycznie datasheet dla \`${partQuery}\` (${deviceModel}). Spróbuj przesłać PDF bezpośrednio lub podaj inną nazwę/model układu.`;
-    }
-  }
+ if (sanitized.wasBlocked) {
+ await closeUserSession(env, message.chat_id, message.user_id, "datasheet_wait_question");
+ return {
+ reply_text: getGenericRejectionMessage(),
+ reply_markup: undefined,
+ };
+ }
 
-  await recordRecycledSubmission(env, {
-    chat_id: message?.chat_id,
-    user_id: message?.user_id,
-    message_id: message?.message_id,
-    lookup_kind: "datasheet_rag",
-    query_text: deviceModel,
-    matched_part_name: partQuery,
-    matched_part_number: partQuery,
-    status: "approved",
-    raw_payload_json: {
-      question: userQuestion,
-      answer: aiContext,
-      device: deviceModel,
-      pdf_url: finalPdfUrl,
-      source: sourceInfo
-    }
-  });
+ await sendTelegramReply(env, message, `🔎 Analizuję datasheet pod kątem: _"${sanitized.safeText}"_...`);
 
-  await closeUserSession(env, message.chat_id, message.user_id, "datasheet_wait_question");
+ let aiContext = "";
+ let finalPdfUrl = null;
+ let pdfSecurityWarning = "";
 
-  const reply_markup = finalPdfUrl ? {
-    inline_keyboard: [
-      [{ text: "🌐 Otwórz PDF/Datasheet", url: finalPdfUrl }],
-      [{ text: "🔄 Analizuj dalej", callback_data: `datasheet_continue:${partQuery}` }]
-    ]
-  } : undefined;
+ if (contentType === "PDF" && sourceInfo) {
+ const base64 = await fetchTelegramFileAsBase64(env, session.active_device_id);
+ if (!base64) {
+ const fallback = await findAndDownloadDatasheetPdf(partQuery);
+ if (fallback.base64) {
+ // ── R3: PDF hidden content analysis ──
+ const pdfAnalysis = extractAndAnalyzePdf(fallback.base64);
+ pdfSecurityWarning = buildPdfHiddenContentWarning(pdfAnalysis);
+ if (pdfAnalysis.isSuspicious) {
+ try { await persistAuditToDb(env, { chat_id: message?.chat_id, user_id: message?.user_id, attack_type: "pdf_hidden_content", severity: "high", details: { flags: pdfAnalysis.hiddenContentFlags, warnings: pdfAnalysis.warnings }, action_taken: "flagged_passed" }); } catch { /* non-blocking */ }
+ }
 
-  return {
-    reply_text: `✅ *Analiza datasheet*\n\n📋 *Część:* \`${partQuery}\`\n📦 *Model:* \`${deviceModel}\`\n\n${aiContext}`,
-    reply_markup
-  };
+ const datasheetSystemPrompt = [
+ "Jesteś inżynierem elektronikiem. Analizujesz datasheet PDF. Odpowiedz na pytanie użytkownika na podstawie tego dokumentu. Podaj konkretne informacje z dokumentu.",
+ buildAntiInjectionSystemPrefix(),
+ pdfSecurityWarning,
+ ].join("\n");
+
+ const visionResp = await callProviderWithFallback(env, buildPromptPayload(
+ datasheetSystemPrompt,
+ `Pytanie: ${sanitized.safeText}\n\nNazwa części: ${partQuery}\nModel: ${deviceModel}`,
+ env,
+ { media: [{ data: fallback.base64, mime_type: "application/pdf" }], maxTokens: 2000 }
+ ));
+ aiContext = visionResp.text;
+ finalPdfUrl = fallback.url;
+ }
+ } else {
+ // ── R3: PDF hidden content analysis ──
+ const pdfAnalysis = extractAndAnalyzePdf(base64);
+ pdfSecurityWarning = buildPdfHiddenContentWarning(pdfAnalysis);
+ if (pdfAnalysis.isSuspicious) {
+ try { await persistAuditToDb(env, { chat_id: message?.chat_id, user_id: message?.user_id, attack_type: "pdf_hidden_content", severity: "high", details: { flags: pdfAnalysis.hiddenContentFlags, warnings: pdfAnalysis.warnings }, action_taken: "flagged_passed" }); } catch { /* non-blocking */ }
+ }
+
+ const datasheetSystemPrompt = [
+ "Jesteś inżynierem elektronikiem. Analizujesz datasheet PDF. Odpowiedz na pytanie użytkownika na podstawie tego dokumentu. Podaj konkretne informacje z dokumentu.",
+ buildAntiInjectionSystemPrefix(),
+ pdfSecurityWarning,
+ ].join("\n");
+
+ const visionResp = await callProviderWithFallback(env, buildPromptPayload(
+ datasheetSystemPrompt,
+ `Pytanie: ${sanitized.safeText}\n\nNazwa części: ${partQuery}\nModel: ${deviceModel}`,
+ env,
+ { media: [{ data: base64, mime_type: "application/pdf" }], maxTokens: 2000 }
+ ));
+ aiContext = visionResp.text;
+ finalPdfUrl = sourceInfo;
+ }
+ } else if (contentType === "URL" && sourceInfo) {
+ const base64 = await downloadPdfAsBase64(sourceInfo);
+ if (base64) {
+ // ── R3: PDF hidden content analysis ──
+ const pdfAnalysis = extractAndAnalyzePdf(base64);
+ pdfSecurityWarning = buildPdfHiddenContentWarning(pdfAnalysis);
+ if (pdfAnalysis.isSuspicious) {
+ try { await persistAuditToDb(env, { chat_id: message?.chat_id, user_id: message?.user_id, attack_type: "pdf_hidden_content", severity: "high", details: { flags: pdfAnalysis.hiddenContentFlags, warnings: pdfAnalysis.warnings }, action_taken: "flagged_passed" }); } catch { /* non-blocking */ }
+ }
+
+ const datasheetSystemPrompt = [
+ "Jesteś inżynierem elektronikiem. Analizujesz stronę z dokumentacją. Odpowiedz na pytanie użytkownika na podstawie informacji z tej strony.",
+ buildAntiInjectionSystemPrefix(),
+ pdfSecurityWarning,
+ ].join("\n");
+
+ const visionResp = await callProviderWithFallback(env, buildPromptPayload(
+ datasheetSystemPrompt,
+ `Pytanie: ${sanitized.safeText}\n\nNazwa części: ${partQuery}\nModel: ${deviceModel}`,
+ env,
+ { media: [{ data: base64, mime_type: "application/pdf" }], maxTokens: 2000 }
+ ));
+ aiContext = visionResp.text;
+ finalPdfUrl = sourceInfo;
+ } else {
+ const webSearchResult = await searchDatasheetUrl(`${partQuery} ${deviceModel}`);
+ if (webSearchResult) {
+ aiContext = `Nie udało się pobrać PDF z ${sourceInfo}.\n\nZnalazłem jednak stronę producenta: ${webSearchResult.url}\n\nNa podstawie wyszukiwania mogę powiedzieć, że \`${partQuery}\` to popularny układ. Szczegółowe informacje znajdziesz bezpośrednio na stronie producenta.`;
+ finalPdfUrl = webSearchResult.url;
+ } else {
+ aiContext = `Nie udało się pobrać dokumentacji dla \`${partQuery}\` (${deviceModel}). Spróbuj przesłać PDF bezpośrednio.`;
+ }
+ }
+ } else {
+ const webSearchResult = await searchDatasheetUrl(`${partQuery} ${deviceModel}`);
+ if (webSearchResult) {
+ const base64 = await downloadPdfAsBase64(webSearchResult.url);
+ if (base64) {
+ // ── R3: PDF hidden content analysis ──
+ const pdfAnalysis = extractAndAnalyzePdf(base64);
+ pdfSecurityWarning = buildPdfHiddenContentWarning(pdfAnalysis);
+ if (pdfAnalysis.isSuspicious) {
+ try { await persistAuditToDb(env, { chat_id: message?.chat_id, user_id: message?.user_id, attack_type: "pdf_hidden_content", severity: "high", details: { flags: pdfAnalysis.hiddenContentFlags, warnings: pdfAnalysis.warnings }, action_taken: "flagged_passed" }); } catch { /* non-blocking */ }
+ }
+
+ const datasheetSystemPrompt = [
+ "Jesteś inżynierem elektronikiem. Odpowiedz na pytanie użytkownika na podstawie datasheet.",
+ buildAntiInjectionSystemPrefix(),
+ pdfSecurityWarning,
+ ].join("\n");
+
+ const visionResp = await callProviderWithFallback(env, buildPromptPayload(
+ datasheetSystemPrompt,
+ `Pytanie: ${sanitized.safeText}\n\nNazwa części: ${partQuery}\nModel: ${deviceModel}`,
+ env,
+ { media: [{ data: base64, mime_type: "application/pdf" }], maxTokens: 2000 }
+ ));
+ aiContext = visionResp.text;
+ finalPdfUrl = webSearchResult.url;
+ } else {
+ aiContext = `Znalazłem stronę producenta dla \`${partQuery}\`: ${webSearchResult.url}\n\nNie udało mi się pobrać PDF automatycznie, ale możesz otworzyć stronę ręcznie.`;
+ finalPdfUrl = webSearchResult.url;
+ }
+ } else {
+ aiContext = `Nie znalazłem automatycznie datasheet dla \`${partQuery}\` (${deviceModel}). Spróbuj przesłać PDF bezpośrednio lub podaj inną nazwę/model układu.`;
+ }
+ }
+
+ await recordRecycledSubmission(env, {
+ chat_id: message?.chat_id,
+ user_id: message?.user_id,
+ message_id: message?.message_id,
+ lookup_kind: "datasheet_rag",
+ query_text: deviceModel,
+ matched_part_name: partQuery,
+ matched_part_number: partQuery,
+ ingest_source: "datasheet_bot",
+ status: "approved",
+ raw_payload_json: {
+ question: sanitized.safeText,
+ answer: aiContext,
+ device: deviceModel,
+ pdf_url: finalPdfUrl,
+ source: sourceInfo,
+ pdf_security_flags: pdfSecurityWarning ? "warning_added" : "clean",
+ }
+ });
+
+ await closeUserSession(env, message.chat_id, message.user_id, "datasheet_wait_question");
+
+ const reply_markup = finalPdfUrl ? {
+ inline_keyboard: [
+ [{ text: "🌐 Otwórz PDF/Datasheet", url: finalPdfUrl }],
+ [{ text: "🔄 Analizuj dalej", callback_data: `datasheet_continue:${partQuery}` }]
+ ]
+ } : undefined;
+
+ return {
+ reply_text: `✅ *Analiza datasheet*\n\n📋 *Część:* \`${partQuery}\`\n📦 *Model:* \`${deviceModel}\`\n\n${aiContext}`,
+ reply_markup
+ };
 }
 
 export async function handleDatasheetContinue(env, message, partQuery) {

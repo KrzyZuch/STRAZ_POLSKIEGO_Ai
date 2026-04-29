@@ -48,6 +48,7 @@ runResistorVerification,
   readBatchScanPayload,
 } from "./telegram_ai.js";
 import { buildVerificationResultReply } from "./vision.js";
+import { sanitizeUserInput } from "./input_sanitizer.js";
 import { sanitizeTelegramReply, sendTelegramReply, getMainMenuKeyboard } from "./telegram_utils.js";
 
 function jsonResponse(payload, status = 200) {
@@ -379,7 +380,8 @@ function collectInboundMessages(payload) {
   for (const item of candidates) {
     if (!item) continue;
 
-    const text = item.text || item.caption; // Handle captions for photos
+    const rawText = item.text || item.caption; // Handle captions for photos
+ const text = rawText ? sanitizeUserInput(rawText) : null;
     const photo = item.photo; // Array of PhotoSize
     const document = item.document;
     const voice = item.voice;

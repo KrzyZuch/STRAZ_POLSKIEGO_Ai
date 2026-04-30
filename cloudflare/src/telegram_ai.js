@@ -2582,32 +2582,13 @@ await db.prepare(`CREATE INDEX IF NOT EXISTS idx_olx_xref_master_part ON olx_off
 await db.prepare(`CREATE INDEX IF NOT EXISTS idx_olx_xref_offer ON olx_offer_parts_xref(offer_id)`).run();
 await db.prepare(`CREATE INDEX IF NOT EXISTS idx_olx_scan_batches_status ON olx_scan_batches(status, started_at DESC)`).run();
 await db.prepare(`CREATE INDEX IF NOT EXISTS idx_olx_offer_photos_offer ON olx_offer_photos(offer_id, sort_order)`).run();
-=======
-  await db.prepare(
-    `CREATE INDEX IF NOT EXISTS idx_recycled_parts_part_name ON recycled_parts(part_name)`
-  ).run();
-  await db.prepare(
-    `CREATE INDEX IF NOT EXISTS idx_datasheets_part_number ON datasheets(normalized_part_number)`
-  ).run();
-  await db.prepare(
-    `CREATE INDEX IF NOT EXISTS idx_datasheets_status ON datasheets(analysis_status, updated_at DESC)`
-  ).run();
-  await db.prepare(
-    `CREATE INDEX IF NOT EXISTS idx_datasheets_category ON datasheets(category, species)`
-  ).run();
-  await db.prepare(
-    `CREATE INDEX IF NOT EXISTS idx_datasheets_pdf_hash ON datasheets(pdf_hash)`
-  ).run();
-  await db.prepare(
-    `CREATE INDEX IF NOT EXISTS idx_datasheets_master_part ON datasheets(master_part_id)`
-  ).run();
-  await db.prepare(
-    `CREATE INDEX IF NOT EXISTS idx_datasheets_manufacturer ON datasheets(manufacturer)`
-  ).run();
-  await db.prepare(
-    `CREATE INDEX IF NOT EXISTS idx_datasheets_mounting ON datasheets(mounting, package)`
-  ).run();
->>>>>>> 5c4d401 (feat: security hardening, market scouting automation, and canary phase closeout)
+await db.prepare(`CREATE INDEX IF NOT EXISTS idx_datasheets_part_number ON datasheets(normalized_part_number)`).run();
+await db.prepare(`CREATE INDEX IF NOT EXISTS idx_datasheets_status ON datasheets(analysis_status, updated_at DESC)`).run();
+await db.prepare(`CREATE INDEX IF NOT EXISTS idx_datasheets_category ON datasheets(category, species)`).run();
+await db.prepare(`CREATE INDEX IF NOT EXISTS idx_datasheets_pdf_hash ON datasheets(pdf_hash)`).run();
+await db.prepare(`CREATE INDEX IF NOT EXISTS idx_datasheets_master_part ON datasheets(master_part_id)`).run();
+await db.prepare(`CREATE INDEX IF NOT EXISTS idx_datasheets_manufacturer ON datasheets(manufacturer)`).run();
+await db.prepare(`CREATE INDEX IF NOT EXISTS idx_datasheets_mounting ON datasheets(mounting, package)`).run();
 }
 
 function formatDeviceName(device) {

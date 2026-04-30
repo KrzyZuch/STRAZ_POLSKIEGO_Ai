@@ -12,13 +12,68 @@ const PDF_SEARCH_SOURCES = [
   { name: "SparkFun", url: "https://www.sparkfun.com/search/results?term=", parse: "sparkfun" },
 ];
 
-async function searchDatasheetUrl(partName) {
-  const normalizedPart = partName.trim().replace(/\s+/g, "+");
+const PDF_FETCH_HEADERS = {
+  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+  "Accept": "application/pdf,application/octet-stream;q=0.9,*/*;q=0.8",
+  "Accept-Language": "en-US,en;q=0.9,pl;q=0.8",
+  "Accept-Encoding": "identity",
+};
+
+const KNOWN_DIRECT_DATASHEETS = {
+  NE555: "https://www.ti.com/lit/ds/symlink/ne555.pdf",
+  LM7805: "https://www.sparkfun.com/datasheets/Components/LM7805.pdf",
+  LM317: "https://www.ti.com/lit/ds/symlink/lm317.pdf",
+  ATMEGA328P: "https://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-7810-Automotive-Microcontrollers-ATmega328P_Datasheet.pdf",
+  ESP8266: "https://www.espressif.com/sites/default/files/documentation/0a-esp8266ex_datasheet_en.pdf",
+  ESP8266EX: "https://www.espressif.com/sites/default/files/documentation/0a-esp8266ex_datasheet_en.pdf",
+  ESP32: "https://www.espressif.com/sites/default/files/documentation/esp32_datasheet_en.pdf",
+  LM358: "https://www.ti.com/lit/ds/symlink/lm358.pdf",
+  LM393: "https://www.ti.com/lit/ds/symlink/lm393.pdf",
+  LM741: "https://www.ti.com/lit/ds/symlink/lm741.pdf",
+  OP07: "https://www.ti.com/lit/ds/symlink/op07.pdf",
+  TL431: "https://www.ti.com/lit/ds/symlink/tl431.pdf",
+  LM2596: "https://www.ti.com/lit/ds/symlink/lm2596.pdf",
+  NE5532: "https://www.ti.com/lit/ds/symlink/ne5532.pdf",
+  TL072: "https://www.ti.com/lit/ds/symlink/tl072.pdf",
+};
+
+function normalizePartKey(partName) {
+  return String(partName || "").trim().replace(/[-\s/]/g, "").toUpperCase();
+}
+
+function buildDirectPdfCandidates(partName) {
+  const key = normalizePartKey(partName);
+  const lower = key.toLowerCase();
+  const candidates = [];
+  if (KNOWN_DIRECT_DATASHEETS[key]) {
+    candidates.push({ url: KNOWN_DIRECT_DATASHEETS[key], source: "known-direct" });
+  }
+  if (key) {
+    candidates.push(
+      { url: `https://www.ti.com/lit/ds/symlink/${lower}.pdf`, source: "TI" },
+      { url: `https://www.st.com/resource/en/datasheet/${lower}.pdf`, source: "STMicroelectronics" },
+      { url: `https://www.onsemi.com/pub/Collateral/${key}-D.PDF`, source: "onsemi" },
+      { url: `https://www.nxp.com/docs/en/data-sheet/${key}.pdf`, source: "NXP" },
+    );
+  }
+  return candidates;
+}
+
+async function searchDatasheetUrl(partName, options = {}) {
+  if (options.tryDirect !== false) {
+    for (const candidate of buildDirectPdfCandidates(partName)) {
+      if (await canFetchPdf(candidate.url)) {
+        return candidate;
+      }
+    }
+  }
+
+  const normalizedPart = String(partName || "").trim().replace(/\s+/g, "+");
   for (const source of PDF_SEARCH_SOURCES) {
     try {
       const searchUrl = source.url + encodeURIComponent(normalizedPart);
       const resp = await fetch(searchUrl, {
-        headers: { "User-Agent": "Mozilla/5.0 (compatible; StrażPrzyszłościBot/1.0)" },
+        headers: PDF_FETCH_HEADERS,
         redirect: "follow",
       });
       if (resp.ok) {
@@ -32,14 +87,29 @@ async function searchDatasheetUrl(partName) {
       // continue to next source
     }
   }
-  return null;
+  return searchDuckDuckGoPdf(partName);
 }
 
 function extractPdfLink(html, sourceType, baseUrl) {
   if (!html) return null;
 
+  if (sourceType === "duckduckgo") {
+    const ddgMatches = html.matchAll(/uddg=([^"&]+)/gi);
+    for (const match of ddgMatches) {
+      try {
+        const url = decodeURIComponent(match[1]);
+        if (url.startsWith("http") && url.toLowerCase().includes(".pdf")) {
+          return url;
+        }
+      } catch {
+        // continue to regular href extraction
+      }
+    }
+  }
+
   const patterns = [
     /href="([^"]*\.pdf[^"]*)"/i,
+    /href='([^']*\.pdf[^']*)'/i,
     /data-datasheet="([^"]*\.pdf[^"]*)"/i,
     /src="([^"]*datasheet[^"]*\.pdf[^"]*)"/i,
     /a[^>]+href="([^"]*product[^"]*\.pdf[^"]*)"/i,
@@ -74,16 +144,59 @@ function extractPdfLink(html, sourceType, baseUrl) {
   return null;
 }
 
+async function searchDuckDuckGoPdf(partName) {
+  try {
+    const query = `${partName} datasheet filetype:pdf`;
+    const searchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
+    const resp = await fetch(searchUrl, {
+      headers: PDF_FETCH_HEADERS,
+      redirect: "follow",
+    });
+    if (!resp.ok) return null;
+    const html = await resp.text();
+    const pdfLink = extractPdfLink(html, "duckduckgo", resp.url);
+    return pdfLink ? { url: pdfLink, source: "DuckDuckGo" } : null;
+  } catch {
+    return null;
+  }
+}
+
+function isPdfResponse(contentType, uint8) {
+  const ct = String(contentType || "").toLowerCase();
+  if (uint8?.[0] === 0x25 && uint8?.[1] === 0x50 && uint8?.[2] === 0x44 && uint8?.[3] === 0x46) {
+    return true;
+  }
+  return ct.includes("pdf") || ct.includes("octet-stream");
+}
+
+async function canFetchPdf(pdfUrl) {
+  try {
+    const resp = await fetch(pdfUrl, {
+      method: "HEAD",
+      headers: PDF_FETCH_HEADERS,
+      redirect: "follow",
+    });
+    const ct = resp.headers.get("content-type");
+    return resp.ok && isPdfResponse(ct, null);
+  } catch {
+    return false;
+  }
+}
+
 async function downloadPdfAsBase64(pdfUrl) {
   try {
     const resp = await fetch(pdfUrl, {
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; StrażPrzyszłościBot/1.0)" },
+      headers: PDF_FETCH_HEADERS,
+      redirect: "follow",
     });
-    if (!resp.ok || !resp.headers.get("content-type")?.includes("pdf")) {
+    if (!resp.ok) {
       return null;
     }
     const buffer = await resp.arrayBuffer();
     const uint8 = new Uint8Array(buffer);
+    if (!isPdfResponse(resp.headers.get("content-type"), uint8) || uint8.byteLength < 100) {
+      return null;
+    }
     let binary = "";
     const chunkSize = 8192;
     for (let i = 0; i < uint8.length; i += chunkSize) {
@@ -97,7 +210,14 @@ async function downloadPdfAsBase64(pdfUrl) {
 }
 
 async function findAndDownloadDatasheetPdf(partName) {
-  const searchResult = await searchDatasheetUrl(partName);
+  for (const candidate of buildDirectPdfCandidates(partName)) {
+    const base64 = await downloadPdfAsBase64(candidate.url);
+    if (base64) {
+      return { url: candidate.url, base64, source: candidate.source };
+    }
+  }
+
+  const searchResult = await searchDatasheetUrl(partName, { tryDirect: false });
   if (!searchResult) return { url: null, base64: null, source: null };
 
   const base64 = await downloadPdfAsBase64(searchResult.url);
@@ -167,7 +287,6 @@ export async function handleDatasheetDownloadPdf(env, message, pdfUrl) {
   const base64 = await downloadPdfAsBase64(pdfUrl);
 
   if (base64) {
-    const searchResult = await findAndDownloadDatasheetPdf(pdfUrl);
     await upsertUserSession(env, message.chat_id, message.user_id, "datasheet_wait_model", "pdf_downloaded", `PDF z URL|${pdfUrl}|Pobrane`);
     return {
       reply_text: `✅ *PDF pobrany poprawnie!*\n\nTeraz wpisz pytanie na temat tego układu, a przeanalizuję dokumentację.`,

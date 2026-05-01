@@ -30,8 +30,8 @@ Specjalnie okrojona wersja protokołu **Secure Scuttlebutt (SSB)** pod niską pr
 
 ### 4. Meshtastic – Gotowe Moduły Sterowania i Telemetrii
 Najpopularniejsza platforma LoRa Mesh, oferująca gotowe funkcjonalności bez potrzeby pisania kodu od zera:
-- **[Remote Hardware Module](https://meshtastic.org/docs/configuration/modules/remote-hardware/):** Zdalne sterowanie pinami GPIO (np. pompy nawadniające w Projekcie 01/08).
-- **[Telemetry Module](https://meshtastic.org/docs/configuration/modules/telemetry/):** Automatyczne przesyłanie danych z czujników środowiskowych (Projekt 09).
+- **[Remote Hardware Module](https://meshtastic.org/docs/configuration/module/remote-hardware/):** Zdalne sterowanie pinami GPIO (np. pompy nawadniające w Projekcie 01/08).
+- **[Telemetry Module](https://meshtastic.org/docs/settings/moduleconfig/telemetry/):** Automatyczne przesyłanie danych z czujników środowiskowych (Projekt 09).
 - **Integracja Python:** Wykorzystanie [Meshtastic Python API](https://github.com/meshtastic/python) do zaawansowanej automatyzacji.
 
 ### 5. Łączność Hybrydowa i Bramki (Deadmesh & Disaster Radio)

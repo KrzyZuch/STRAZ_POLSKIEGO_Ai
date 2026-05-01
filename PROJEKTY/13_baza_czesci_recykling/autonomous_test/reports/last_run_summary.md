@@ -1,12 +1,12 @@
 # Project 13 Kaggle Run Summary
 
-- generated_at_utc: 2026-04-22T19:06:57.553657+00:00
+- generated_at_utc: 2026-05-01T08:50:04.603688+00:00
 - base_dir: /home/krzysiek/Dokumenty/INFO_GROUP/STRAZ_POLSKIEGO_Ai/PROJEKTY/13_baza_czesci_recykling/autonomous_test
 - pack_id: pack-project13-kaggle-enrichment-01
 - notebook_path: PROJEKTY/13_baza_czesci_recykling/youtube-databaseparts.ipynb
-- fork_owner: local-finalizer-smoke
-- branch_name: pack-project13-kaggle-enrichment-20260422-190657
-- run_ref: kaggle://project13/20260422T190657Z
+- fork_owner: unknown
+- branch_name: unknown
+- run_ref: unknown
 - processed_videos_count: 44
 - test_db_records_count: 82
 - inventree_records_count: 74
@@ -16,7 +16,7 @@
 ## Output Files
 
 - processed_videos: autonomous_test/processed_videos.json | exists=True | records=44 | size_bytes=660
-- test_db: autonomous_test/results/test_db.jsonl | exists=True | records=82 | size_bytes=40175
+- test_db: autonomous_test/results/test_db.jsonl | exists=True | records=82 | size_bytes=61073
 - inventree_import: autonomous_test/results/inventree_import.jsonl | exists=True | records=74 | size_bytes=25211
 - ecoeda_inventory: autonomous_test/results/ecoEDA_inventory.csv | exists=True | rows=74 | size_bytes=9375
 

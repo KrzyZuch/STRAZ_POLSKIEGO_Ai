@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-04-30T18:57:19Z",
-  "gate_result": "BLOCKED",
+  "generated_at": "2026-05-01T10:45:41Z",
+  "gate_result": "OPEN",
   "gate_checks": [
     {
       "check": "no_pending_approvals",
-      "pass": false,
-      "detail": "14 candidates pending human approval: M425R1GB4BB0-CWM0D, P28A41E, 230130, 2R2, 33 25V H33, K6100 1124 08.24, M51413ASP, MT1588AE 0311-ARS HF986, MINIJST E DC546134603 ST, JKB1, JKB2, INTEL 08 i7-628M, BD82HM55 SLGZR, 775i65G, RM 121, LDF-12V16W, V17081"
+      "pass": true,
+      "detail": "No candidates pending human approval"
     },
     {
       "check": "no_unresolved_deferrals",
@@ -19,34 +19,22 @@
     },
     {
       "check": "human_review_recorded",
-      "pass": false,
-      "detail": "No human review approval recorded for pending candidates"
+      "pass": true,
+      "detail": "5 human reviews recorded (approved)"
     }
   ],
-  "blockers": [
-    "14 accepted candidates still pending human approval: M425R1GB4BB0-CWM0D, P28A41E, 230130, 2R2, 33 25V H33, K6100 1124 08.24, M51413ASP, MT1588AE 0311-ARS HF986, MINIJST E DC546134603 ST, JKB1, JKB2, INTEL 08 i7-628M, BD82HM55 SLGZR, 775i65G, RM 121, LDF-12V16W, V17081",
-    "No human review approval recorded for pending candidates"
-  ],
+  "blockers": [],
   "warnings": [],
   "queue_summary": {
-    "accept": 26,
+    "accept": 17,
     "defer": 0,
-    "reject": 56,
-    "pending_human_approval": 14,
+    "reject": 65,
+    "pending_human_approval": 0,
     "auto_approved": 12
   },
   "status_resolution_ref": "/home/krzysiek/Dokumenty/INFO_GROUP/STRAZ_POLSKIEGO_Ai/PROJEKTY/13_baza_czesci_recykling/autonomous_test/reports/status_resolution_packet.json",
   "next_steps": [
-    "Resolve 2 blocker(s) before export:",
-    "  - 14 accepted candidates still pending human approval: M425R1GB4BB0-CWM0D, P28A41E, 230130, 2R2, 33 25V H33, K6100 1124 08.24, M51413ASP, MT1588AE 0311-ARS HF986, MINIJST E DC546134603 ST, JKB1, JKB2, INTEL 08 i7-628M, BD82HM55 SLGZR, 775i65G, RM 121, LDF-12V16W, V17081",
-    "  - No human review approval recorded for pending candidates",
-    "To approve pending candidates, use record-review command:",
-    "  python3 scripts/curate_candidates.py record-review --candidate-id candidate-0005 --decision approved --reviewed-by <REVIEWER_NAME>",
-    "  python3 scripts/curate_candidates.py record-review --candidate-id candidate-0006 --decision approved --reviewed-by <REVIEWER_NAME>",
-    "  python3 scripts/curate_candidates.py record-review --candidate-id candidate-0007 --decision approved --reviewed-by <REVIEWER_NAME>",
-    "  python3 scripts/curate_candidates.py record-review --candidate-id candidate-0015 --decision approved --reviewed-by <REVIEWER_NAME>",
-    "  python3 scripts/curate_candidates.py record-review --candidate-id candidate-0019 --decision approved --reviewed-by <REVIEWER_NAME>",
-    "  ... and 9 more pending candidates",
-    "Then re-run: python3 scripts/curate_candidates.py export-gate"
+    "Export gate is OPEN. Run: python3 scripts/build_catalog_artifacts.py export-all",
+    "Then validate: python3 scripts/build_catalog_artifacts.py validate"
   ]
 }

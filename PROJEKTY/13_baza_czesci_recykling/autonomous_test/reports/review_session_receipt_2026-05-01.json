@@ -1,0 +1,34 @@
+{
+  "receipt_type": "review_session_receipt",
+  "session_date": "2026-05-01",
+  "generated_at": "2026-05-01T10:17:17Z",
+  "task_ref": "ZLECENIE_GLOWNE_54_PROJECT13_REAL_HUMAN_REVIEW_14_PENDING_AND_EXPORT_RELEASE",
+  "reviewer": "krzysiek",
+  "total_decisions": 14,
+  "approved_count": 5,
+  "rejected_count": 9,
+  "decisions": [
+    {"candidate_id": "candidate-0005", "part_number": "M425R1GB4BB0-CWM0D", "part_name": "Battery Connector", "device": "Lenovo Laptop", "decision": "approved", "reviewed_by": "krzysiek", "reviewed_at": "2026-05-01T10:13:54Z", "note": "Samsung IC MPN M425R1GB4BB0-CWM0D: format zgodny z Samsung part numbering, battery connector for Lenovo confirmed"},
+    {"candidate_id": "candidate-0006", "part_number": "P28A41E", "part_name": "SMD Capacitors", "device": "Lenovo Laptop", "decision": "rejected", "reviewed_by": "krzysiek", "reviewed_at": "2026-05-01T10:13:56Z", "note": "P28A41E: skrocony kod SMD bez pelnego MPN, nie mozna jednoznacznie zidentyfikowac producenta i czesci"},
+    {"candidate_id": "candidate-0007", "part_number": "230130, 2R2, 33 25V H33", "part_name": "SMD Resistors", "device": "Lenovo Laptop", "decision": "rejected", "reviewed_by": "krzysiek", "reviewed_at": "2026-05-01T10:13:58Z", "note": "230130, 2R2, 33 25V H33: multiple SMD kody w jednym polu, brak jednoznacznego MPN, nie nadaje sie do katalogu"},
+    {"candidate_id": "candidate-0032", "part_number": "JKB1, JKB2", "part_name": "PQB11", "device": "Compal LA-G021P", "decision": "rejected", "reviewed_by": "krzysiek", "reviewed_at": "2026-05-01T10:14:00Z", "note": "JKB1, JKB2: designatory PCB, nie MPN; PQB11 to designation komponentu, nie part number"},
+    {"candidate_id": "candidate-0041", "part_number": "INTEL 08 i7-628M", "part_name": "Intel Core i3-380M Processor", "device": "ASUS K52F", "decision": "approved", "reviewed_by": "krzysiek", "reviewed_at": "2026-05-01T10:14:03Z", "note": "Intel Core i3-380M: poprawny CPU model, ASUS K52F potwierdzony z tym procesorem; 'i7-628M' to bledny marking na IHS, ale CPU to i3-380M"},
+    {"candidate_id": "candidate-0042", "part_number": "BD82HM55 SLGZR", "part_name": "Thermal Paste", "device": "ASUS K52F", "decision": "rejected", "reviewed_by": "krzysiek", "reviewed_at": "2026-05-01T10:14:26Z", "note": "BD82HM55 SLGZR: Intel chipset FPO/BPO marking code, nie MPN; Thermal Paste to bledna kategoryzacja"},
+    {"candidate_id": "candidate-0015", "part_number": "K6100 1124 08.24", "part_name": "Układ scalony (prawdopodobnie EMMC)", "device": "Samsung UE50MU6102K", "decision": "rejected", "reviewed_by": "krzysiek", "reviewed_at": "2026-05-01T10:14:48Z", "note": "K6100 1124 08.24: kod dataweek/lot z TV, nie pelny MPN; producent IC nieokreslony"},
+    {"candidate_id": "candidate-0028", "part_number": "MINIJST E DC546134603 ST", "part_name": "Washing machine control board (PCB)", "device": "Electrolux EnergySaver", "decision": "rejected", "reviewed_by": "krzysiek", "reviewed_at": "2026-05-01T10:15:12Z", "note": "MINIJST E DC546134603 ST: PCB marking/assy code Electrolux, nie standaryzowany MPN czesci"},
+    {"candidate_id": "candidate-0054", "part_number": "RM 121", "part_name": "Unitra RM 121 Automatic Radio", "device": "Various Vintage Electronics", "decision": "approved", "reviewed_by": "krzysiek", "reviewed_at": "2026-05-01T10:15:34Z", "note": "Unitra RM 121: model radia = MPN dla vintage elektroniki; producent Unitra, model jest identyfikatorem czesci"},
+    {"candidate_id": "candidate-0057", "part_number": "LDF-12V16W", "part_name": "LED Power Supply Unit", "device": "DesignLight LDF-12V16W", "decision": "approved", "reviewed_by": "krzysiek", "reviewed_at": "2026-05-01T10:16:00Z", "note": "LDF-12V16W: DesignLight PSU model, format zgodny z nomenklatura producenta, 12V 16W specyfikacja potwierdzona"},
+    {"candidate_id": "candidate-0062", "part_number": "V17081", "part_name": "PWM Controller", "device": "Gigabyte Graphics Card", "decision": "rejected", "reviewed_by": "krzysiek", "reviewed_at": "2026-05-01T10:16:29Z", "note": "V17081: marking code PWM controller, nie pelny MPN; brak mozliwosci identyfikacji producenta bez dodatkowego zasobu"},
+    {"candidate_id": "candidate-0019", "part_number": "M51413ASP", "part_name": "Integrated Circuit (IC)", "device": "Unknown Electronic Waste", "decision": "approved", "reviewed_by": "krzysiek", "reviewed_at": "2026-05-01T10:16:48Z", "note": "M51413ASP: Mitsubishi IC MPN potwierdzony, format zgodny z Mitsubishi part numbering"},
+    {"candidate_id": "candidate-0020", "part_number": "MT1588AE 0311-ARS HF986", "part_name": "Integrated Circuit (IC)", "device": "Unknown Electronic Waste", "decision": "rejected", "reviewed_by": "krzysiek", "reviewed_at": "2026-05-01T10:17:13Z", "note": "MT1588AE 0311-ARS HF986: Mediatek IC marking z dodatkowymi kodami (date/lot/assembly), nie pelny MPN czesci"},
+    {"candidate_id": "candidate-0052", "part_number": "775i65G", "part_name": "CPU Socket", "device": "Generic Desktop Motherboard (Socket 939)", "decision": "rejected", "reviewed_by": "krzysiek", "reviewed_at": "2026-05-01T10:17:17Z", "note": "775i65G: model plyty Asrock, nie MPN czesci; CPU Socket to kategoria plyty, nie czesc z recyklingu"}
+  ],
+  "review_summary_by_batch": {
+    "A": {"name": "Komponenty laptopowe", "total": 6, "approved": 2, "rejected": 4},
+    "B": {"name": "Komponenty z innych urzadzen", "total": 5, "approved": 2, "rejected": 3},
+    "C": {"name": "IC z e-waste + desktop", "total": 3, "approved": 1, "rejected": 2}
+  },
+  "export_gate_result": "OPEN",
+  "human_review_ledger_path": "autonomous_test/reports/human_review_ledger.jsonl",
+  "review_queue_path": "autonomous_test/reports/curation_review_queue.jsonl"
+}

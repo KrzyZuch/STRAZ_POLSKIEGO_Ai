@@ -1,0 +1,15 @@
+{
+  "task": "ZADANIE_52",
+  "timestamp": "2026-04-30T23:42:24.652144+00:00",
+  "preflight_ok": true,
+  "warmup_status": 200,
+  "warmup_ok": true,
+  "smoke_status": 200,
+  "smoke_is_json": true,
+  "smoke_offer_count": 6,
+  "smoke_total_available": 134,
+  "smoke_error": null,
+  "smoke_snippet": null,
+  "result": "PASS",
+  "blocker_reason": null
+}

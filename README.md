@@ -28,8 +28,8 @@ Aby realnie odpowiedzieć na najpilniejsze problemy gospodarcze i społeczne, na
    *   *Inspiracje:* [Laserowy Recykling Paneli PV](PROJEKTY/05_recykling_pv_laserem.md).
 4. **Optymalizacja zużycia zasobów strategicznych:** Racjonalne, poparte zaawansowaną analizą danych, zarządzanie wodą, surowcami i ziemią, eliminujące gospodarkę rabunkową.
    *   *Inspiracje:* [Laserowy Recykling Paneli PV](PROJEKTY/05_recykling_pv_laserem.md), [Upcykling LED TV](PROJEKTY/04_lampa_z_recyklingu_tv.md), [Smartfony jako Sterowniki](PROJEKTY/06_smartfony_jako_sterowniki.md), [Autonomiczne PCB ze śmieci](PROJEKTY/12_autonomiczne_pcb_ze_smieci.md).
-5. **Logistyka i transport:** Wykorzystanie AI do inteligentnego zarządzania łańcuchami dostaw, trasami przesyłowymi i komunikacją zbiorową w celu minimalizacji czasu, kosztów i śladu węglowego.
-   *   *Inspiracje:* [Smartfony jako Sterowniki Edge Computing](PROJEKTY/06_smartfony_jako_sterowniki.md), [Autonomiczne PCB ze śmieci](PROJEKTY/12_autonomiczne_pcb_ze_smieci.md), [Analiza Social Media dla Recyklingu](PROJEKTY/15_analiza_social_media_recykling.md).
+5. **Logistyka i transport:** Wykorzystanie AI do inteligentnego zarządzania łańcuchami dostaw. Wdrażamy system rekomendacji do nawigacji, który sugeruje odbiór potrzebnych przedmiotów na trasie (w wyznaczonym promieniu odstępstwa). Darmowa pomoc w transporcie odblokowuje bonusy w aplikacji, jednocześnie drastycznie oszczędzając paliwo dzięki wykorzystaniu tras, które i tak są realizowane.
+   *   *Inspiracje:* [Automatyzacja Transportu i Logistyki](PROJEKTY/18_automatyzacja_transportu_i_logistyki.md), [Smartfony jako Sterowniki Edge Computing](PROJEKTY/06_smartfony_jako_sterowniki.md), [Analiza Social Media dla Recyklingu](PROJEKTY/15_analiza_social_media_recykling.md).
 6. **Finanse (Fundusze):** Pozyskiwanie środków strategicznych, inteligentny wybór programów grantowych i inwestycji dla nowo powstających projektów.
 7. **Planowanie Przestrzenne i Rozwój:** Wykorzystanie danych geoprzestrzennych do optymalnego lokowania automatyzacji.
    *   *Inspiracje:* [Geoportal i Google Maps dla Potencjału Rozwoju](PROJEKTY/16_geoportal_potencjal_rozwoju.md).
@@ -129,7 +129,7 @@ W celu krystalizacji naszych idei, gromadzimy przykłady technologii i rozwiąza
 *   **[14. Autonomiczne Projektowanie 3D i CAD (MCP)](PROJEKTY/14_autonomiczne_projektowanie_3d_cad.md)** – Kolejny łańcuch automatyzacji R+D: wykorzystanie AI oraz protokołu MCP do iteracyjnego projektowania brył 3D we FreeCAD i docelowej generacji G-code.
 *   **[15. Analiza Social Media dla Recyklingu](PROJEKTY/15_analiza_social_media_recykling.md)** – AI skanujące polskie grupy i portale aukcyjne w celu łączenia darmowych ofert z zapotrzebowaniem użytkowników.
 *   **[16. Geoportal i Potencjał Rozwoju](PROJEKTY/16_geoportal_potencjal_rozwoju.md)** – Analiza danych geoprzestrzennych dla nowoczesnego planowania automatyzacji AI.
-*   **[17. Autonomiczne Przetwarzanie Elektrośmieci na Hardware Automatyzacji](PROJEKTY/17_autonomiczne_przetwarzanie_elektrosmieci_na_hardware.md)** – Zamiana elektrośmieci w sterowniki, węzły edge, urządzenia pomiarowe i sprzęt obliczeniowy potrzebny do dalszych automatyzacji.
+*   **[18. Automatyzacja Transportu i Logistyki](PROJEKTY/18_automatyzacja_transportu_i_logistyki.md)** – Inteligentna nawigacja sugerująca odbiór przedmiotów na trasie oraz system łączenia kierowców z zapotrzebowaniem społeczności (BlablaCar dla rzeczy).
 
 
 **Najważniejsze w tworzeniu NARODOWYCH SIŁ INTELEKTUALNYCH nie są pieniądze na start, lecz bezcenny, realny wysiłek intelektualny.**

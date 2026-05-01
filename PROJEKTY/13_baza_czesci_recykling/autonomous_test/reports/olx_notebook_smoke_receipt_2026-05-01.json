@@ -1,0 +1,32 @@
+{
+  "task": "ZADANIE_52",
+  "timestamp": "2026-05-01T01:30:00+02:00",
+  "preflight_ok": true,
+  "warmup_status": 200,
+  "warmup_ok": true,
+  "smoke_status": 200,
+  "smoke_is_json": true,
+  "smoke_offer_count": 6,
+  "smoke_total_available": 134,
+  "smoke_error": null,
+  "smoke_snippet": null,
+  "sql_export_validated": true,
+  "sql_insert_count": 35,
+  "sql_insert_ok": 35,
+  "sql_insert_fail": 0,
+  "sql_secrets_found": false,
+  "schema_alignment": {
+    "olx_offers": "ALIGNED",
+    "olx_offer_parts_xref": "ALIGNED",
+    "olx_scan_batches": "ALIGNED"
+  },
+  "fixes_applied": [
+    "olx_scan_batches: added notebook_run_url column (was missing, present in D1 migration 0015)",
+    "olx_offer_parts_xref: renamed part_number->matched_part_name, confidence->match_confidence, default 'manual'->'keyword' (aligned with D1)",
+    "olx_offer_parts_xref: created_at changed from DEFAULT CURRENT_TIMESTAMP to NOT NULL",
+    "sql_literal: fixed newline escaping (chr(10)->space, chr(13)->strip) to prevent broken INSERT statements",
+    "idx_xref_part index: part_number replaced with matched_part_name"
+  ],
+  "result": "PASS",
+  "blocker_reason": null
+}

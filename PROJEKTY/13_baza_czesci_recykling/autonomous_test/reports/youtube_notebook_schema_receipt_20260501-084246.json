@@ -1,0 +1,80 @@
+{
+  "schema_check": "PASS",
+  "generated_at": "2026-05-01T08:42:46Z",
+  "task": "ZADANIE_53",
+  "notebook": "PROJEKTY/13_baza_czesci_recykling/youtube-databaseparts.ipynb",
+  "checks": {
+    "ast_parse": "PASS",
+    "verification_field_present": true,
+    "verification_raw_field_present": true,
+    "verification_is_dict_not_raw_string": true,
+    "datasheet_url_is_pdf_or_search_fallback": true,
+    "no_notebook_outputs": true,
+    "no_uncommitted_changes": true,
+    "jsonl_round_trip": "PASS",
+    "no_secrets_in_fixture": true,
+    "fields_match_verify_candidates_py": true
+  },
+  "fixture_record": {
+    "timestamp_db": "2026-05-01 10:00:00",
+    "device": "Test Device Fixture",
+    "part_name": "Test Capacitor",
+    "part_number": "NE555",
+    "footprint": "DIP-8",
+    "datasheet_url": "https://www.ti.com/lit/ds/symlink/ne555.pdf",
+    "pinout": {
+      "summary": "Pin 1: GND, Pin 8: VCC, Pin 3: Output"
+    },
+    "confidence": 0.9,
+    "yt_link": "https://www.youtube.com/watch?v=testvid&t=42s",
+    "source_video": "https://www.youtube.com/watch?v=testvid",
+    "verification": {
+      "verified": true,
+      "observed_text": "NE555",
+      "footprint": "DIP-8",
+      "pinout": {
+        "summary": "Pin 1: GND, Pin 8: VCC, Pin 3: Output"
+      },
+      "datasheet_search_query": "NE555 datasheet pdf",
+      "category": "IC Timer"
+    },
+    "verification_raw": {
+      "verified": true,
+      "observed_text": "NE555",
+      "footprint": "DIP-8",
+      "pinout": {
+        "summary": "Pin 1: GND, Pin 8: VCC, Pin 3: Output"
+      },
+      "datasheet_search_query": "NE555 datasheet pdf",
+      "category": "IC Timer"
+    },
+    "inventree_params": {
+      "Voltage": "5V-15V",
+      "Package": "DIP-8",
+      "Category": "IC"
+    }
+  },
+  "required_fields_checked": [
+    "verification",
+    "datasheet_url",
+    "footprint",
+    "pinout",
+    "yt_link",
+    "source_video",
+    "verification_raw",
+    "part_number",
+    "part_name",
+    "device",
+    "confidence",
+    "timestamp_db",
+    "inventree_params"
+  ],
+  "notes": [
+    "save_result() in notebook writes both verification and verification_raw as dict, both equal to v_info",
+    "datasheet_url = part.get(\"datasheet_url\") or Google search fallback URL",
+    "When PDF downloaded successfully, datasheet_url is real PDF URL (e.g. ti.com/lit/ds/symlink/ne555.pdf)",
+    "When PDF download fails, datasheet_url falls back to google.com/search?q=...+datasheet+pdf",
+    "All notebook cells have null execution_count and empty outputs - clean for commit",
+    "verify_candidates.py cross_check_enrichment() reads verification.verified, verification.observed_text - compatible"
+  ]
+}

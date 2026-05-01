@@ -47,6 +47,7 @@
     "PROJEKTY/13_baza_czesci_recykling/execution_packs/pack-project13-benchmark-comparison-01/README.md",
     "PROJEKTY/13_baza_czesci_recykling/execution_packs/pack-project13-benchmark-comparison-01/RUNBOOK.md",
     "PROJEKTY/14_autonomiczne_projektowanie_3d_cad.md",
+    "PROJEKTY/18_automatyzacja_transportu_i_logistyki.md",
     ".github/ISSUE_TEMPLATE/nowy_straznik.md",
     ".github/ISSUE_TEMPLATE/pomysl_rozwiazanie.md",
     ".github/ISSUE_TEMPLATE/zastrzezenie_uwaga.md",
@@ -292,6 +293,11 @@
       "path": ".github/ISSUE_TEMPLATE/zastrzezenie_uwaga.md",
       "title": "Czego dotyczy uwaga",
       "category": "issue_template"
+    },
+    {
+      "path": "PROJEKTY/18_automatyzacja_transportu_i_logistyki.md",
+      "title": "18. Automatyzacja Transportu i Logistyki (Logistyka Sąsiedzka AI)",
+      "category": "document"
     }
   ],
   "quick_facts": [

@@ -1,0 +1,4 @@
+{"device_slug":"generic-old-satellite-receiver","part_slug":"lm7805-regulator","source_url":"","quantity":1,"designators":["U1"],"confidence":0.61,"stock_location":"","evidence_url":"","evidence_timecode":null}
+{"device_slug":"tp-link-tl-wr740n","part_slug":"resistor-100k-0805","source_url":"https://openwrt.org/toh/tp-link/tl-wr740n","quantity":10,"designators":["R12"],"confidence":0.52,"stock_location":"","evidence_url":"","evidence_timecode":null}
+{"device_slug":"sonoff-basic","part_slug":"esp8266ex","source_url":"https://tasmota.github.io/docs/devices/Sonoff-Basic/","quantity":1,"designators":["U1"],"confidence":0.95,"stock_location":"","evidence_url":"","evidence_timecode":null}
+{"device_slug":"arduino-uno-clone","part_slug":"atmega328p-pu","source_url":"","quantity":1,"designators":["U1"],"confidence":0.93,"stock_location":"","evidence_url":"","evidence_timecode":null}

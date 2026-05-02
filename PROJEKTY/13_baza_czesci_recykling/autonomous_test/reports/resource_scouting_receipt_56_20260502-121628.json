@@ -1,0 +1,50 @@
+{
+  "receipt_type": "resource_scouting_56",
+  "generated_at": "2026-05-02T12:16:28Z",
+  "summary": {
+    "total_records": 6,
+    "supply_signals": 5,
+    "demand_signals": 1,
+    "matches_total": 1,
+    "matches_priority": 1,
+    "matches_consider": 0,
+    "matches_weak": 0,
+    "categories": {
+      "materialy_i_konstrukcje": 1,
+      "agd": 1,
+      "inne": 2,
+      "elektronika": 2
+    },
+    "tiers": {
+      "tier1_free": 6
+    }
+  },
+  "top_matches": [
+    {
+      "match_id": "match-0001",
+      "supply_id": "olx-1070352670",
+      "demand_id": "olx-1068663942",
+      "supply_title": "Pieski szczeniaki",
+      "demand_title": "Kocurek o cudownym  charakterze do adopcji",
+      "supply_location": "Przedborowa",
+      "demand_location": "Ząbkowice Śląskie",
+      "distance_km": 7.8,
+      "keyword_overlap": 0,
+      "supply_tier": "tier1_free",
+      "match_score": 61.7,
+      "recommendation": "PRIORYTET",
+      "matched_at": "2026-05-02T12:16:28Z"
+    }
+  ],
+  "blockers": [
+    "Brak danych z zywych zrodel: OLX, Facebook, Allegro Lokalnie",
+    "Scrapowanie wymaga konta Kaggle z internetem i/lub sekretow API",
+    "Matching lokalizacyjny zalezy od jakosci danych GPS w ogloszeniach"
+  ],
+  "next_steps": [
+    "Uruchomic realny scrap OLX przez notebook na Kaggle z internetem ON",
+    "Dodac zrodlo Facebook Marketplace / grupy facebookowe",
+    "Zintegrowac wyniki scoutingu z D1 SQLite dla query endpointu bota Telegram",
+    "Dodac powiadomienia bota o nowych dopasowaniach priorytetowych"
+  ]
+}

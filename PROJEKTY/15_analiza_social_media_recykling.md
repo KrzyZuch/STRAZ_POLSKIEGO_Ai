@@ -39,3 +39,30 @@ Baza danych części tworzona przez bota będzie centralnym punktem odniesienia,
 - potencjal odzysku i reuse,
 - lokalizacje i koszty przejecia,
 - rekomendacje co warto aktywowac najpierw.
+
+## Status implementacji (2026-05-02)
+
+- **Silnik scoutingowy**: `PROJEKTY/13_baza_czesci_recykling/scripts/scout_resource_signals.py` (Zadanie 56, Portfel 14)
+- `categorize` — kategoryzacja sygnalow wg slow kluczowych (elektronika, AGD, narzedzia, materialy, transport)
+- `assess` — ocena potencjalu (tier1_free, tier2_cheap, demand_signal, tier3_review)
+- `match` — laczenie podazy z popytem z punktacja (keyword overlap + odleglosc + cena)
+- `export` — pelny eksport z receiptem
+- `ingest-olx-sql` — parsowanie OLX SQL dump do scout JSONL
+- `ingest-olx-jsonl` — parsowanie OLX JSONL export do scout JSONL
+- `ingest-manual` — ingestia recznych sygnalow (Facebook, grupy, community)
+- `ingest-pipeline` — pelny pipeline: ingest→categorize→assess→match→export (Zadanie 57)
+- **OLX bridge**: `PROJEKTY/13_baza_czesci_recykling/scripts/scout_ingest_olx.py` (Zadanie 57)
+- Samodzielny skrypt normalizujacy OLX SQL/JSONL do scout schema
+- Tryb `--auto` z deduplikacja i filtrowaniem non-resource (zwierzeta, adopcje)
+- Receipt z statystykami ingesti
+- **Szablony sygnalow manualnych**: `PROJEKTY/13_baza_czesci_recykling/scout_data/signals_manual/` (Zadanie 57)
+- `template_facebook_group.jsonl` — 5 przykladowych sygnalow z grup FB
+- `template_allegro_lokalnie.jsonl` — 3 przykladowe sygnaly Allegro
+- `template_community_post.jsonl` — 3 przykladowe posty spolecznosciowe
+- `README.md` — instrukcja uzupelniania
+- **Status zrodel danych**:
+- OLX: notebook `olx-oddam-za-darmo-scraper.ipynb` gotowy, wymaga runu na Kaggle z internetem ON; SQL dump z 6 realnymi ofertami dostepny
+- Facebook Marketplace / grupy: brak integracji, szablon manualny dostepny
+- Allegro Lokalnie: brak integracji, szablon manualny dostepny
+- **Wyniki pipeline (Zadanie 57)**: 24 records z 6 zrodel, 57 matches (26 PRIORYTET, 31 ROZWAZ)
+- **Blokery**: dostep do zywych API wymaga konta Kaggle + internetu; sekrety nie powinny trafiac do repo

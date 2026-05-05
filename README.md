@@ -48,6 +48,18 @@ Jeśli chcemy konstruktywnie i mądrze wykorzystać tę potężną siłę, autom
 
 Warto przy tym wyraźnie podkreślić: **celem samym w sobie nie jest budowanie kolejnego modelu AI**, lecz wypracowanie genialnych pomysłów na ich praktyczne wykorzystanie oraz wdrożenie procesów, które realnie odmienią naszą rzeczywistość gospodarczą. Intelektualna przewaga leży in *koncepcji zastosowania*, a nie w samym narzędziu.
 
+## Suwerenność Cyfrowa i Niepodległość Danych
+
+Informacja to potęga. Kto kontroluje dane, kontroluje przyszłość. Dlatego w ramach Narodowych Sił Intelektualnych walczymy o **Niepodległość Cyfrową Polski**. 
+
+Niestety jako społeczeństwo często nie mamy dostępu do baz danych zawierających kluczowe informacje o naszych własnych potrzebach i możliwościach — są one gromadzone i monetyzowane przez zagraniczne korporacje. Chcemy to zmienić:
+
+*   **Budujemy Polską Bazę Danych:** Tworzymy suwerenny zasób informacji, który będzie służyć polskiemu społeczeństwu, a nie zagranicznym interesom.
+*   **Twoje dane to nasza wspólna moc:** Chodzi o nasze dane, które tworzą bazę. To właśnie na ich podstawie sztuczna inteligencja może precyzyjnie analizować i rekomendować najlepsze rozwiązania dla każdego obywatela.
+*   **AI ma pracować dla Ciebie:** Zamiast tracić godziny na samodzielne poszukiwanie ofert i informacji — pozwól sztucznej inteligencji robić to za Ciebie. Dążymy do tego, aby technologia uwalniała ludzki potencjał, a nie stawała się kolejnym narzędziem kontroli.
+
+Wesprzyj budowę pierwszej cegiełki tego systemu — nasze narzędzia na Telegramie i Discordzie już działają i realnie służą społeczności.
+
 ## Osiągnięcia Straży Przyszłości (Realne wdrożenia)
 
 Nasze działania to nie tylko wizja, ale realnie działające narzędzia AI, które budują fundament pod suwerenną produkcję dóbr. Każdy skatalogowany element to krok w stronę autonomicznego przetwarzania elektrośmieci w zaawansowane urządzenia automatyzacji, które docelowo będą generować **Dochód Gwarantowany (UBI)**.

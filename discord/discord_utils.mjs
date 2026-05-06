@@ -42,17 +42,8 @@ export function buildActionRows(buttonsData) {
   return rows;
 }
 
-export function sanitizeDiscordMarkdown(text) {
-  return (text || "")
-    .replace(/\*\*(.+?)\*\*/g, "**$1**")
-    .replace(/\*(.+?)\*/g, "*$1*")
-    .replace(/__(.+?)__/g, "__$1__")
-    .replace(/`(.+?)`/g, "`$1`")
-    .replace(/```([\s\S]*?)```/g, "```$1```");
-}
-
 export async function sendDiscordReply(message, data) {
-  const content = sanitizeDiscordMarkdown(data.reply_text || "");
+  const content = data.reply_text || "";
   const components = buildActionRows(data.reply_markup?.buttons);
 
   if (content.length <= MAX_CONTENT_LENGTH) {
@@ -87,42 +78,4 @@ export async function sendDiscordReply(message, data) {
   }
 
   return reply;
-}
-
-export function buildMainMenuActionRows() {
-  const row1 = new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId("menu_scan")
-      .setLabel("Skanuj Urzadzenie")
-      .setStyle(ButtonStyle.Primary),
-    new ButtonBuilder()
-      .setCustomId("menu_datasheet")
-      .setLabel("Analiza Datasheet")
-      .setStyle(ButtonStyle.Primary),
-    new ButtonBuilder()
-      .setCustomId("menu_resistor")
-      .setLabel("Odczyt Rezystora")
-      .setStyle(ButtonStyle.Primary),
-    new ButtonBuilder()
-      .setCustomId("menu_search")
-      .setLabel("Szukaj w Katalogu")
-      .setStyle(ButtonStyle.Primary)
-  );
-
-  const row2 = new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId("menu_issue")
-      .setLabel("Zglos Pomysl")
-      .setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder()
-      .setCustomId("menu_onboarding")
-      .setLabel("Onboarding")
-      .setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder()
-      .setCustomId("menu_help")
-      .setLabel("Pomoc")
-      .setStyle(ButtonStyle.Secondary)
-  );
-
-  return [row1, row2];
 }

@@ -1,6 +1,6 @@
 import { Client, GatewayIntentBits, Events } from "discord.js";
 import http from "http";
-import { sendDiscordReply, buildMainMenuActionRows } from "./discord_utils.mjs";
+import { sendDiscordReply } from "./discord_utils.mjs";
 
 const WORKER_URL = process.env.WORKER_URL;
 const DISCORD_BOT_SECRET = process.env.DISCORD_BOT_SECRET;

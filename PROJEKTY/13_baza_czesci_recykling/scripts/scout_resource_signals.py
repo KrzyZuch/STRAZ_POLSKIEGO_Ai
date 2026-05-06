@@ -11,19 +11,19 @@ This script does NOT scrape any live source; it works on pre-scraped
 JSONL fixtures or data exported by Kaggle notebooks.
 
 Commands:
- ingest-olx-sql --sql <file> --output <jsonl> Parse OLX D1 SQL dump into scout JSONL
- ingest-olx-jsonl --jsonl <file> --output <jsonl> Parse OLX JSONL export into scout JSONL
- ingest-manual --source <jsonl> [--output <jsonl>] Ingest manual/social signals (validate + normalize)
- ingest-facebook --jsonl <file> --output <jsonl> Ingest Facebook group posts (JSONL export)
- ingest-facebook-text --text <file> --output <jsonl> Ingest Facebook group posts (text dump)
- ingest-allegro --jsonl <file> --output <jsonl> Ingest Allegro Lokalnie (JSONL export)
- ingest-allegro-text --html-lines <file> --output <jsonl> Ingest Allegro Lokalnie (HTML-lines dump)
- ingest-pipeline --source-dir <dir> [--output-dir <dir>] Pipeline: ingest→categorize→assess→match→export (OLX+manual)
- ingest-all --source-dir <dir> [--fb-dir <dir>] [--allegro-dir <dir>] Full multi-source pipeline (OLX+FB+Allegro+manual)
- categorize --source <jsonl> Tag each signal with category and subcategory
- assess --source <jsonl> Score potential value per signal
- match --supply <jsonl> --demand <jsonl> Pair supply with demand
- export --source <jsonl> Export full scouting report with receipt
+    ingest-olx-sql --sql <file> --output <jsonl> Parse OLX D1 SQL dump into scout JSONL
+    ingest-olx-jsonl --jsonl <file> --output <jsonl> Parse OLX JSONL export into scout JSONL
+    ingest-manual --source <jsonl> [--output <jsonl>] Ingest manual/social signals (validate + normalize)
+    ingest-facebook --jsonl <file> --output <jsonl> Ingest Facebook group posts (JSONL export)
+    ingest-facebook-text --text <file> --output <jsonl> Ingest Facebook group posts (text dump)
+    ingest-allegro --jsonl <file> --output <jsonl> Ingest Allegro Lokalnie (JSONL export)
+    ingest-allegro-text --html-lines <file> --output <jsonl> Ingest Allegro Lokalnie (HTML-lines dump)
+    ingest-pipeline --source-dir <dir> [--output-dir <dir>] Pipeline: ingest→categorize→assess→match→export (OLX+manual)
+    ingest-all --source-dir <dir> [--fb-dir <dir>] [--allegro-dir <dir>] Full multi-source pipeline (OLX+FB+Allegro+manual)
+    categorize --source <jsonl> Tag each signal with category and subcategory
+    assess --source <jsonl> Score potential value per signal
+    match --supply <jsonl> --demand <jsonl> Pair supply with demand
+    export --source <jsonl> Export full scouting report with receipt
 """
 
 from __future__ import annotations
@@ -707,139 +707,139 @@ def cmd_ingest_olx_jsonl(jsonl_path: Path, output: Path) -> None:
 
 
 def cmd_ingest_pipeline(source_dir: Path, output_dir: Path | None = None) -> dict[str, Any]:
-	print("=" * 60)
-	print("SCOUT INGEST PIPELINE (Zadanie 57)")
-	print("=" * 60)
-	output_dir = output_dir or REPORTS_DIR
-	output_dir.mkdir(parents=True, exist_ok=True)
-	ingested_path = output_dir / f"scout_ingested_{TODAY_STR}.jsonl"
+    print("=" * 60)
+    print("SCOUT INGEST PIPELINE (Zadanie 57)")
+    print("=" * 60)
+    output_dir = output_dir or REPORTS_DIR
+    output_dir.mkdir(parents=True, exist_ok=True)
+    ingested_path = output_dir / f"scout_ingested_{TODAY_STR}.jsonl"
 
-	all_records: list[dict[str, Any]] = []
-	seen_ids: set[str] = set()
-	ingest_sources: list[str] = []
+    all_records: list[dict[str, Any]] = []
+    seen_ids: set[str] = set()
+    ingest_sources: list[str] = []
 
-	sql_files = sorted(source_dir.glob("*.sql"))
-	for sql_path in sql_files:
-		print(f"\n[1/5] Ingest SQL: {sql_path.name}")
-		raw = parse_olx_sql_inserts(sql_path)
-		normalized = [normalize_olx_record(r) for r in raw]
-		for rec in normalized:
-			rid = rec.get("id", "")
-			if rid and rid not in seen_ids:
-				if not is_resource_offer(rec):
-					continue
-				seen_ids.add(rid)
-				all_records.append(rec)
-		ingest_sources.append(f"sql:{sql_path.name}:{len(normalized)}")
-		print(f" {len(raw)} raw → {len(normalized)} normalized")
+    sql_files = sorted(source_dir.glob("*.sql"))
+    for sql_path in sql_files:
+        print(f"\n[1/5] Ingest SQL: {sql_path.name}")
+        raw = parse_olx_sql_inserts(sql_path)
+        normalized = [normalize_olx_record(r) for r in raw]
+        for rec in normalized:
+            rid = rec.get("id", "")
+            if rid and rid not in seen_ids:
+                if not is_resource_offer(rec):
+                    continue
+                seen_ids.add(rid)
+                all_records.append(rec)
+        ingest_sources.append(f"sql:{sql_path.name}:{len(normalized)}")
+        print(f" {len(raw)} raw → {len(normalized)} normalized")
 
-	jsonl_files = sorted(source_dir.glob("*.jsonl"))
-	for jsonl_path in jsonl_files:
-		print(f"\n[1/5] Ingest JSONL: {jsonl_path.name}")
-		raw = read_jsonl(jsonl_path)
-		normalized = [normalize_olx_jsonl_record(r) for r in raw]
-		before = len(all_records)
-		for rec in normalized:
-			rid = rec.get("id", "")
-			if rid and rid not in seen_ids:
-				if not is_resource_offer(rec):
-					continue
-				seen_ids.add(rid)
-				all_records.append(rec)
-		added = len(all_records) - before
-		ingest_sources.append(f"jsonl:{jsonl_path.name}:{added}")
-		print(f" {len(raw)} raw → {added} new (deduped+filtered)")
+    jsonl_files = sorted(source_dir.glob("*.jsonl"))
+    for jsonl_path in jsonl_files:
+        print(f"\n[1/5] Ingest JSONL: {jsonl_path.name}")
+        raw = read_jsonl(jsonl_path)
+        normalized = [normalize_olx_jsonl_record(r) for r in raw]
+        before = len(all_records)
+        for rec in normalized:
+            rid = rec.get("id", "")
+            if rid and rid not in seen_ids:
+                if not is_resource_offer(rec):
+                    continue
+                seen_ids.add(rid)
+                all_records.append(rec)
+        added = len(all_records) - before
+        ingest_sources.append(f"jsonl:{jsonl_path.name}:{added}")
+        print(f" {len(raw)} raw → {added} new (deduped+filtered)")
 
-	manual_dir = source_dir.parent / "scout_data" / "signals_manual"
-	if manual_dir.exists():
-		for tmpl_path in sorted(manual_dir.glob("template_*.jsonl")):
-			print(f"\n[1/5] Ingest manual: {tmpl_path.name}")
-			raw = read_jsonl(tmpl_path)
-			normalized = [normalize_manual_record(r) for r in raw]
-			before = len(all_records)
-			for rec in normalized:
-				rid = rec.get("id", "")
-				if rid and rid not in seen_ids:
-					if not is_resource_offer(rec):
-						continue
-					seen_ids.add(rid)
-					all_records.append(rec)
-			added = len(all_records) - before
-			ingest_sources.append(f"manual:{tmpl_path.name}:{added}")
-			print(f" {len(raw)} raw → {added} new (deduped+filtered)")
+    manual_dir = source_dir.parent / "scout_data" / "signals_manual"
+    if manual_dir.exists():
+        for tmpl_path in sorted(manual_dir.glob("template_*.jsonl")):
+            print(f"\n[1/5] Ingest manual: {tmpl_path.name}")
+            raw = read_jsonl(tmpl_path)
+            normalized = [normalize_manual_record(r) for r in raw]
+            before = len(all_records)
+            for rec in normalized:
+                rid = rec.get("id", "")
+                if rid and rid not in seen_ids:
+                    if not is_resource_offer(rec):
+                        continue
+                    seen_ids.add(rid)
+                    all_records.append(rec)
+            added = len(all_records) - before
+            ingest_sources.append(f"manual:{tmpl_path.name}:{added}")
+            print(f" {len(raw)} raw → {added} new (deduped+filtered)")
 
-	write_jsonl(all_records, ingested_path)
-	print(f"\n[1/5] Ingest complete: {len(all_records)} records → {ingested_path}")
+    write_jsonl(all_records, ingested_path)
+    print(f"\n[1/5] Ingest complete: {len(all_records)} records → {ingested_path}")
 
-	print(f"\n[2/5] Categorize...")
-	categorized = [categorize_record(r) for r in all_records]
-	categories: dict[str, int] = {}
-	for r in categorized:
-		c = r.get("scout_category", "inne")
-		categories[c] = categories.get(c, 0) + 1
-	print(f" {len(categorized)} records → {len(categories)} categories")
-	for cat, cnt in sorted(categories.items()):
-		print(f" {cat}: {cnt}")
+    print(f"\n[2/5] Categorize...")
+    categorized = [categorize_record(r) for r in all_records]
+    categories: dict[str, int] = {}
+    for r in categorized:
+        c = r.get("scout_category", "inne")
+        categories[c] = categories.get(c, 0) + 1
+    print(f" {len(categorized)} records → {len(categories)} categories")
+    for cat, cnt in sorted(categories.items()):
+        print(f" {cat}: {cnt}")
 
-	print(f"\n[3/5] Assess...")
-	assessed = [assess_potential(r) for r in categorized]
-	supply = [r for r in assessed if r.get("scout_signal_type") == "supply"]
-	demand = [r for r in assessed if r.get("scout_signal_type") == "demand"]
-	tiers: dict[str, int] = {}
-	for r in assessed:
-		t = r.get("scout_tier", "?")
-		tiers[t] = tiers.get(t, 0) + 1
-	print(f" supply: {len(supply)}, demand: {len(demand)}")
-	for tier, cnt in sorted(tiers.items()):
-		print(f" {tier}: {cnt}")
+    print(f"\n[3/5] Assess...")
+    assessed = [assess_potential(r) for r in categorized]
+    supply = [r for r in assessed if r.get("scout_signal_type") == "supply"]
+    demand = [r for r in assessed if r.get("scout_signal_type") == "demand"]
+    tiers: dict[str, int] = {}
+    for r in assessed:
+        t = r.get("scout_tier", "?")
+        tiers[t] = tiers.get(t, 0) + 1
+    print(f" supply: {len(supply)}, demand: {len(demand)}")
+    for tier, cnt in sorted(tiers.items()):
+        print(f" {tier}: {cnt}")
 
-	print(f"\n[4/5] Match...")
-	matches = match_signals(supply, demand)
-	priorities = [m for m in matches if m["recommendation"] == "PRIORYTET"]
-	consider = [m for m in matches if m["recommendation"] == "ROZWAZ"]
-	weak = [m for m in matches if m["recommendation"] == "SLABY"]
-	print(f" {len(matches)} matches: PRIORYTET={len(priorities)}, ROZWAZ={len(consider)}, SLABY={len(weak)}")
+    print(f"\n[4/5] Match...")
+    matches = match_signals(supply, demand)
+    priorities = [m for m in matches if m["recommendation"] == "PRIORYTET"]
+    consider = [m for m in matches if m["recommendation"] == "ROZWAZ"]
+    weak = [m for m in matches if m["recommendation"] == "SLABY"]
+    print(f" {len(matches)} matches: PRIORYTET={len(priorities)}, ROZWAZ={len(consider)}, SLABY={len(weak)}")
 
-	print(f"\n[5/5] Export...")
-	receipt = {
-		"receipt_type": "resource_scouting_57_pipeline",
-		"generated_at": NOW_ISO,
-		"ingest_sources": ingest_sources,
-		"summary": {
-			"total_records": len(assessed),
-			"supply_signals": len(supply),
-			"demand_signals": len(demand),
-			"matches_total": len(matches),
-			"matches_priority": len(priorities),
-			"matches_consider": len(consider),
-			"matches_weak": len(weak),
-			"categories": categories,
-			"tiers": tiers,
-		},
-		"top_matches": matches[:10],
-		"blockers": [
-			"Dane OLX ograniczone do SQL dump + JSONL fixture (brak pelnego scrapa)",
-			"Facebook Marketplace / grupy: brak integracji (tylko szablony manual)",
-			"Allegro Lokalnie: brak integracji",
-			"Punktacja matchingu heurystyczna (30/30/25/15) — wymaga kalibracji na realnych danych",
-		],
-		"next_steps": [
-			"Uruchomic realny scrap OLX przez notebook na Kaggle z internetem ON",
-			"Uzupelnic szablony manualne realnymi sygnalami z grup Facebook",
-			"Podpiac wyniki pod bota Telegram (powiadomienia PRIORYTET)",
-			"Import scouting results to D1 SQLite for query endpoint",
-		],
-	}
-	receipt_path = output_dir / f"resource_scouting_receipt_57_{TODAY_STR}.json"
-	with open(receipt_path, "w", encoding="utf-8") as f:
-		json.dump(receipt, f, ensure_ascii=False, indent=2)
-	print(f" Receipt: {receipt_path}")
+    print(f"\n[5/5] Export...")
+    receipt = {
+        "receipt_type": "resource_scouting_57_pipeline",
+        "generated_at": NOW_ISO,
+        "ingest_sources": ingest_sources,
+        "summary": {
+            "total_records": len(assessed),
+            "supply_signals": len(supply),
+            "demand_signals": len(demand),
+            "matches_total": len(matches),
+            "matches_priority": len(priorities),
+            "matches_consider": len(consider),
+            "matches_weak": len(weak),
+            "categories": categories,
+            "tiers": tiers,
+        },
+        "top_matches": matches[:10],
+        "blockers": [
+            "Dane OLX ograniczone do SQL dump + JSONL fixture (brak pelnego scrapa)",
+            "Facebook Marketplace / grupy: brak integracji (tylko szablony manual)",
+            "Allegro Lokalnie: brak integracji",
+            "Punktacja matchingu heurystyczna (30/30/25/15) — wymaga kalibracji na realnych danych",
+        ],
+        "next_steps": [
+            "Uruchomic realny scrap OLX przez notebook na Kaggle z internetem ON",
+            "Uzupelnic szablony manualne realnymi sygnalami z grup Facebook",
+            "Podpiac wyniki pod bota Telegram (powiadomienia PRIORYTET)",
+            "Import scouting results to D1 SQLite for query endpoint",
+        ],
+    }
+    receipt_path = output_dir / f"resource_scouting_receipt_57_{TODAY_STR}.json"
+    with open(receipt_path, "w", encoding="utf-8") as f:
+        json.dump(receipt, f, ensure_ascii=False, indent=2)
+    print(f" Receipt: {receipt_path}")
 
-	assessed_path = output_dir / f"scout_assessed_57_{TODAY_STR}.jsonl"
-	write_jsonl(assessed, assessed_path)
-	print(f" Assessed: {assessed_path}")
+    assessed_path = output_dir / f"scout_assessed_57_{TODAY_STR}.jsonl"
+    write_jsonl(assessed, assessed_path)
+    print(f" Assessed: {assessed_path}")
 
-	matches_path = output_dir / f"scout_matches_57_{TODAY_STR}.jsonl"
+    matches_path = output_dir / f"scout_matches_57_{TODAY_STR}.jsonl"
     write_jsonl(matches, matches_path)
     print(f"  Matches: {matches_path}")
     
@@ -1270,33 +1270,33 @@ def main() -> None:
     ing_jsonl_p.add_argument("--jsonl", type=Path, required=True)
     ing_jsonl_p.add_argument("--output", type=Path, required=True)
 
- pipe_p = sub.add_parser("ingest-pipeline", help="Pelny pipeline: ingest→categorize→assess→match→export")
- pipe_p.add_argument("--source-dir", type=Path, required=True)
- pipe_p.add_argument("--output-dir", type=Path)
+    pipe_p = sub.add_parser("ingest-pipeline", help="Pelny pipeline: ingest→categorize→assess→match→export")
+    pipe_p.add_argument("--source-dir", type=Path, required=True)
+    pipe_p.add_argument("--output-dir", type=Path)
 
- ing_fb_p = sub.add_parser("ingest-facebook", help="Ingest Facebook group posts (JSONL export)")
- ing_fb_p.add_argument("--jsonl", type=Path, required=True)
- ing_fb_p.add_argument("--output", type=Path, required=True)
+    ing_fb_p = sub.add_parser("ingest-facebook", help="Ingest Facebook group posts (JSONL export)")
+    ing_fb_p.add_argument("--jsonl", type=Path, required=True)
+    ing_fb_p.add_argument("--output", type=Path, required=True)
 
- ing_fb_txt_p = sub.add_parser("ingest-facebook-text", help="Ingest Facebook group posts (text dump)")
- ing_fb_txt_p.add_argument("--text", type=Path, required=True)
- ing_fb_txt_p.add_argument("--output", type=Path, required=True)
+    ing_fb_txt_p = sub.add_parser("ingest-facebook-text", help="Ingest Facebook group posts (text dump)")
+    ing_fb_txt_p.add_argument("--text", type=Path, required=True)
+    ing_fb_txt_p.add_argument("--output", type=Path, required=True)
 
- ing_al_p = sub.add_parser("ingest-allegro", help="Ingest Allegro Lokalnie (JSONL export)")
- ing_al_p.add_argument("--jsonl", type=Path, required=True)
- ing_al_p.add_argument("--output", type=Path, required=True)
+    ing_al_p = sub.add_parser("ingest-allegro", help="Ingest Allegro Lokalnie (JSONL export)")
+    ing_al_p.add_argument("--jsonl", type=Path, required=True)
+    ing_al_p.add_argument("--output", type=Path, required=True)
 
- ing_al_txt_p = sub.add_parser("ingest-allegro-text", help="Ingest Allegro Lokalnie (HTML-lines dump)")
- ing_al_txt_p.add_argument("--html-lines", type=Path, required=True)
- ing_al_txt_p.add_argument("--output", type=Path, required=True)
+    ing_al_txt_p = sub.add_parser("ingest-allegro-text", help="Ingest Allegro Lokalnie (HTML-lines dump)")
+    ing_al_txt_p.add_argument("--html-lines", type=Path, required=True)
+    ing_al_txt_p.add_argument("--output", type=Path, required=True)
 
- all_p = sub.add_parser("ingest-all", help="Full multi-source pipeline: OLX+FB+Allegro+manual")
- all_p.add_argument("--source-dir", type=Path, required=True)
- all_p.add_argument("--fb-dir", type=Path)
- all_p.add_argument("--allegro-dir", type=Path)
- all_p.add_argument("--output-dir", type=Path)
+    all_p = sub.add_parser("ingest-all", help="Full multi-source pipeline: OLX+FB+Allegro+manual")
+    all_p.add_argument("--source-dir", type=Path, required=True)
+    all_p.add_argument("--fb-dir", type=Path)
+    all_p.add_argument("--allegro-dir", type=Path)
+    all_p.add_argument("--output-dir", type=Path)
 
- cat_p = sub.add_parser("categorize", help="Kategoryzuj sygnały wg słów kluczowych")
+    cat_p = sub.add_parser("categorize", help="Kategoryzuj sygnały wg słów kluczowych")
     cat_p.add_argument("--source", type=Path, default=FIXTURE_DIR / "olx_offers_export.jsonl")
     cat_p.add_argument("--output", type=Path)
 
@@ -1321,19 +1321,19 @@ def main() -> None:
         cmd_ingest_manual(args.source, args.output)
     elif args.command == "ingest-olx-jsonl":
         cmd_ingest_olx_jsonl(args.jsonl, args.output)
- elif args.command == "ingest-pipeline":
- cmd_ingest_pipeline(args.source_dir, args.output_dir)
- elif args.command == "ingest-facebook":
- cmd_ingest_facebook(args.jsonl, args.output)
- elif args.command == "ingest-facebook-text":
- cmd_ingest_facebook_text(args.text, args.output)
- elif args.command == "ingest-allegro":
- cmd_ingest_allegro(args.jsonl, args.output)
- elif args.command == "ingest-allegro-text":
- cmd_ingest_allegro_text(args.html_lines, args.output)
- elif args.command == "ingest-all":
- cmd_ingest_all(args.source_dir, args.fb_dir, args.allegro_dir, args.output_dir)
- elif args.command == "categorize":
+    elif args.command == "ingest-pipeline":
+        cmd_ingest_pipeline(args.source_dir, args.output_dir)
+    elif args.command == "ingest-facebook":
+        cmd_ingest_facebook(args.jsonl, args.output)
+    elif args.command == "ingest-facebook-text":
+        cmd_ingest_facebook_text(args.text, args.output)
+    elif args.command == "ingest-allegro":
+        cmd_ingest_allegro(args.jsonl, args.output)
+    elif args.command == "ingest-allegro-text":
+        cmd_ingest_allegro_text(args.html_lines, args.output)
+    elif args.command == "ingest-all":
+        cmd_ingest_all(args.source_dir, args.fb_dir, args.allegro_dir, args.output_dir)
+    elif args.command == "categorize":
         cmd_categorize(args.source, args.output)
     elif args.command == "assess":
         cmd_assess(args.source, args.output)

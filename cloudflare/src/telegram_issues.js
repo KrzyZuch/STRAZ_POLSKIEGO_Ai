@@ -289,7 +289,8 @@ async function ensureTelegramThrottleSchema(db) {
       last_accepted_at TEXT NOT NULL,
       last_message_id TEXT,
       last_update_id TEXT,
-      message_count INTEGER NOT NULL DEFAULT 0
+      message_count INTEGER NOT NULL DEFAULT 0,
+      platform TEXT NOT NULL DEFAULT 'telegram'
     )
     `
   ).run();

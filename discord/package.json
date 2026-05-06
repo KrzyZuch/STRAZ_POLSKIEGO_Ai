@@ -1,0 +1,13 @@
+{
+  "type": "module",
+  "name": "straz-przyszlosci-discord",
+  "version": "1.0.0",
+  "description": "Discord bot for Straz Przyszlosci — cienki gateway do Cloudflare Worker",
+  "main": "discord_bot.mjs",
+  "scripts": {
+    "start": "node discord_bot.mjs"
+  },
+  "dependencies": {
+    "discord.js": "^14.18.0"
+  }
+}

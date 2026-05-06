@@ -7,6 +7,7 @@ import {
   handleTelegramWebhook,
   isTelegramWebhookRequest,
 } from "./telegram_issues.js";
+import { handleDiscordWebhook } from "./discord_api_handler.js";
 
 class AuthError extends Error { }
 class ConflictError extends Error { }
@@ -21,7 +22,7 @@ function jsonResponse(payload, status = 200) {
       "access-control-allow-origin": "*",
       "access-control-allow-methods": "GET,POST,OPTIONS",
       "access-control-allow-headers":
-        "content-type,x-provider-token,x-hub-signature-256,x-telegram-bot-api-secret-token",
+        "content-type,x-provider-token,x-hub-signature-256,x-telegram-bot-api-secret-token,x-discord-bot-secret",
     },
   });
 }
@@ -434,6 +435,14 @@ export default {
 
       if (request.method === "POST" && url.pathname === "/integrations/whatsapp/webhook") {
         return await handleWhatsAppWebhook(request, env);
+      }
+
+      if (request.method === "POST" && url.pathname === "/integrations/discord/webhook") {
+        return await handleDiscordWebhook(request, env);
+      }
+
+      if (request.method === "GET" && url.pathname === "/health") {
+        return jsonResponse({ status: "ok" }, 200);
       }
 
       const deploymentEnvironment = env.DEPLOYMENT_ENVIRONMENT || null;

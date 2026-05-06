@@ -1334,7 +1334,8 @@ async function ensureTelegramAiSchema(db) {
       role TEXT NOT NULL,
       intent TEXT NOT NULL,
       message_text TEXT NOT NULL,
-      created_at TEXT NOT NULL
+      created_at TEXT NOT NULL,
+      platform TEXT NOT NULL DEFAULT 'telegram'
     )
     `
   ).run();
@@ -1346,7 +1347,8 @@ async function ensureTelegramAiSchema(db) {
       bucket_name TEXT NOT NULL,
       window_started_at TEXT NOT NULL,
       request_count INTEGER NOT NULL DEFAULT 0,
-      last_request_at TEXT NOT NULL
+      last_request_at TEXT NOT NULL,
+      platform TEXT NOT NULL DEFAULT 'telegram'
     )
     `
   ).run();
@@ -1365,10 +1367,16 @@ async function ensureTelegramAiSchema(db) {
       reason_text TEXT NOT NULL,
       provider_name TEXT,
       model_name TEXT,
-      created_at TEXT NOT NULL
+      created_at TEXT NOT NULL,
+      platform TEXT NOT NULL DEFAULT 'telegram'
     )
     `
   ).run();
+
+  await ensureColumn(db, "telegram_chat_messages", "platform", "platform TEXT NOT NULL DEFAULT 'telegram'");
+  await ensureColumn(db, "telegram_chat_limits", "platform", "platform TEXT NOT NULL DEFAULT 'telegram'");
+  await ensureColumn(db, "telegram_issue_moderation_audit", "platform", "platform TEXT NOT NULL DEFAULT 'telegram'");
+  await ensureColumn(db, "telegram_issue_throttle", "platform", "platform TEXT NOT NULL DEFAULT 'telegram'");
 }
 
 function getChatKey(message) {
@@ -1381,7 +1389,7 @@ function getChatKey(message) {
   return `user:${message.user_id || "unknown"}`;
 }
 
-export async function checkTelegramChatRateLimit(env, message) {
+export async function checkTelegramChatRateLimit(env, message, platform = "telegram") {
   const db = env.DB;
   if (!db) {
     return { allowed: true, reason: "no_db" };
@@ -1453,8 +1461,9 @@ export async function checkTelegramChatRateLimit(env, message) {
         bucket_name,
         window_started_at,
         request_count,
-        last_request_at
-      ) VALUES (?, ?, ?, ?, ?)
+        last_request_at,
+        platform
+      ) VALUES (?, ?, ?, ?, ?, ?)
       ON CONFLICT(limit_key) DO UPDATE SET
         bucket_name = excluded.bucket_name,
         window_started_at = excluded.window_started_at,
@@ -1466,7 +1475,8 @@ export async function checkTelegramChatRateLimit(env, message) {
       state.bucketName,
       state.windowStartedAt,
       state.nextCount,
-      nowIso
+      nowIso,
+      platform
     ).run();
   }
 
@@ -1489,7 +1499,7 @@ async function cleanupChatHistory(env, chatKey) {
   ).bind(chatKey, cutoff).run();
 }
 
-export async function loadTelegramChatHistory(env, message) {
+export async function loadTelegramChatHistory(env, message, platform = "telegram") {
   const db = env.DB;
   if (!db) {
     return [];
@@ -1503,16 +1513,16 @@ export async function loadTelegramChatHistory(env, message) {
     `
     SELECT role, intent, message_text, created_at
     FROM telegram_chat_messages
-    WHERE chat_key = ?
+    WHERE chat_key = ? AND platform = ?
     ORDER BY id DESC
     LIMIT ?
     `
-  ).bind(chatKey, limit).all();
+  ).bind(chatKey, platform, limit).all();
 
   return (rows?.results || []).reverse();
 }
 
-export async function saveTelegramConversation(env, message, intent, userText, assistantText) {
+export async function saveTelegramConversation(env, message, intent, userText, assistantText, platform = "telegram") {
   const db = env.DB;
   if (!db) {
     return;
@@ -1536,8 +1546,9 @@ export async function saveTelegramConversation(env, message, intent, userText, a
         role,
         intent,
         message_text,
-        created_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        created_at,
+        platform
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `
     ).bind(
       chatKey,
@@ -1546,12 +1557,13 @@ export async function saveTelegramConversation(env, message, intent, userText, a
       entry.role,
       intent,
       entry.text,
-      createdAt
+      createdAt,
+      platform
     ).run();
   }
 }
 
-export async function clearTelegramChatHistory(env, message) {
+export async function clearTelegramChatHistory(env, message, platform = "telegram") {
   const db = env.DB;
   if (!db) {
     return false;
@@ -1561,13 +1573,13 @@ export async function clearTelegramChatHistory(env, message) {
   await db.prepare(
     `
     DELETE FROM telegram_chat_messages
-    WHERE chat_key = ?
+    WHERE chat_key = ? AND platform = ?
     `
-  ).bind(getChatKey(message)).run();
+  ).bind(getChatKey(message), platform).run();
   return true;
 }
 
-export async function recordIssueModerationAudit(env, record) {
+export async function recordIssueModerationAudit(env, record, platform = "telegram") {
   const db = env.DB;
   if (!db) {
     return;
@@ -1587,8 +1599,9 @@ export async function recordIssueModerationAudit(env, record) {
       reason_text,
       provider_name,
       model_name,
-      created_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      created_at,
+      platform
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `
   ).bind(
     record.chat_id || null,
@@ -1601,7 +1614,8 @@ export async function recordIssueModerationAudit(env, record) {
     record.reason_text || "Brak powodu.",
     record.provider_name || null,
     record.model_name || null,
-    toIsoNow()
+    toIsoNow(),
+    platform
   ).run();
 }
 
@@ -2394,11 +2408,14 @@ async function ensureRecycledKnowledgeSchema(db) {
         status TEXT NOT NULL DEFAULT 'active',
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
+        platform TEXT NOT NULL DEFAULT 'telegram',
         UNIQUE(chat_id, user_id, session_type),
         FOREIGN KEY (active_device_id) REFERENCES recycled_devices(id) ON DELETE SET NULL
     )
     `
   ).run();
+
+  await ensureColumn(db, "telegram_user_sessions", "platform", "platform TEXT NOT NULL DEFAULT 'telegram'");
 
   await db.prepare(
     `CREATE INDEX IF NOT EXISTS idx_recycled_parts_device_id ON recycled_parts(device_id)`
@@ -3529,7 +3546,7 @@ export async function recordRecycledSubmission(env, payload) {
   return newId;
 }
 
-export async function upsertUserSession(env, chat_id, user_id, session_type, device_id = null, device_name = null) {
+export async function upsertUserSession(env, chat_id, user_id, session_type, device_id = null, device_name = null, platform = "telegram") {
   const db = env.DB;
   if (!db) {
     return;
@@ -3537,47 +3554,47 @@ export async function upsertUserSession(env, chat_id, user_id, session_type, dev
   const now = toIsoNow();
   await db.prepare(
     `
-    INSERT INTO telegram_user_sessions (chat_id, user_id, session_type, active_device_id, active_device_name, status, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, 'active', ?, ?)
+    INSERT INTO telegram_user_sessions (chat_id, user_id, session_type, active_device_id, active_device_name, status, created_at, updated_at, platform)
+    VALUES (?, ?, ?, ?, ?, 'active', ?, ?, ?)
     ON CONFLICT(chat_id, user_id, session_type) DO UPDATE SET
       active_device_id = EXCLUDED.active_device_id,
       active_device_name = EXCLUDED.active_device_name,
       status = 'active',
       updated_at = EXCLUDED.updated_at
     `
-  ).bind(chat_id, user_id, session_type, device_id, device_name, now, now).run();
+  ).bind(chat_id, user_id, session_type, device_id, device_name, now, now, platform).run();
 }
 
-export async function getUserSession(env, chat_id, user_id, session_type) {
+export async function getUserSession(env, chat_id, user_id, session_type, platform = "telegram") {
   const db = env.DB;
   if (!db) {
     return null;
   }
   return await db.prepare(
-    `SELECT * FROM telegram_user_sessions WHERE chat_id = ? AND user_id = ? AND session_type = ? AND status = 'active' AND updated_at > datetime('now', '-4 hours')`
-  ).bind(chat_id, user_id, session_type).first();
+    `SELECT * FROM telegram_user_sessions WHERE chat_id = ? AND user_id = ? AND session_type = ? AND platform = ? AND status = 'active' AND updated_at > datetime('now', '-4 hours')`
+  ).bind(chat_id, user_id, session_type, platform).first();
 }
 
-export async function closeUserSession(env, chat_id, user_id, session_type) {
+export async function closeUserSession(env, chat_id, user_id, session_type, platform = "telegram") {
   const db = env.DB;
   if (!db) {
     return;
   }
   const now = toIsoNow();
   await db.prepare(
-    `UPDATE telegram_user_sessions SET status = 'closed', updated_at = ? WHERE chat_id = ? AND user_id = ? AND session_type = ?`
-  ).bind(now, chat_id, user_id, session_type).run();
+    `UPDATE telegram_user_sessions SET status = 'closed', updated_at = ? WHERE chat_id = ? AND user_id = ? AND session_type = ? AND platform = ?`
+  ).bind(now, chat_id, user_id, session_type, platform).run();
 }
 
-export async function closeAllUserSessions(env, chat_id, user_id) {
+export async function closeAllUserSessions(env, chat_id, user_id, platform = "telegram") {
   const db = env.DB;
   if (!db) {
     return;
   }
   const now = toIsoNow();
   await db.prepare(
-    `UPDATE telegram_user_sessions SET status = 'closed', updated_at = ? WHERE chat_id = ? AND user_id = ?`
-  ).bind(now, chat_id, user_id).run();
+    `UPDATE telegram_user_sessions SET status = 'closed', updated_at = ? WHERE chat_id = ? AND user_id = ? AND platform = ?`
+  ).bind(now, chat_id, user_id, platform).run();
 }
 
 export async function getDeviceById(env, deviceId) {
